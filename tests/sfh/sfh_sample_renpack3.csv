@@ -1,0 +1,7 @@
+﻿building_id,building type,surface type,surface name,total surface,u-value,orientation,SHGC,number of floors,compactness,volume,gross floor area,heated GFA,qgis specific HD
+5475573,SFH1,opaque,roof,272.09,0.2,,,4,0.623345147,1399.3,436,350,91.45794286
+5475573,SFH1,opaque,wall,432.7,0.35,,,4,0.623345147,1399.3,436,350,91.45794286
+5475573,SFH1,ground contact,floor,167.41,0.4,,,4,0.623345147,1399.3,436,350,91.45794286
+5475573,SFH1,opaque,door,1.8,1.7,,,4,0.623345147,1399.3,436,350,91.45794286
+5475573,SFH1,transparent,window1,6.813974751,1.4,south,0.65,4,0.623345147,1399.3,436,350,91.45794286
+5475573,SFH1,transparent,window2,13.68418425,1.4,north,0.65,4,0.623345147,1399.3,436,350,91.45794286
