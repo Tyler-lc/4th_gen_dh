@@ -157,7 +157,7 @@ class Building:
         self.opaque_losses = self.compute_losses(
             self.opaque_surfaces, outside_temp, inside_temp
         )
-
+# TODO: we want to change the data input structure.
     def transmission_losses_transparent(
         self, outside_temp=None, inside_temp=20, temp_col_index=0
     ):
@@ -445,9 +445,9 @@ if __name__ == "__main__":
     print(f"SFH renpack3 Specific HD = {building_renovated.get_total_useful_energy_demand()}")
 
     # for reference this was the initial result
-    #     SFH unrenovated Specific HD = Total Useful Energy Demand [kWh]    113719.617266
+    #     SFH unrenovated Specific HD = Total Useful Energy Demand [kWh]    100452.379147
     # dtype: float64
-    # SFH renpack3 Specific HD = Total Useful Energy Demand [kWh]    53067.648772
+    # SFH renpack3 Specific HD = Total Useful Energy Demand [kWh]    32857.385152
 
     # now testing on MFH_large buildings
     #setting up directories and files with test data
@@ -471,9 +471,9 @@ if __name__ == "__main__":
     print(f"MFH Large renpack3 Specific HD = {mfh_large_renpack3.get_total_useful_energy_demand()}")
 
     # for reference this was the previous result 
-    # MFH Large unrenovated Specific HD = Total Useful Energy Demand [kWh]    1.009091e+06
+    # MFH Large unrenovated Specific HD = Total Useful Energy Demand [kWh]    588576.661496
     # dtype: float64
-    # MFH Large renpack3 Specific HD = Total Useful Energy Demand [kWh]    749838.243554
+    # MFH Large renpack3 Specific HD = Total Useful Energy Demand [kWh]    259179.226384
     # dtype: float64
 
     profiler.stop()
