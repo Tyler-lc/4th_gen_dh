@@ -185,10 +185,6 @@ class Building:
         """by default the soil temperature is the temperature passed when creating the Building instance
         Also the inside temperature is by default 20 °C constant. It is possible to also pass a list
         """
-        # TODO: the soil temperature needs to have also the time index like everything else. Otherwise
-        # it will not call "is_summer" correctly. It should be a pandas Series with the same index as the
-        # outside_temperature
-
 
 
         if soil_temp is None:
@@ -416,83 +412,84 @@ if __name__ == "__main__":
     irradiation_path = "../Irradiation_Data/irradiation_data.csv"
     irradiation = pd.read_csv(irradiation_path)
 
-    profiler = Profiler()
-    profiler.start()
+    # profiler = Profiler()
+    # profiler.start()
 
-    # test for unrenovated SFH building
-    path_unrenovated = "../tests/sfh/sfh_sample.csv"
-    components_df_unrenovated = pd.read_csv(path_unrenovated)
-    building_unrenovated = Building("name", "SFH1", components_df_unrenovated, weather, irradiation)
-    # building1.global_transmission_coeff()
-    # building1.transmission_losses_opaque()
-    # building1.transmission_losses_transparent()
-    # building1.transmission_losses_ground()
-    # building1.total_specific_losses()
-    # building1.all_transmission_losses()
-    # building1.sol_gain()
-    # building1.vent_loss()
-    building_unrenovated.thermal_balance()
+    # # test for unrenovated SFH building
+    # path_unrenovated = "../tests/sfh/sfh_sample.csv"
+    # components_df_unrenovated = pd.read_csv(path_unrenovated)
+    # building_unrenovated = Building("name", "SFH1", components_df_unrenovated, weather, irradiation)
+    # building_unrenovated.thermal_balance()
 
 
-    # test for renovated SFH building
-    path_renovated = "../tests/sfh/sfh_sample_renpack3.csv"
-    components_df_renpack3 = pd.read_csv(path_renovated)
-    building_renovated = Building("building_renpack3", "SFH1", components_df_renpack3, weather, irradiation)
-    building_renovated.thermal_balance()
+    # # test for renovated SFH building
+    # path_renovated = "../tests/sfh/sfh_sample_renpack3.csv"
+    # components_df_renpack3 = pd.read_csv(path_renovated)
+    # building_renovated = Building("building_renpack3", "SFH1", components_df_renpack3, weather, irradiation)
+    # building_renovated.thermal_balance()
 
-    #print results
-    print(f"SFH unrenovated Specific HD = {building_unrenovated.get_total_useful_energy_demand()}")
-    print(f"SFH renpack3 Specific HD = {building_renovated.get_total_useful_energy_demand()}")
+    # #print results
+    # print(f"SFH unrenovated Specific HD = {building_unrenovated.get_total_useful_energy_demand()}")
+    # print(f"SFH renpack3 Specific HD = {building_renovated.get_total_useful_energy_demand()}")
 
-    # for reference this was the initial result
-    #     SFH unrenovated Specific HD = Total Useful Energy Demand [kWh]    100452.379147
-    # dtype: float64
-    # SFH renpack3 Specific HD = Total Useful Energy Demand [kWh]    32857.385152
+    # # for reference this was the initial result
+    # #     SFH unrenovated Specific HD = Total Useful Energy Demand [kWh]    100452.379147
+    # # dtype: float64
+    # # SFH renpack3 Specific HD = Total Useful Energy Demand [kWh]    32857.385152
 
-    # now testing on MFH_large buildings
-    #setting up directories and files with test data
-    path_mfh_large_unrenovated = "../tests/mfh_large/mfh_large_unrenovated.csv"
-    path_mfh_large_renpack3 = "../tests/mfh_large/mfh_large_renpack3.csv"
+    # # now testing on MFH_large buildings
+    # #setting up directories and files with test data
+    # path_mfh_large_unrenovated = "../tests/mfh_large/mfh_large_unrenovated.csv"
+    # path_mfh_large_renpack3 = "../tests/mfh_large/mfh_large_renpack3.csv"
 
-    # reading the data to create components dataframes
-    components_mfh_large_unrenovated = pd.read_csv(path_mfh_large_unrenovated)
-    components_mfh_large_renpack3 = pd.read_csv(path_mfh_large_renpack3)
+    # # reading the data to create components dataframes
+    # components_mfh_large_unrenovated = pd.read_csv(path_mfh_large_unrenovated)
+    # components_mfh_large_renpack3 = pd.read_csv(path_mfh_large_renpack3)
 
-    # creating the building instances
-    mfh_large_unrenovated = Building("mfh_large_unrenovated", "MFH_LARGE1", components_mfh_large_unrenovated, weather, irradiation)
-    mfh_large_renpack3 = Building("mfh_large_renpack3", "MFH_LARGE1", components_mfh_large_renpack3, weather, irradiation)
+    # # creating the building instances
+    # mfh_large_unrenovated = Building("mfh_large_unrenovated", "MFH_LARGE1", components_mfh_large_unrenovated, weather, irradiation)
+    # mfh_large_renpack3 = Building("mfh_large_renpack3", "MFH_LARGE1", components_mfh_large_renpack3, weather, irradiation)
 
-    # calculate the total useful heat demand for both buildings:
-    mfh_large_unrenovated.thermal_balance()
-    mfh_large_renpack3.thermal_balance()
+    # # calculate the total useful heat demand for both buildings:
+    # mfh_large_unrenovated.thermal_balance()
+    # mfh_large_renpack3.thermal_balance()
 
-    #print the results 
-    print(f"MFH Large unrenovated Specific HD = {mfh_large_unrenovated.get_total_useful_energy_demand()}")
-    print(f"MFH Large renpack3 Specific HD = {mfh_large_renpack3.get_total_useful_energy_demand()}")
+    # #print the results 
+    # print(f"MFH Large unrenovated Specific HD = {mfh_large_unrenovated.get_total_useful_energy_demand()}")
+    # print(f"MFH Large renpack3 Specific HD = {mfh_large_renpack3.get_total_useful_energy_demand()}")
 
-    # for reference this was the previous result 
-    # MFH Large unrenovated Specific HD = Total Useful Energy Demand [kWh]    588576.661496
-    # dtype: float64
-    # MFH Large renpack3 Specific HD = Total Useful Energy Demand [kWh]    259179.226384
-    # dtype: float64
+    # # for reference this was the previous result 
+    # # MFH Large unrenovated Specific HD = Total Useful Energy Demand [kWh]    588576.661496
+    # # dtype: float64
+    # # MFH Large renpack3 Specific HD = Total Useful Energy Demand [kWh]    259179.226384
+    # # dtype: float64
 
-    profiler.stop()
-    output = profiler.output_text(unicode=True, color=True)
-    filtered_output = "\n".join(line for line in output.split("\n") if "pandas" not in line)
+    # profiler.stop()
+    # output = profiler.output_text(unicode=True, color=True)
+    # filtered_output = "\n".join(line for line in output.split("\n") if "pandas" not in line)
 
-    b1_opaque_loss = mfh_large_renpack3.opaque_losses
-    b1_ground_contact_loss = mfh_large_renpack3.ground_losses
-    b1_transparent_losses = mfh_large_renpack3.transparent_losses
-    b1_ventilation_losses = mfh_large_renpack3.ventilation_losses
-    b1_solar_gain = mfh_large_renpack3.solar_gain
-    b1_wall_losses = b1_opaque_loss.sum().loc["wall"]
-    b1_roof_losses = b1_opaque_loss.sum().loc["roof"]
+    # b1_opaque_loss = mfh_large_renpack3.opaque_losses
+    # b1_ground_contact_loss = mfh_large_renpack3.ground_losses
+    # b1_transparent_losses = mfh_large_renpack3.transparent_losses
+    # b1_ventilation_losses = mfh_large_renpack3.ventilation_losses
+    # b1_solar_gain = mfh_large_renpack3.solar_gain
+    # b1_wall_losses = b1_opaque_loss.sum().loc["wall"]
+    # b1_roof_losses = b1_opaque_loss.sum().loc["roof"]
 
 
-    # self.opaque_losses.sum(axis=1)
+    # # self.opaque_losses.sum(axis=1)
     #         + self.transparent_losses.sum(axis=1)
     #         + self.ground_losses.sum(axis=1)
     #         + self.ventilation_losses.sum(axis=1)
 
-    print(filtered_output)
-    
+    # print(filtered_output)
+    import sys
+    import os
+
+    # Ensure the parent directory is in the Python path
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+    from Databases.mysql_utils.mysql_utils import create_connection, fetch_data
+
+    # Your Building class and the rest of the code here
+    data = fetch_data(1)

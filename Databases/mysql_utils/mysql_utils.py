@@ -1,23 +1,54 @@
+from sqlalchemy import create_engine
+import pandas as pd
 import mysql.connector
-import sys
-import os
-import json
-
-    
+from mysql.connector import Error
+from urllib.parse import quote_plus
 
 def create_connection():
     try:
         connection = mysql.connector.connect(
             host='localhost',
             user='DH_project',
-            password='H*5mGq@4cSUWDFYKrix9'
+            password='H*5mGq@4cSUWDFYKrix9',
+            database='building_stock'  # Default database
         )
         if connection.is_connected():
-            print("Connected to MySQL server")
+            print("Successfully connected to MySQL")
         return connection
     except Error as e:
         print(f"Error: {e}")
         return None
+
+def fetch_data(building_id, db_name: str = 'building_stock'):
+    query = f"SELECT * FROM buildings WHERE building_id = {building_id}"
+    connection = create_connection()
+    if connection is None:
+        return None
+
+    user = 'DH_project'
+    password = 'H*5mGq@4cSUWDFYKrix9'
+    host = 'localhost'
+    database = db_name
+
+    
+    try:
+        # Ensure the password is correctly encoded in the URL
+        password_quoted = quote_plus(password)
+
+        # Create SQLAlchemy engine with properly formatted connection string
+        engine = create_engine(f'mysql+mysqlconnector://{user}:{password_quoted}@{host}/{database}')
+        
+        # Read SQL query into a DataFrame
+        df = pd.read_sql(query, engine)
+        return df
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+    finally:
+        if connection.is_connected():
+            connection.close()
+
+
 
 def create_database(connection, database_name):
     try:
@@ -27,6 +58,7 @@ def create_database(connection, database_name):
         print(f"Database {database_name} created or already exists.")
     except Error as e:
         print(f"Error: {e}")
+
 
 def create_table(connection):
     try:
@@ -74,41 +106,11 @@ def insert_data(connection, data):
     except Error as e:
         print(f"Error: {e}")
 
-# Example data
-data = {
-    'building_id': 1,
-    'building_type': 'SFH1',
-    'n_floors': 4,
-    'compactness': 0.623345147,
-    'volume': 1399.3,
-    'gfa': 436,
-    'heated_gfa': 350,
-    'qgis_specific_HD': 91.45794286,
-    'roof_area': 272.09,
-    'roof_u_value': 1.017676347,
-    'walls_area': 432.7,
-    'walls_u_value': 1.418322947,
-    'ground_contact_area': 167.41,
-    'ground_contact_u_value': 1.128287911,
-    'door_area': 1.8,
-    'door_u_value': 2.490652577,
-    'windows': json.dumps({
-        'north': {'area': 0, 'u_value': 0, 'shgc': 0},
-        'northwest': {'area': 0, 'u_value': 0, 'shgc': 0},
-        'west': {'area': 0, 'u_value': 0, 'shgc': 0},
-        'southwest': {'area': 0, 'u_value': 0, 'shgc': 0},
-        'south': {'area': 13.68418425, 'u_value': 2.31991313, 'shgc': 0.65},
-        'southeast': {'area': 6.813974751, 'u_value': 2.31991313, 'shgc': 0.65},
-        'east': {'area': 0, 'u_value': 0, 'shgc': 0},
-        'northeast': {'area': 0, 'u_value': 0, 'shgc': 0}
-    })
-}
 
 if __name__ == "__main__":
-    connection = create_connection()
-    if connection:
-        create_database(connection, 'building_stock')
-        connection.database = 'building_stock'
-        create_table(connection)
-        insert_data(connection, data)
-        connection.close()
+    building_id = 1  # Example building ID
+    data = fetch_data(building_id)
+    if data is not None:
+        print(data)
+    else:
+        print("Failed to fetch data.")
