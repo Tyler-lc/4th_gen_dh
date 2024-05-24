@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import warnings
+import json
 
 
 class Building:
@@ -56,36 +57,39 @@ class Building:
 
         # filter the components by building type in the CSV
 
-        self.components = self.components[
-            self.components["building type"] == self.building_type
-        ]
-        self.components.insert(0, "name building", self.name)
+        # self.components = self.components.loc[0, "building_type"]
+        # self.components.insert(0, "name_building", self.name)
+        # print(self.components)
 
+
+        self.n_floors = self.components.loc[0, "n_floors"]
+        self.volume = self.components.loc[0, "volume"]
         # create the data frames for each surface type
-        self.opaque_surfaces = self.components[
-            self.components["surface type"] == "opaque"
-        ]
-        self.transparent_surfaces = self.components[
-            self.components["surface type"] == "transparent"
-        ]
-        self.ground_contact_surfaces = self.components[
-            self.components["surface type"] == "ground contact"
-        ]
-        self.building_volume = self.components.loc[1, "volume"]
+        self.roof_area = self.components.loc[0, "roof_area"]
+        self.roof_uvalue = self.components.loc[0, "roof_u_value"]
+        self.wall_area = self.components.loc[0, "walls_area"]
+        self.wall_uvalue = self.components.loc[0, "walls_u_value"]
+        self.ground_contact_area = self.components.loc[0, "ground_contact_area"]
+        self.ground_contact_uvalue = self.components.loc[0, "ground_contact_u_value"]
+        self.door_area = self.components.loc[0, "door_area"]
+        self.door_uvalue = self.components.loc[0, "door_u_value"]
+        self.transparent_surfaces = self.parse_windows(self.components.loc[0, "windows"])
+        # self.transparent_surfaces = self.components[
+        #     self.components["surface type"] == "transparent"
+        # ]
+        # self.ground_contact_surfaces = self.components[
+        #     self.components["surface type"] == "ground contact"
+        # ]
         
 
         # create global u value variable and total area
         self.global_uvalue = 0
-        self.number_floors = self.components.loc[1, "number of floors"]
-        self.net_floor_area = (
-            self.ground_contact_surfaces["total surface"].sum()
-            * self.number_floors
-            * 0.85
-        )
+        # self.number_floors = self.components.loc[1, "number of floors"]
+        self.net_floor_area = self.ground_contact_area* self.n_floors* 0.85
         
         # setting the infiltration coefficient to 0.4 for old windows and 0.2 for newer windows
         # first get the u-values of the windows
-        u_val_windows = self.transparent_surfaces["u-value"].values[0]
+        u_val_windows = self.transparent_surfaces["uvalue"].values[0]
         # now check if u-value is smaller than 1.4 then it is not an old window
         if u_val_windows <= 1.4:
             self.unwanted_vent_coeff = 0.2
@@ -101,7 +105,7 @@ class Building:
         self.total_useful_energy_demand = 0
         self.specific_losses = 0
         self.solar_gain = pd.DataFrame(
-            index=weather_index, columns=self.transparent_surfaces["surface name"]
+            index=weather_index, columns=self.transparent_surfaces["surface_name"]
         )
         self.ventilation_losses = pd.DataFrame(
             index=weather_index, columns=["ventilation losses [kWh]"]
@@ -109,9 +113,26 @@ class Building:
         self.hourly_useful_demand = pd.DataFrame(
             index=weather_index, columns=["net useful hourly demand [kWh]"]
         )
+    # TODO: we now need to change all the calculation types to be based on the new data structure
 
+    
     # this first section is for all thermal calculations. All the function here calculate the thermal losses due to
     # transmission, ventilation and also the solar gain (Based on PVGIS data).
+    def parse_windows(self, windows_json):
+        # Parse the JSON string into a Python dictionary
+        windows_dict = json.loads(windows_json)
+        # Convert the dictionary to a DataFrame, skipping entries with surface area of 0
+        windows_list = []
+        for orientation, data in windows_dict.items():
+            if data["area"] > 0:  # Skip orientations with surface area of 0
+                windows_list.append({
+                    "surface_name": orientation,
+                    "total_surface": data["area"],
+                    "uvalue": data["u_value"],
+                    "SHGC": data["shgc"],
+                    "orientation": orientation
+                })
+        return pd.DataFrame(windows_list)
     def compute_losses(self, surfaces_df, outside_temp, inside_temp):
         losses_df = pd.DataFrame(index=self.outside_temperature.index)
 
@@ -212,7 +233,7 @@ class Building:
 
     def sol_gain(self):
         for _, row in self.transparent_surfaces.iterrows():
-            window_area = row["total surface"]
+            window_area = row["total_surface"]
             window_SHGC = row["SHGC"]
             window_orientation = row["orientation"]
             irradiation_name = window_orientation + " G(i) [kWh/m2]"
@@ -224,7 +245,7 @@ class Building:
             # Set gains to zero during summer months
             gains[self.is_summer(gains.index)] = 0
 
-            self.solar_gain[row["surface name"]] = gains
+            self.solar_gain[row["surface_name"]] = gains
 
     def vent_loss(self, inside_temp=20):
         #Qv = 0.34 * (0.4 + 0.2) * V
@@ -493,3 +514,4 @@ if __name__ == "__main__":
 
     # Your Building class and the rest of the code here
     data = fetch_data(1)
+    sfh = Building("test", "SFH1", data, weather, irradiation)

@@ -93,12 +93,12 @@ data = {
     'door_area': 1.8,
     'door_u_value': 2.490652577,
     'windows': json.dumps({
-        'north': {'area': 0, 'u_value': 0, 'shgc': 0},
+        'north': {'area': 13.68418425, 'u_value': 2.31991313, 'shgc': 0.65},
         'northwest': {'area': 0, 'u_value': 0, 'shgc': 0},
         'west': {'area': 0, 'u_value': 0, 'shgc': 0},
         'southwest': {'area': 0, 'u_value': 0, 'shgc': 0},
-        'south': {'area': 13.68418425, 'u_value': 2.31991313, 'shgc': 0.65},
-        'southeast': {'area': 6.813974751, 'u_value': 2.31991313, 'shgc': 0.65},
+        'south': {'area': 6.813974751, 'u_value': 2.31991313, 'shgc': 0.65},
+        'southeast': {'area': 0, 'u_value': 0, 'shgc': 0},
         'east': {'area': 0, 'u_value': 0, 'shgc': 0},
         'northeast': {'area': 0, 'u_value': 0, 'shgc': 0}
     })
