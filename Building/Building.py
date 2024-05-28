@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 import json
+import warnings
 
 
 class Building:
@@ -31,15 +32,18 @@ class Building:
         if not isinstance(outside_temperature, pd.DataFrame):
             start = f"{year_start}-01-01"
             period = len(outside_temperature)
-            weather_index = pd.date_range(start=start, periods=period, freq="1H")
+            weather_index = pd.date_range(
+                start=start, periods=period, freq="1H")
             self.outside_temperature = pd.DataFrame(
-                outside_temperature, index=weather_index, columns=["Outside T °C"]
+                outside_temperature, index=weather_index, columns=[
+                    "Outside T °C"]
             )
         # if it is a dataframe but does not have a DatetimeIndex then set it
         elif not isinstance(outside_temperature.index, pd.DatetimeIndex):
             start = f"{year_start}-01-01"
             period = len(outside_temperature)
-            weather_index = pd.date_range(start=start, periods=period, freq="1H")
+            weather_index = pd.date_range(
+                start=start, periods=period, freq="1H")
             outside_temperature.set_index(weather_index, inplace=True)
             self.outside_temperature = outside_temperature
         # if it is a dataframe and has a DatetimeIndex then just use input data
@@ -54,20 +58,38 @@ class Building:
         self.irradiation_data = irradiation_data
 
         # if soil temperature is single value then expand it to be as long as the outside_temperature
-        if type(self.soil_temp) == int:
-            self.soil_temp = [soil_temp] * len(self.outside_temperature)
+        # Ensure soil_temp is a pandas Series with the same index as outside_temperature
+        if isinstance(self.soil_temp, (int, float)):
+            self.soil_temp = pd.Series(
+                [self.soil_temp] * len(self.outside_temperature),
+                index=self.outside_temperature.index,
+            )
+        elif isinstance(self.soil_temp, list):
+            self.soil_temp = pd.Series(
+                self.soil_temp, index=self.outside_temperature.index
+            )
+        elif isinstance(self.soil_temp, pd.Series):
+            if not self.soil_temp.index.equals(self.outside_temperature.index):
+                self.soil_temp = pd.Series(
+                    self.soil_temp.values, index=self.outside_temperature.index
+                )
+        else:
+            raise TypeError(
+                "soil_temp must be an int, float, list, or pandas Series")
 
         # gather geometric data from the components dataframe
         self.n_floors = self.components.loc[0, "n_floors"]
         self.volume = self.components.loc[0, "volume"]
-        self.ground_contact_area = self.components.loc[0, "ground_contact_area"]
+        self.ground_contact_area = self.components.loc[0,
+                                                       "ground_contact_area"]
 
         # from here on we are creating the dataframes for the different surfaces
         self.transparent_surfaces = self.parse_transparent_surfaces(
             self.components.loc[0, "windows"]
         )
         self.opaque_surfaces = self.parse_opaque_surfaces(components)
-        self.ground_contact_surfaces = self.parse_ground_contact_surfaces(components)
+        self.ground_contact_surfaces = self.parse_ground_contact_surfaces(
+            components)
 
         # create global u value variable and total area
         self.global_uvalue = 0
@@ -155,7 +177,8 @@ class Building:
         u_values = surfaces_df["uvalue"].values[:, np.newaxis]
         areas = surfaces_df["total_surface"].values[:, np.newaxis]
         losses_matrix = (
-            u_values * areas * (inside_temp.values - outside_temp.values) / 1000
+            u_values * areas * (inside_temp.values -
+                                outside_temp.values) / 1000
         )
         losses_matrix[losses_matrix < 0] = 0
         losses_df = pd.DataFrame(
@@ -180,7 +203,8 @@ class Building:
             inside_temp = [inside_temp] * len(self.outside_temperature)
 
         # convert inside_temp to a pandas Series for vectorized operation
-        inside_temp = pd.Series(inside_temp, index=self.outside_temperature.index)
+        inside_temp = pd.Series(
+            inside_temp, index=self.outside_temperature.index)
 
         # call the helper function
         self.opaque_losses = self.compute_losses(
@@ -202,7 +226,8 @@ class Building:
             inside_temp = [inside_temp] * len(self.outside_temperature)
 
         # convert inside_temp to a pandas Series for vectorized operation
-        inside_temp = pd.Series(inside_temp, index=self.outside_temperature.index)
+        inside_temp = pd.Series(
+            inside_temp, index=self.outside_temperature.index)
 
         # call the helper function
         self.transparent_losses = self.compute_losses(
@@ -405,17 +430,17 @@ if __name__ == "__main__":
     import os
     import sys
     import timeit
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # Ensure the parent directory is in the Python path
+    sys.path.append(os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..")))
     from Databases.mysql_utils.mysql_utils import create_connection, fetch_data
 
     # import the weather and irradiation data
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
     path_weather = "../Irradiation_Data/east.csv"
     weather = pd.read_csv(path_weather, usecols=["T2m"])
     irradiation_path = "../Irradiation_Data/irradiation_data.csv"
     irradiation = pd.read_csv(irradiation_path)
-
-    # Ensure the parent directory is in the Python path
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
     # on/off toggle some tests and debugging options
     losses_outputs = 0
@@ -472,7 +497,8 @@ if __name__ == "__main__":
         # Calculate the 12-hour rolling average
         rolling_window = 96
         df["Smoothed"] = (
-            df["net useful hourly demand [kWh]"].rolling(window=rolling_window).mean()
+            df["net useful hourly demand [kWh]"].rolling(
+                window=rolling_window).mean()
         )
 
         # Plot the original data
@@ -485,7 +511,8 @@ if __name__ == "__main__":
         )
 
         # Plot the smoothed data
-        plt.plot(df.index, df["Smoothed"], label="12-hour Rolling Average", color="red")
+        plt.plot(df.index, df["Smoothed"],
+                 label="12-hour Rolling Average", color="red")
 
         # Add title and labels
         plt.title(
@@ -518,7 +545,8 @@ if __name__ == "__main__":
         transparent_losses.to_csv("test_results/transparent_losses.csv")
         ventilation_losses.to_csv("test_results/ventilation_losses.csv")
         useful_demand.to_csv("test_results/useful_demand.csv")
-        total_useful_energy_demand.to_csv("test_results/total_useful_energy_demand.csv")
+        total_useful_energy_demand.to_csv(
+            "test_results/total_useful_energy_demand.csv")
         print("Results saved in test_results folder.")
 
     # def thermal_balance(self):
