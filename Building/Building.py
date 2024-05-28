@@ -157,7 +157,7 @@ class Building:
             index=outside_temp.index,
             columns=surfaces_df["surface_name"],
         )
-        losses_df.loc[self.is_summer(losses_df.index)] = 0
+        losses_df.loc[self.heating_months] = 0
         return losses_df
 
     def transmission_losses_opaque(
@@ -392,46 +392,6 @@ class Building:
         return self.volume
 
 
-# path_weather = "../Irradiation_Data/east.csv"
-# weather = pd.read_csv(path_weather, usecols=["T2m"])
-# irradiation_path = "../Irradiation_Data/irradiation_data.csv"
-# irradiation = pd.read_csv(irradiation_path)
-#
-# path = "../SFHs.csv"
-# components_df = pd.read_csv(path)
-# building1 = Building("name", "SFH1", components_df, weather, irradiation)
-# building1.global_transmission_coeff()
-# # building1.transmission_losses_opaque()
-# # building1.transmission_losses_transparent()
-# # building1.transmission_losses_ground()
-# # building1.total_specific_losses()
-# # building1.all_transmission_losses()
-# # building1.sol_gain()
-# # building1.vent_loss()
-# building1.thermal_balance()
-#
-# # i would like to eventually change how the internal temperature is managed in the code. It can't just always be 20 °C
-# # and I do not want it to be passed in every function. I would rather have it as a part of the building. This
-# # way one wouldn't accidentally use the wrong inside temperature for different building components.
-#
-#
-# import matplotlib.pyplot as plt
-#
-# # assuming building1 is your Building instance
-# # building1.useful_demand()
-# # building1.year_losses()
-#
-# global_uvalue=building1.get_global_uvalue()
-# print(global_uvalue)
-#
-#
-# building1.get_useful_demand().plot()
-# plt.title('Net Useful Hourly Demand')
-# plt.xlabel('Time')
-# plt.ylabel('Net Useful Hourly Demand [kWh]')
-# plt.show()
-
-
 if __name__ == "__main__":
     import os
     from pyinstrument import Profiler
@@ -452,14 +412,22 @@ if __name__ == "__main__":
 
     from Databases.mysql_utils.mysql_utils import create_connection, fetch_data
 
+    profiler = Profiler()
     # test building results
     data = fetch_data(1)
+    profiler.start()
     sfh = Building("test", "SFH1", data, weather, irradiation)
     sfh.thermal_balance()
     total_ued = sfh.get_sum_useful_demand()
-    origina_value = 100452.379147
+    profiler.stop()
+    original_value = 100452.379147
+    output = profiler.output_text(unicode=True, color=True)
+    filtered_output = "\n".join(
+        line for line in output.split("\n") if "pandas" not in line
+    )
+    print(filtered_output)
     print(
-        f"Total useful energy demand per year = {total_ued} kWh. Should be: {origina_value} kWh"
+        f"Total useful energy demand per year = {total_ued} kWh. Should be: {original_value} kWh"
     )
 
     test_speed = 1
