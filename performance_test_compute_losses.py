@@ -3,17 +3,28 @@ import numpy as np
 import json
 import timeit
 
+
 class Building:
     def __init__(self, components, outside_temperature):
         self.components = components
         self.outside_temperature = outside_temperature
 
         # Example data setup
-        self.opaque_surfaces = pd.DataFrame({
-            "surface_name": ["roof", "wall", "door"],
-            "total_surface": [components["roof_area"], components["walls_area"], components["door_area"]],
-            "u_value": [components["roof_u_value"], components["walls_u_value"], components["door_u_value"]]
-        })
+        self.opaque_surfaces = pd.DataFrame(
+            {
+                "surface_name": ["roof", "wall", "door"],
+                "total_surface": [
+                    components["roof_area"],
+                    components["walls_area"],
+                    components["door_area"],
+                ],
+                "u_value": [
+                    components["roof_u_value"],
+                    components["walls_u_value"],
+                    components["door_u_value"],
+                ],
+            }
+        )
 
     def is_summer(self, index):
         return index.month.isin([6, 7, 8])
@@ -50,11 +61,16 @@ class Building:
         area_matrix = np.repeat(areas[:, np.newaxis], len(outside_temp), axis=1)
         inside_temp_matrix = np.tile(inside_temp.values, (len(u_values), 1))
         outside_temp_matrix = np.tile(outside_temp.values, (len(u_values), 1))
-        losses_matrix = (u_matrix * area_matrix * (inside_temp_matrix - outside_temp_matrix) / 1000).T
-        losses_df = pd.DataFrame(losses_matrix, index=outside_temp.index, columns=surface_names)
+        losses_matrix = (
+            u_matrix * area_matrix * (inside_temp_matrix - outside_temp_matrix) / 1000
+        ).T
+        losses_df = pd.DataFrame(
+            losses_matrix, index=outside_temp.index, columns=surface_names
+        )
         losses_df[losses_df < 0] = 0
         losses_df.loc[self.is_summer(losses_df.index)] = 0
         return losses_df
+
 
 # Test setup
 def create_test_building():
@@ -64,30 +80,53 @@ def create_test_building():
         "door_area": 10,
         "roof_u_value": 0.2,
         "walls_u_value": 0.3,
-        "door_u_value": 0.4
+        "door_u_value": 0.4,
     }
-    outside_temp = pd.Series(np.random.normal(5, 10, 8760), index=pd.date_range("2023-01-01", periods=8760, freq='H'))
-    inside_temp = pd.Series(np.full(8760, 20), index=pd.date_range("2023-01-01", periods=8760, freq='H'))
+    outside_temp = pd.Series(
+        np.random.normal(5, 10, 8760),
+        index=pd.date_range("2023-01-01", periods=8760, freq="H"),
+    )
+    inside_temp = pd.Series(
+        np.full(8760, 20), index=pd.date_range("2023-01-01", periods=8760, freq="H")
+    )
     building = Building(components, outside_temp)
     return building, outside_temp, inside_temp
 
+
 # Performance test functions
 def test_original_method(building, outside_temp, inside_temp):
-    return building.compute_losses_original(building.opaque_surfaces, outside_temp, inside_temp)
+    return building.compute_losses_original(
+        building.opaque_surfaces, outside_temp, inside_temp
+    )
+
 
 def test_first_vectorized_method(building, outside_temp, inside_temp):
-    return building.compute_losses_first_vectorized(building.opaque_surfaces, outside_temp, inside_temp)
+    return building.compute_losses_first_vectorized(
+        building.opaque_surfaces, outside_temp, inside_temp
+    )
+
 
 def test_fully_vectorized_method(building, outside_temp, inside_temp):
-    return building.compute_losses_fully_vectorized(building.opaque_surfaces, outside_temp, inside_temp)
+    return building.compute_losses_fully_vectorized(
+        building.opaque_surfaces, outside_temp, inside_temp
+    )
+
 
 # Running performance tests
 if __name__ == "__main__":
     building, outside_temp, inside_temp = create_test_building()
 
-    time_original = timeit.timeit(lambda: test_original_method(building, outside_temp, inside_temp), number=1000)
-    time_first_vectorized = timeit.timeit(lambda: test_first_vectorized_method(building, outside_temp, inside_temp), number=1000)
-    time_fully_vectorized = timeit.timeit(lambda: test_fully_vectorized_method(building, outside_temp, inside_temp), number=1000)
+    time_original = timeit.timeit(
+        lambda: test_original_method(building, outside_temp, inside_temp), number=1000
+    )
+    time_first_vectorized = timeit.timeit(
+        lambda: test_first_vectorized_method(building, outside_temp, inside_temp),
+        number=1000,
+    )
+    time_fully_vectorized = timeit.timeit(
+        lambda: test_fully_vectorized_method(building, outside_temp, inside_temp),
+        number=1000,
+    )
 
     print(f"Original Method: {time_original:.6f} seconds")
     print(f"First Vectorized Method: {time_first_vectorized:.6f} seconds")
