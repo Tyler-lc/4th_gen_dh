@@ -13,7 +13,7 @@ def occupancy_distribution(x=np.linspace(0, 23, 24), min_probability=0.05):
     """ this function creates a probability profile to the occupancy probability
     by default it is with two peak spots at 6 and 18, with a std dev 3 and weight 0.8 for both peaks
     x is a np.linspace type. by default is a 24-hour total with hourly resolution.
-     min_probability is the minimum change of being at home and awake. Doesn't matter if you are at home but sleep
+     min_probability is the minimum chance of being at home and awake. Doesn't matter if you are at home but sleep
       this value is set by default at 0.05"""
     import numpy as np
     import pandas as pd
@@ -63,7 +63,8 @@ def generate_occupancy_profile(probabilities, min_hours, max_hours):
         available_indices = np.where(occupancy == 0)[0]
         if remaining_hours > len(available_indices):
             remaining_hours = len(available_indices)
-        selected_indices = np.random.choice(available_indices, size=remaining_hours, replace=False)
+        selected_indices = np.random.choice(
+            available_indices, size=remaining_hours, replace=False)
         occupancy[selected_indices] = 1
 
     return occupancy
@@ -79,8 +80,8 @@ def defined_time_occupancy(occupancy_distr, days=365, min_hours_daily=6, max_hou
 
     occupancy_year_daily = []
     for day in pd.date_range(start=start_year, periods=days, freq="1D"):
-        occupancy_profile_day = generate_occupancy_profile(occupancy_distr, min_hours_daily, max_hours_daily)
+        occupancy_profile_day = generate_occupancy_profile(
+            occupancy_distr, min_hours_daily, max_hours_daily)
         occupancy_year_daily.append(occupancy_profile_day)
 
     return occupancy_year_daily
-
