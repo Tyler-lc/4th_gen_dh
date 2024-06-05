@@ -1,17 +1,30 @@
-
-def dhw_profile(occupancy_distribution, daily_amount, random_factor, active_hours, min_large, max_large, min_draws, min_lt, max_lt, **kwargs):
+def dhw_profile(
+    occupancy_distribution,
+    daily_amount,
+    random_factor,
+    active_hours,
+    min_large,
+    max_large,
+    min_draws,
+    min_lt,
+    max_lt,
+    **kwargs
+):
     import numpy as np
     from utils import misc
+
     if kwargs:
-        occupancy_distribution = kwargs.get('occupancy_distribution', occupancy_distribution)
-        daily_amount = kwargs.get('daily_amount', daily_amount)
-        random_factor = kwargs.get('random_factor', random_factor)
-        active_hours = kwargs.get('active_hours', active_hours)
-        min_large = kwargs.get('min_large', min_large)
-        max_large = kwargs.get('max_large', max_large)
-        min_draws = kwargs.get('min_draws', min_draws)
-        min_lt = kwargs.get('min_lt', min_lt)
-        max_lt = kwargs.get('max_lt', max_lt)
+        occupancy_distribution = kwargs.get(
+            "occupancy_distribution", occupancy_distribution
+        )
+        daily_amount = kwargs.get("daily_amount", daily_amount)
+        random_factor = kwargs.get("random_factor", random_factor)
+        active_hours = kwargs.get("active_hours", active_hours)
+        min_large = kwargs.get("min_large", min_large)
+        max_large = kwargs.get("max_large", max_large)
+        min_draws = kwargs.get("min_draws", min_draws)
+        min_lt = kwargs.get("min_lt", min_lt)
+        max_lt = kwargs.get("max_lt", max_lt)
 
     regular_draw_amount = np.random.uniform(min_lt, max_lt, size=active_hours)
 
@@ -20,7 +33,9 @@ def dhw_profile(occupancy_distribution, daily_amount, random_factor, active_hour
 
     # Generate time at which draw happens. This line insures that the draw timing only
     # occurs when someone is at home
-    draw_times = np.random.randint(2, size=occupancy_distribution.shape) * occupancy_distribution
+    draw_times = (
+        np.random.randint(2, size=occupancy_distribution.shape) * occupancy_distribution
+    )
     # print(np.count_nonzero(draw_times))
     if np.count_nonzero(draw_times) < min_draws:
         draw_times = misc.safe_min_ones(occupancy_distribution, draw_times, min_draws)
@@ -44,6 +59,7 @@ def dhw_profile(occupancy_distribution, daily_amount, random_factor, active_hour
 def dhw_year_day(occupancy_profile_day):
     import numpy as np
     from utils import misc
+
     dhw_year_daily = []
     dhw_year_daily_times = []
     for element in occupancy_profile_day:
@@ -52,5 +68,3 @@ def dhw_year_day(occupancy_profile_day):
         dhw_year_daily.append(daily_dhw)
         dhw_year_daily_times.append(daily_times)
     return dhw_year_daily, dhw_year_daily_times
-
-

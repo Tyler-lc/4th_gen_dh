@@ -10,7 +10,7 @@ import pandas as pd
 
 
 def occupancy_distribution(x=np.linspace(0, 23, 24), min_probability=0.05):
-    """ this function creates a probability profile to the occupancy probability
+    """this function creates a probability profile to the occupancy probability
     by default it is with two peak spots at 6 and 18, with a std dev 3 and weight 0.8 for both peaks
     x is a np.linspace type. by default is a 24-hour total with hourly resolution.
      min_probability is the minimum chance of being at home and awake. Doesn't matter if you are at home but sleep
@@ -27,8 +27,8 @@ def occupancy_distribution(x=np.linspace(0, 23, 24), min_probability=0.05):
     weight_2 = 0.8  # Weight for the late afternoon peak
 
     # Compute the occupancy at each x value
-    occupancy_1 = weight_1 * np.exp(-((x - mean_1) / std_dev_1) ** 2)
-    occupancy_2 = weight_2 * np.exp(-((x - mean_2) / std_dev_2) ** 2)
+    occupancy_1 = weight_1 * np.exp(-(((x - mean_1) / std_dev_1) ** 2))
+    occupancy_2 = weight_2 * np.exp(-(((x - mean_2) / std_dev_2) ** 2))
     occupancy = occupancy_1 + occupancy_2
 
     # Set the minimum probability of being home
@@ -39,6 +39,7 @@ def occupancy_distribution(x=np.linspace(0, 23, 24), min_probability=0.05):
 
 # Compute the occupancy profile values for each x value
 # probabilities = occupancy_profile(x, 0.05)
+
 
 def generate_occupancy_profile(probabilities, min_hours, max_hours):
     """it generates the occupancy profile 24 hours at the time."""
@@ -64,24 +65,41 @@ def generate_occupancy_profile(probabilities, min_hours, max_hours):
         if remaining_hours > len(available_indices):
             remaining_hours = len(available_indices)
         selected_indices = np.random.choice(
-            available_indices, size=remaining_hours, replace=False)
+            available_indices, size=remaining_hours, replace=False
+        )
         occupancy[selected_indices] = 1
 
     return occupancy
 
 
-def defined_time_occupancy(occupancy_distr, days=365, min_hours_daily=6, max_hours_daily=16,
-                           start_year="01/01/2021"):
-    """it takes the occupancy distribution, the amount of days it should create the occupancy for. Based on the minimum
-    and maximum amount of hours spent at home awake, it generates a random number of hours. Additionally it is possible
+def defined_time_occupancy(
+    occupancy_distr,
+    days=365,
+    min_hours_daily=6,
+    max_hours_daily=16,
+    start_year="01/01/2021",
+):
+    """it takes the occupancy distribution, the amount of days it should create the occupancy for.
+    Based on the minimum and maximum amount of hours spent at home awake, it generates a random number of hours. Additionally it is possible
     to change the year. 2021 is deault as this is still not tested for leap years. it returns a list of lists. Each
-    element of the list is a list of 24 hours occupancy profile. Needs to be flattened using misc.flatten"""
+    element of the list is a list of 24 hours occupancy profile. Needs to be flattened using misc.flatten
+    """
     import pandas as pd
 
     occupancy_year_daily = []
     for day in pd.date_range(start=start_year, periods=days, freq="1D"):
         occupancy_profile_day = generate_occupancy_profile(
-            occupancy_distr, min_hours_daily, max_hours_daily)
+            occupancy_distr, min_hours_daily, max_hours_daily
+        )
         occupancy_year_daily.append(occupancy_profile_day)
 
     return occupancy_year_daily
+
+
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+
+    probabilities = occupancy_distribution()
+    occupancy_daily = defined_time_occupancy(probabilities)
+    plt.plot(probabilities)
+    plt.show()
