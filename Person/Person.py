@@ -1,10 +1,19 @@
+%load_ext cudf.pandas
+
 import numpy as np
 import pandas as pd
 
-
 class Person:
-    def __init__(self, age, building_id):
-        self.age = age
+    def __init__(self, building_id):
+        """ This class generates a person with a specific age and building id.
+        In this class we generate DHW and Occupancy profile. In this case occupancy is defined as the probability of
+        being at home and awake. We do consider sleeping time as occupancy = 0. 
+         Domestic hot water (DHW), is generated based on the occupancy profile.
+         In this class we assign a wake-up category and a sleep category based on the percentage of Germans that wake up
+         at a certain time. [Schlaf gut, Deutschland - TK-Schlafstudie 2017]
+         DHW is generated based on the occupancy profile. 
+         It also changes based on the ages of the people
+         """
         self.building_id = building_id
         self.workday_wakeup_category = self.assign_wakeup_category(workday=True)
         self.freeday_wakeup_category = self.assign_wakeup_category(workday=False)
@@ -46,11 +55,11 @@ class Person:
         """Creates an occupancy probability profile based on the assigned wake-up and sleep categories."""
 
         wake_up_times = {
-            "0-5": (3, 1),
-            "5-6": (5.5, 1),
-            "6-7": (6.5, 1),
-            "7-8": (7.5, 1),
-            "8-9": (8.5, 1),
+            "0-5": (3, 1.5),
+            "5-6": (5.5, 1.5),
+            "6-7": (6.5, 1.5),
+            "7-8": (7.5, 1.5),
+            "8-9": (8.5, 1.5),
             "9 and later": (10.5, 1.5),
         }
 
@@ -174,32 +183,27 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # instantiate a Person
-    luca = Person(age=30, building_id=1)
+    luca = Person(building_id=1)
 
     # generate the probability distribution for luca
     occupancy_probabilities = luca.occupancy_distribution()
-    # generate the occupancy profile for luca
-    lucas_one_day = luca.generate_occupancy_profile(7, 16, occupancy_probabilities)
-    luca_occupancy_year = luca.defined_time_occupancy().flatten()
+    # generate the occupancy for the whole year
+    luca_occupancy_year = luca.defined_time_occupancy()
 
-    howmanydays = 10
-    total_days = howmanydays * 24
+    start_date = '2021-01-01'
+    end_date = '2021-01-03 23:59:59'
+    days_df = luca_occupancy_year[start_date:end_date]
+
+
     # Plot the occupancy profile
-    plt.bar(
-        range(len(luca_occupancy_year[:total_days])), luca_occupancy_year[:total_days]
-    )
-
-    # add red dashed lines to show the end of each day
-    for day in range(howmanydays):
-        plt.axvline(x=day * 24, color="red", linestyle="--", linewidth=0.8)
-
-    plt.title("One day occupancy profile")
+    plt.plot(range(len(days_df)), days_df.occupancy)
     plt.show()
+
 
     import timeit
 
     def test_time():
-        luca = Person(age=30, building_id=1)
+        luca = Person(building_id=1)
         luca_one_year = luca.defined_time_occupancy()
 
-    print(timeit.timeit(test_time, number=100))
+    print(timeit.timeit(test_time, number=10000))
