@@ -41,7 +41,7 @@ class Person:
         return sleep_mapping[wakeup_category]
 
     def occupancy_distribution(
-        self, workday=True, x=np.linspace(0, 23, 24), min_probability=0.05
+        self, workday=True, x=np.linspace(0, 23, 24), min_probability=0.2
     ):
         """Creates an occupancy probability profile based on the assigned wake-up and sleep categories."""
 
@@ -81,8 +81,10 @@ class Person:
         # Parameters for the second Gaussian distribution
         time_afternoon = [14, 15, 16, 17, 18, 19, 20]
         mean_2 = np.random.choice(time_afternoon)  # Late afternoon peak mean
-        std_dev_2 = 3  # Late afternoon peak standard deviation
-        weight_2 = 0.4  # Weight for the late afternoon peak
+        std_dev_2 = 4  # Late afternoon peak standard deviation
+        weight_2 = np.random.uniform(
+            min_probability, 0.6
+        )  # Weight for the late afternoon peak
 
         # Compute the occupancy at each x value for the second peak
         occupancy_2 = weight_2 * np.exp(-(((x - mean_2) / std_dev_2) ** 2))
@@ -92,12 +94,67 @@ class Person:
 
         # Set the minimum probability of being home
         occupancy_pdf = np.maximum(occupancy_pdf, min_probability)
+        occupandy_pdf = np.minimum(occupancy_pdf, 1)
 
         return occupancy_pdf
+
+    def defined_time_occupancy(
+        self,
+        wd_occupancy_distr=None,  # occupancy distribution for workdays
+        fd_occupancy_distr=None,  # occupancy distribution for free days
+        days=365,
+        min_hours_daily=6,
+        max_hours_daily=16,
+        start_year="01/01/2021",
+    ):
+        """Generates occupancy profile for each day over a specified number of days.
+        Returns a DataFrame with timestamps and occupancy profiles.
+        """
+        if wd_occupancy_distr is None:
+            wd_occupancy_distr = self.workday_occupancy_pdf
+        if fd_occupancy_distr is None:
+            fd_occupancy_distr = self.freeday_occupancy_pdf
+
+        timestamps = pd.date_range(start=start_year, periods=days * 24, freq="1H")
+        occupancy_df = pd.DataFrame(index=timestamps, columns=["occupancy"])
+        occupancy_df["weekday"] = occupancy_df.index.weekday
+
+        # Create a mask for workdays and free days
+        workdays_mask = occupancy_df["weekday"] < 5
+        freedays_mask = ~workdays_mask
+
+        # Generate random values for the entire DataFrame
+        random_values = np.random.rand(len(occupancy_df))
+
+        # Create the initial occupancy profile based on the minimum probability
+        occupancy_df.loc[workdays_mask, "occupancy"] = np.where(
+            random_values[workdays_mask] < wd_occupancy_distr.min(), 1, 0
+        )
+        occupancy_df.loc[freedays_mask, "occupancy"] = np.where(
+            random_values[freedays_mask] < fd_occupancy_distr.min(), 1, 0
+        )
+
+        occupancy_df.drop(columns=["weekday"], inplace=True)
+        return occupancy_df
 
 
 # Example usage
 if __name__ == "__main__":
+    person = Person(age=30, building_id=1)
+    occupancy_df = person.defined_time_occupancy(days=365)
+
+    print(occupancy_df.head())
+
+    import matplotlib.pyplot as plt
+
+    plt.plot(
+        occupancy_df.index[: 24 * 7], occupancy_df.occupancy[: 24 * 7]
+    )  # Plot first week
+    plt.xlabel("Time")
+    plt.ylabel("Occupancy")
+    plt.title("Occupancy Profile for First Week")
+    plt.show()
+
     person = Person(age=30, building_id=1)
 
     print(f"Workday wake-up category: {person.workday_wakeup_category}")
@@ -108,6 +165,7 @@ if __name__ == "__main__":
     x = np.linspace(0, 23, 24)
     workday_occupancy = person.workday_occupancy_pdf
     freeday_occupancy = person.freeday_occupancy_pdf
+    daily_awake_hours = occupancy_df["occupancy"].resample("D").sum()
 
     import matplotlib.pyplot as plt
 
@@ -118,3 +176,15 @@ if __name__ == "__main__":
     plt.title("Occupancy Distribution")
     plt.legend()
     plt.show()
+
+    plt.plot(range(len(daily_awake_hours)), daily_awake_hours)
+    plt.title("Daily Awake Hours")
+    plt.show()
+
+    import timeit
+
+    def test_speed():
+        test = Person(age=30, building_id=1)
+        test.defined_time_occupancy(days=365)
+
+    print(timeit.timeit(test_speed, number=100))

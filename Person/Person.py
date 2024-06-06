@@ -3,121 +3,139 @@ import pandas as pd
 
 
 class Person:
-    def __init__(self, age: int, building_id):
+    def __init__(self, age, building_id):
         self.age = age
         self.building_id = building_id
-        self.dhw_profile = None
-        self.occupancy = None
-        self.occupancy_pdf = None
+        self.workday_wakeup_category = self.assign_wakeup_category(workday=True)
+        self.freeday_wakeup_category = self.assign_wakeup_category(workday=False)
+        self.workday_sleep_category = self.assign_sleep_category(
+            self.workday_wakeup_category, workday=True
+        )
+        self.freeday_sleep_category = self.assign_sleep_category(
+            self.freeday_wakeup_category, workday=False
+        )
+        self.workday_occupancy_pdf = self.occupancy_distribution(workday=True)
+        self.freeday_occupancy_pdf = self.occupancy_distribution(workday=False)
 
-    def get_age(self):
-        return self.age
+    def assign_wakeup_category(self, workday=True):
+        """Assign wakeup category based on the given probabilities."""
+        wakeup_probs = {
+            "workday": [9, 18, 32, 24, 10, 6],
+            "free day": [2, 2, 13, 23, 29, 30],
+        }
+        categories = ["0-5", "5-6", "6-7", "7-8", "8-9", "9 and later"]
+        probs = wakeup_probs["workday"] if workday else wakeup_probs["free day"]
+        probs = [p / sum(probs) for p in probs]  # Normalize probabilities
+        return np.random.choice(categories, p=probs)
 
-    def get_building_id(self):
-        return self.building_id
+    def assign_sleep_category(self, wakeup_category, workday=True):
+        """Assign sleep category based on the wake-up category."""
+        sleep_mapping = {
+            "0-5": "before 22",
+            "5-6": "before 22",
+            "6-7": "22 and 23",
+            "7-8": "23 and 00:00",
+            "8-9": "00:00 and 01:00",
+            "9 and later": "1 or later",
+        }
+        return sleep_mapping[wakeup_category]
 
-    def get_occupancy_pdf(self):
-        if occupancy_pdf is None:
-            print(
-                "Occupancy PDF is not yet defined. Please call the occupancy_distribution method first."
-            )
+    def occupancy_distribution(
+        self, workday=True, x=np.linspace(0, 23, 24), min_probability=0.2
+    ):
+        """Creates an occupancy probability profile based on the assigned wake-up and sleep categories."""
+
+        wake_up_times = {
+            "0-5": (3, 1),
+            "5-6": (5.5, 1),
+            "6-7": (6.5, 1),
+            "7-8": (7.5, 1),
+            "8-9": (8.5, 1),
+            "9 and later": (10.5, 1.5),
+        }
+
+        sleep_times = {
+            "before 22": (21, 1),
+            "22 and 23": (22.5, 1),
+            "23 and 00:00": (23.5, 1),
+            "00:00 and 01:00": (0.5, 1),
+            "1 or later": (2, 1.5),
+        }
+
+        if workday:
+            wakeup_category = self.workday_wakeup_category
+            sleep_category = self.workday_sleep_category
         else:
-            return self.occupancy_pdf
+            wakeup_category = self.freeday_wakeup_category
+            sleep_category = self.freeday_sleep_category
 
-    @staticmethod
-    def occupancy_distribution(x=np.linspace(0, 23, 24), min_probability=0.05):
-        """this function creates a probability profile to the occupancy probability
-        by default it is with two peak spots at 6 and 18, with a std dev 3 and weight 0.8 for both peaks
-        x is a np.linspace type. by default is a 24-hour total with hourly resolution.
-        min_probability is the minimum chance of being at home and awake. Doesn't matter if you are at home but sleep
-        this value is set by default at 0.05"""
-        import numpy as np
-        import pandas as pd
+        wake_mean, wake_std = wake_up_times[wakeup_category]
+        sleep_mean, sleep_std = sleep_times[sleep_category]
 
-        # TODO: these values should change according to age. We can do that quite easily
+        # Compute the Gaussian distribution for the wake-up time
+        occupancy_pdf = np.exp(-(((x - wake_mean) / wake_std) ** 2))
 
-        # Parameters for the Gaussian distributions
-        mean_1 = 6  # Early morning peak mean
-        mean_2 = 18  # Late afternoon peak mean
-        std_dev_1 = 3  # Early morning peak standard deviation
-        std_dev_2 = 3  # Late afternoon peak standard deviation
-        weight_1 = 0.8  # Weight for the early morning peak
-        weight_2 = 0.8  # Weight for the late afternoon peak
+        # Compute the Gaussian distribution for the sleep time
+        occupancy_pdf += np.exp(-(((x - sleep_mean) / sleep_std) ** 2))
 
-        # Compute the occupancy at each x value
-        occupancy_1 = weight_1 * np.exp(-(((x - mean_1) / std_dev_1) ** 2))
+        # Parameters for the second Gaussian distribution
+        time_afternoon = [14, 15, 16, 17, 18, 19, 20]
+        mean_2 = np.random.choice(time_afternoon)  # Late afternoon peak mean
+        std_dev_2 = 4  # Late afternoon peak standard deviation
+        weight_2 = np.random.uniform(
+            min_probability, 0.6
+        )  # Weight for the late afternoon peak
+
+        # Compute the occupancy at each x value for the second peak
         occupancy_2 = weight_2 * np.exp(-(((x - mean_2) / std_dev_2) ** 2))
-        occupancy_pdf = occupancy_1 + occupancy_2
+
+        # Add the second Gaussian to the occupancy profile
+        occupancy_pdf += occupancy_2
 
         # Set the minimum probability of being home
         occupancy_pdf = np.maximum(occupancy_pdf, min_probability)
+        occupandy_pdf = np.minimum(occupancy_pdf, 1)
 
         return occupancy_pdf
 
-    def generate_occupancy_profile(
-        self, min_hours, max_hours, occupancy_probability=None
-    ):
-        """it generates the occupancy profile 24 hours at the time.
-        it takes the probability distribution created in def occupancy_distribution
-        and generates the occupancy profile for one day."""
-        import numpy as np
-
-        if occupancy_probability is None:
-            occupancy_probability = Person.occupancy_distribution()
-
-        # Generate random values between 0 and 1
-        # print(occupancy_probability)
-        # print(f"length of occupancy probability is: {len(occupancy_probability)}")
-        random_values = np.random.random(len(occupancy_probability))
-
-        # Determine occupancy based on probabilities
-        self.occupancy = np.where(random_values < occupancy_probability, 1, 0)
-
-        # Create random number between min_hours and max_hours to determine each day
-        # the minimum amount of hours spent at home awake
-
-        min_occupancy = np.random.randint(min_hours, max_hours)
-
-        # Ensure minimum occupancy of min_occupancy hours per day
-        # total_hours = len(occupancy)
-        occupied_hours = np.sum(self.occupancy)
-        if occupied_hours < min_occupancy:
-            remaining_hours = min_occupancy - occupied_hours
-            available_indices = np.where(self.occupancy == 0)[0]
-            if remaining_hours > len(available_indices):
-                remaining_hours = len(available_indices)
-            selected_indices = np.random.choice(
-                available_indices, size=remaining_hours, replace=False
-            )
-            self.occupancy[selected_indices] = 1
-
-        return self.occupancy
-
     def defined_time_occupancy(
         self,
-        occupancy_distr=None,
+        wd_occupancy_distr=None,  # occupancy distribution for workdays
+        fd_occupancy_distr=None,  # occupancy distribution for free days
         days=365,
         min_hours_daily=6,
         max_hours_daily=16,
         start_year="01/01/2021",
     ):
         """Generates occupancy profile for each day over a specified number of days.
-        Returns a NumPy array of occupancy profiles, which can be flattened if needed.
+        Returns a DataFrame with timestamps and occupancy profiles.
         """
-        if occupancy_distr is None:
-            occupancy_distr = self.occupancy_distribution()
+        if wd_occupancy_distr is None:
+            wd_occupancy_distr = self.workday_occupancy_pdf
+        if fd_occupancy_distr is None:
+            fd_occupancy_distr = self.freeday_occupancy_pdf
 
-        occupancy_year_daily = np.zeros((days, 24), dtype=int)
+        timestamps = pd.date_range(start=start_year, periods=days * 24, freq="1H")
+        occupancy_df = pd.DataFrame(index=timestamps, columns=["occupancy"])
+        occupancy_df["weekday"] = occupancy_df.index.weekday
 
-        for i, day in enumerate(
-            pd.date_range(start=start_year, periods=days, freq="1D")
-        ):
-            occupancy_profile_day = self.generate_occupancy_profile(
-                min_hours_daily, max_hours_daily, occupancy_distr
-            )
-            occupancy_year_daily[i, :] = occupancy_profile_day
+        # Create a mask for workdays and free days
+        workdays_mask = occupancy_df["weekday"] < 5
+        freedays_mask = ~workdays_mask
 
-        return occupancy_year_daily
+        # Generate random values for the entire DataFrame
+        random_values = np.random.rand(len(occupancy_df))
+
+        # Create the initial occupancy profile based on the minimum probability
+        occupancy_df.loc[workdays_mask, "occupancy"] = np.where(
+            random_values[workdays_mask] < wd_occupancy_distr.min(), 1, 0
+        )
+        occupancy_df.loc[freedays_mask, "occupancy"] = np.where(
+            random_values[freedays_mask] < fd_occupancy_distr.min(), 1, 0
+        )
+
+        occupancy_df.drop(columns=["weekday"], inplace=True)
+        return occupancy_df
 
     # Calculation for the DHW profiles
     # First, this function generates the input needed to calculate the profile
@@ -177,3 +195,11 @@ if __name__ == "__main__":
 
     plt.title("One day occupancy profile")
     plt.show()
+
+    import timeit
+
+    def test_time():
+        luca = Person(age=30, building_id=1)
+        luca_one_year = luca.defined_time_occupancy()
+
+    print(timeit.timeit(test_time, number=100))
