@@ -3,13 +3,18 @@ import pandas as pd
 import numpy as np
 import time
 
+# this whole thing was a bit of a waste of time. There is not a lot of improvement
+# when running the code with GPU multi processing. On 876000 rows, regular CPU Pandas
+# is still twice as fast as GPU cuDF.
+
 # Create a larger pandas DataFrame as an example
-dates = pd.date_range(start='2021-01-01', periods=876000, freq='H')
+dates = pd.date_range(start="2021-01-01", periods=876000, freq="H")
 occupancy = np.random.randint(0, 2, size=(876000,))
-occupancy_df = pd.DataFrame({'occupancy': occupancy}, index=dates)
+occupancy_df = pd.DataFrame({"occupancy": occupancy}, index=dates)
 
 # Convert pandas DataFrame to cuDF DataFrame
 cudf_df = cudf.DataFrame.from_pandas(occupancy_df)
+
 
 # Function to measure execution time
 def measure_time(df, func):
@@ -18,9 +23,11 @@ def measure_time(df, func):
     end_time = time.time()
     return end_time - start_time
 
+
 # Define the resampling function
 def resample_sum(df):
-    return df['occupancy'].resample('D').sum()
+    return df["occupancy"].resample("D").sum()
+
 
 # Warm-up operations
 _ = cudf_df.head()
