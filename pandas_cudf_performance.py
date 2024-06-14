@@ -1,4 +1,4 @@
-import cudf
+# import cudf
 import pandas as pd
 import numpy as np
 import time
@@ -13,7 +13,7 @@ occupancy = np.random.randint(0, 2, size=(876000,))
 occupancy_df = pd.DataFrame({"occupancy": occupancy}, index=dates)
 
 # Convert pandas DataFrame to cuDF DataFrame
-cudf_df = cudf.DataFrame.from_pandas(occupancy_df)
+# cudf_df = cudf.DataFrame.from_pandas(occupancy_df)
 
 
 # Function to measure execution time
@@ -30,8 +30,8 @@ def resample_sum(df):
 
 
 # Warm-up operations
-_ = cudf_df.head()
-_ = resample_sum(cudf_df)
+# _ = cudf_df.head()
+# _ = resample_sum(cudf_df)
 
 # Measure pandas execution time
 pandas_times = [measure_time(occupancy_df, resample_sum) for _ in range(10)]
@@ -39,6 +39,6 @@ print(f"Pandas execution times: {pandas_times}")
 print(f"Pandas average execution time: {np.mean(pandas_times)} seconds")
 
 # Measure cuDF execution time
-cudf_times = [measure_time(cudf_df, resample_sum) for _ in range(10)]
-print(f"cuDF execution times: {cudf_times}")
-print(f"cuDF average execution time: {np.mean(cudf_times)} seconds")
+# cudf_times = [measure_time(cudf_df, resample_sum) for _ in range(10)]
+# print(f"cuDF execution times: {cudf_times}")
+# print(f"cuDF average execution time: {np.mean(cudf_times)} seconds")

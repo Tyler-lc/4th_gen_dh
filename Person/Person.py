@@ -1,19 +1,18 @@
-%load_ext cudf.pandas
-
 import numpy as np
 import pandas as pd
 
+
 class Person:
-    def __init__(self, building_id):
-        """ This class generates a person with a specific age and building id.
+    def __init__(self, building_id, name):
+        """This class generates a person with a specific age and building id.
         In this class we generate DHW and Occupancy profile. In this case occupancy is defined as the probability of
-        being at home and awake. We do consider sleeping time as occupancy = 0. 
+        being at home and awake. We do consider sleeping time as occupancy = 0.
          Domestic hot water (DHW), is generated based on the occupancy profile.
          In this class we assign a wake-up category and a sleep category based on the percentage of Germans that wake up
          at a certain time. [Schlaf gut, Deutschland - TK-Schlafstudie 2017]
-         DHW is generated based on the occupancy profile. 
+         DHW is generated based on the occupancy profile.
          It also changes based on the ages of the people
-         """
+        """
         self.building_id = building_id
         self.workday_wakeup_category = self.assign_wakeup_category(workday=True)
         self.freeday_wakeup_category = self.assign_wakeup_category(workday=False)
@@ -146,36 +145,94 @@ class Person:
         occupancy_df.drop(columns=["weekday"], inplace=True)
         return occupancy_df
 
-    # Calculation for the DHW profiles
-    # First, this function generates the input needed to calculate the profile
-    def dhw_input_generator(occupancy_distribution):
-        """is to quickly generate the inputs for the domestic hot water demand profile generator. Takes the occupancy
-        distribution so to package the whole thing together nicely. Don't have to do it, it is just nice to have
-        """
-        import numpy as np
+    def dhw_profile(
+        occupancy_distribution,  # occupancy over the year
+        shower_min=40,  # minimum amount of water used for a shower (water flow = 8lt/min, 5 min shower)
+        shower_max=300,  # maximum amount of water used for a shower (water flow = 15 lt/min, 20 min shower)
+        bath_min=100,  # minimum amount of water used for a bath (100 lt)
+        bath_max=130,  # maximum amount of water used for a bath (130 lt)
+        **kwargs
+    ):
+        from utils import misc
 
-        daily_water_consumption = 100
-        randomisation_factor = np.random.uniform(0, 0.4)
-        active_hours = len(occupancy_distribution)
-        min_large = 30
-        max_large = 60
-        min_draws = 3
-        min_lt = 1
-        max_lt = 10
+        if kwargs:
+            occupancy_distribution = kwargs.get(
+                "occupancy_distribution", occupancy_distribution
+            )
+            shower_min = kwargs.get("shower_min", shower_min)
+            shower_max = kwargs.get("shower_max", shower_max)
+            bath_min = kwargs.get("bath_min", bath_min)
+            bath_max = kwargs.get("bath_max", bath_max)
 
-        input_params = {
-            "occupancy_distribution": occupancy_distribution,
-            "daily_amount": daily_water_consumption,
-            "random_factor": randomisation_factor,
-            "active_hours": active_hours,
-            "min_large": min_large,
-            "max_large": max_large,
-            "min_draws": min_draws,
-            "min_lt": min_lt,
-            "max_lt": max_lt,
-        }
+        # data for these are taken from the literature
+        # "In-building waste water heat recovery: An urban-scale method for the
+        #   characterisation of water streams and the assessment of energy savings
+        #   and costs" - Alexandre Bertrande, Riad, Aggoune, François Maréchal - 2017
+        # http://dx.doi.org/10.1016/j.apenergy.2017.01.096
+        # TODO: the other study is on my tablet, I will add it later
 
-        return input_params
+        # amount of water used for a shower
+        shower_lt = np.random.normal(loc=170, scale=40)
+        if shower_lt < 40:
+            shower_lt = 40
+        bath_lt = np.random.normal(115, 5)
+        if bath_lt < 100:
+            bath_lt = 100
+
+        if np.random.uniform() < 0.7:
+            take_shower = True
+        if np.random.uniform() < 0.044:
+            take_bath = True
+
+        np.random.uniform()
+
+        n_handwash = np.random.randint(
+            1, 5
+        )  # number of times a person washes their hands. Average is 3 times
+        handwash_water = np.random.uniform(0.25, 1.5)  #
+        n_cooking = np.random.randint(
+            0, 3
+        )  # number of times a person cooks. Average is 1.5 times. It also includes some other activities
+        cooking_lt = np.random.uniform(0.25, 10)
+
+        draw_amount = take_shower + take_bath + n_handwash + cooking_lt
+        morning_shower = np.random.choice([True, False])
+
+        return None
+
+        # Calculation for the DHW profiles
+
+    # # First, this function generates the input needed to calculate the profile
+    # def dhw_input_generator(occupancy_distribution):
+    #     """is to quickly generate the inputs for the domestic hot water demand profile generator. Takes the occupancy
+    #     distribution so to package the whole thing together nicely. Don't have to do it, it is just nice to have
+    #     """
+    #     shower_time = np.random.rand()
+    #     if shower_time < 0.4:  # 40% of germans shower in the morning
+    #         pass
+
+    #     daily_water_consumption = 100
+    #     randomisation_factor = np.random.uniform(0, 0.4)
+    #     active_hours = len(occupancy_distribution)
+    #     min_large = 30
+    #     max_large = 60
+    #     min_draws = 3
+    #     min_lt = 1
+    #     max_lt = 10
+
+    #     input_params = {
+    #         "occupancy_distribution": occupancy_distribution,
+    #         "daily_amount": daily_water_consumption,
+    #         "random_factor": randomisation_factor,
+    #         "active_hours": active_hours,
+    #         "min_large": min_large,
+    #         "max_large": max_large,
+    #         "min_draws": min_draws,
+    #         "min_lt": min_lt,
+    #         "max_lt": max_lt,
+    #     }
+
+    #     return input_params
 
 
 # Example usage
@@ -183,27 +240,31 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # instantiate a Person
-    luca = Person(building_id=1)
+    luca = Person(building_id=1, name=1)
 
     # generate the probability distribution for luca
     occupancy_probabilities = luca.occupancy_distribution()
     # generate the occupancy for the whole year
     luca_occupancy_year = luca.defined_time_occupancy()
 
-    start_date = '2021-01-01'
-    end_date = '2021-01-03 23:59:59'
+    start_date = "2021-01-01"
+    end_date = "2021-01-09 23:59:59"
     days_df = luca_occupancy_year[start_date:end_date]
 
-
     # Plot the occupancy profile
-    plt.plot(range(len(days_df)), days_df.occupancy)
+    plt.figure(figsize=(30, 10))
+
+    plt.bar(range(len(days_df)), days_df.occupancy)
     plt.show()
 
-
+    plt.plot(range(len(occupancy_probabilities)), luca.freeday_occupancy_pdf)
+    plt.plot(range(len(occupancy_probabilities)), luca.workday_occupancy_pdf)
+    plt.legend(["Free day", "Work day"])
+    plt.show()
     import timeit
 
     def test_time():
-        luca = Person(building_id=1)
+        luca = Person(building_id=1, name=2)
         luca_one_year = luca.defined_time_occupancy()
 
-    print(timeit.timeit(test_time, number=10000))
+    # print(timeit.timeit(test_time, number=10000))
