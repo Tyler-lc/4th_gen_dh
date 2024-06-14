@@ -173,18 +173,13 @@ class Person:
 
         # amount of water used for a shower
         shower_lt = np.random.normal(loc=170, scale=40)
-        if shower_lt < 40:
-            shower_lt = 40
+        shower_lt = max(shower_lt, shower_min)
         bath_lt = np.random.normal(115, 5)
-        if bath_lt < 100:
-            bath_lt = 100
-
+        bath_lt = max(bath_lt, bath_min)
         if np.random.uniform() < 0.7:
             take_shower = True
         if np.random.uniform() < 0.044:
             take_bath = True
-
-        np.random.uniform()
 
         n_handwash = np.random.randint(
             1, 5
