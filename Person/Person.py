@@ -24,6 +24,7 @@ class Person:
         )
         self.workday_occupancy_pdf = self.occupancy_distribution(workday=True)
         self.freeday_occupancy_pdf = self.occupancy_distribution(workday=False)
+        self.occupancy_year = self.defined_time_occupancy()
 
     def assign_wakeup_category(self, workday=True):
         """Assign wakeup category based on the given probabilities."""
@@ -146,7 +147,8 @@ class Person:
         return occupancy_df
 
     def dhw_profile(
-        occupancy_distribution,  # occupancy over the year
+        self,
+        occupancy_distr=None,  # occupancy over the year
         shower_min=40,  # minimum amount of water used for a shower (water flow = 8lt/min, 5 min shower)
         shower_max=300,  # maximum amount of water used for a shower (water flow = 15 lt/min, 20 min shower)
         bath_min=100,  # minimum amount of water used for a bath (100 lt)
@@ -156,13 +158,16 @@ class Person:
         from utils import misc
 
         if kwargs:
-            occupancy_distribution = kwargs.get(
-                "occupancy_distribution", occupancy_distribution
-            )
+            occupancy_distr = kwargs.get("occupancy_distribution", occupancy_distr)
             shower_min = kwargs.get("shower_min", shower_min)
             shower_max = kwargs.get("shower_max", shower_max)
             bath_min = kwargs.get("bath_min", bath_min)
             bath_max = kwargs.get("bath_max", bath_max)
+
+        if occupancy_distr is None:
+            # it is possible to give it a different occupancy over the year
+            # if not given, it will use the one generated when the class is instantiated
+            occupancy_distr = self.occupancy_year
 
         # data for these are taken from the literature
         # "In-building waste water heat recovery: An urban-scale method for the
@@ -172,6 +177,31 @@ class Person:
         # TODO: the other study is on my tablet, I will add it later
 
         # amount of water used for a shower
+
+        timestamps = self.occupancy_distribution.index
+        dhw_df = pd.DataFrame(index=timestamps, columns=["water_amount", "draw_type"])
+
+        # create daily masks
+        days = pd.date_range(
+            start=timestamps.min().floor("D"), end=timestamps.max().floor("D"), freq="D"
+        )
+        daily_shower_taken = pd.Series(Falsem, index=days)
+        daily_bath_taken = pd.Series(False, index=days)
+        daily_handwash = pd.Series(0, index=days)
+        daily_cooking = pd.Series(0, index=days)
+
+        # create mask for occupancy
+        # it makes sure the DHW is used only when person is home
+
+        occupancy_mask = self.occupancy_distribution["occupancy"] == 1
+        times = timestamps[occupancy_mask]  # only the times when the person is home
+
+        def assign_draws(num_draws, water_amount, draw_type, daily_mask):
+            """this method makes sure that all the draws in the day are assigned correctly
+            e.g. if the person washes their hands 4 times in one day, it will make sure
+            that 4 water draws are made, assigned at different hours of the day and
+            tagged accordingly as handwash"""
+
         shower_lt = np.random.normal(loc=170, scale=40)
         shower_lt = max(shower_lt, shower_min)
         bath_lt = np.random.normal(115, 5)
@@ -190,7 +220,7 @@ class Person:
         )  # number of times a person cooks. Average is 1.5 times. It also includes some other activities
         cooking_lt = np.random.uniform(0.25, 10)
 
-        draw_amount = take_shower + take_bath + n_handwash + cooking_lt
+        draw_amount = take_shower + take_bath + n_handwash + n_cooking
         morning_shower = np.random.choice([True, False])
 
         return None
