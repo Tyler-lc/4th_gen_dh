@@ -105,7 +105,7 @@ class Person:
 
         # Set the minimum probability of being home
         occupancy_pdf = np.maximum(occupancy_pdf, min_probability)
-        occupandy_pdf = np.minimum(occupancy_pdf, 1)
+        occupancy_pdf = np.minimum(occupancy_pdf, 1)
 
         return occupancy_pdf
 
@@ -213,84 +213,6 @@ class Person:
         self.dhw_year = dhw_df
         return dhw_df
 
-    def select_dhw_times(self, mask_select, n_draws):
-        result_df = pd.DataFrame(0, index=mask_select.index, columns=["draws"])
-
-        days = pd.date_range(
-            start=mask_select.index.min().floor("D"),
-            end=mask_select.index.max().floor("D"),
-            freq="D",
-        ).date
-
-        if isinstance(n_draws, int):
-            n_draws = [n_draws] * len(days)
-
-        for i, day in enumerate(days):
-            day_mask = mask_select.index.date == day
-            if day_mask.sum() == 0:
-                continue
-            possible_hours = mask_select[day_mask & (mask_select == 1)]
-
-            if not possible_hours.empty:
-                num_draws = n_draws[i]
-                if num_draws > len(possible_hours):
-                    num_draws = len(possible_hours)
-
-                selected_hours = np.random.choice(
-                    possible_hours.index, size=num_draws, replace=False
-                )
-                result_df.loc[selected_hours, "draws"] = 1
-
-        return result_df
-
-    def dhw_profile2(self, occupancy_profile=None):
-        """Generate a DHW profile based on occupancy. The objective is to make the function faster."""
-        if occupancy_profile is None:
-            occupancy_profile = self.occupancy_year
-            if occupancy_profile is None:
-                raise ValueError(
-                    "No occupancy profile provided. Please generate one first. Using self.defined_time_occupancy()"
-                )
-
-        timestamps = self.occupancy_year.index
-        dhw_df = pd.DataFrame(
-            index=timestamps, columns=["shower", "bath", "cooking", "handwash"]
-        )
-        dhw_df[:] = 0  # Initialize all values to 0
-
-        # Vectorized operation for occupancy == 1
-        occupancy_mask = self.occupancy_year["occupancy"] == 1
-
-        # Generate days and set up daily draws
-        days = pd.date_range(
-            start=timestamps.min().floor("D"), end=timestamps.max().floor("D"), freq="D"
-        ).date
-        daily_occupancy_year = occupancy_profile.resample("D").sum()
-
-        shower_days = np.random.uniform(size=len(days)) < 0.7
-        bath_days = np.random.uniform(size=len(days)) < 0.044
-        bath_days = np.where(shower_days, False, bath_days)
-
-        # Use vectorized selection for all days
-        shower_days_hourly = np.repeat(shower_days, 24)
-        mask_select_shower = occupancy_mask & shower_days_hourly
-
-        bath_days_hourly = np.repeat(bath_days, 24)
-        mask_select_bath = occupancy_mask & bath_days_hourly
-
-        n_handwash = np.random.randint(1, 5, size=len(days))
-        n_handwash = np.minimum(n_handwash, daily_occupancy_year["occupancy"].values)
-
-        n_cooking = np.random.randint(0, 3, size=len(days))
-        n_cooking = np.minimum(n_cooking, daily_occupancy_year["occupancy"].values)
-
-        dhw_df["shower"] = self.select_dhw_times(mask_select_shower, 1)["draws"]
-        dhw_df["bath"] = self.select_dhw_times(mask_select_bath, 1)["draws"]
-        dhw_df["handwash"] = self.select_dhw_times(occupancy_mask, n_handwash)["draws"]
-        dhw_df["cooking"] = self.select_dhw_times(occupancy_mask, n_cooking)["draws"]
-
-        return dhw_df
-
     def select_dhw_times2(
         self,
         mask_shower,
@@ -314,7 +236,6 @@ class Person:
             freq="D",
         ).date
 
-        # Ensure n_draws are arrays
         n_shower = (
             np.full(len(days), n_shower) if isinstance(n_shower, int) else n_shower
         )
@@ -329,52 +250,50 @@ class Person:
         )
 
         for i, day in enumerate(days):
-            day_mask_shower = mask_shower.index.date == day
-            possible_hours_shower = mask_shower[day_mask_shower & (mask_shower == 1)]
+            day_mask = mask_shower.index.date == day
+            possible_hours_shower = mask_shower[day_mask & (mask_shower == 1)].index
+            possible_hours_bath = mask_bath[day_mask & (mask_bath == 1)].index
+            possible_hours_handwash = mask_handwash[
+                day_mask & (mask_handwash == 1)
+            ].index
+            possible_hours_cooking = mask_cooking[day_mask & (mask_cooking == 1)].index
+
             if not possible_hours_shower.empty:
-                num_draws_shower = min(n_shower[i], len(possible_hours_shower))
                 selected_hours_shower = np.random.choice(
-                    possible_hours_shower.index, size=num_draws_shower, replace=False
+                    possible_hours_shower,
+                    size=min(n_shower[i], len(possible_hours_shower)),
+                    replace=False,
                 )
                 result_df.loc[selected_hours_shower, "shower"] = 1
 
-            day_mask_bath = mask_bath.index.date == day
-            possible_hours_bath = mask_bath[day_mask_bath & (mask_bath == 1)]
             if not possible_hours_bath.empty:
-                num_draws_bath = min(n_bath[i], len(possible_hours_bath))
                 selected_hours_bath = np.random.choice(
-                    possible_hours_bath.index, size=num_draws_bath, replace=False
+                    possible_hours_bath,
+                    size=min(n_bath[i], len(possible_hours_bath)),
+                    replace=False,
                 )
                 result_df.loc[selected_hours_bath, "bath"] = 1
 
-            day_mask_handwash = mask_handwash.index.date == day
-            possible_hours_handwash = mask_handwash[
-                day_mask_handwash & (mask_handwash == 1)
-            ]
             if not possible_hours_handwash.empty:
-                num_draws_handwash = min(n_handwash[i], len(possible_hours_handwash))
                 selected_hours_handwash = np.random.choice(
-                    possible_hours_handwash.index,
-                    size=num_draws_handwash,
+                    possible_hours_handwash,
+                    size=min(n_handwash[i], len(possible_hours_handwash)),
                     replace=False,
                 )
                 result_df.loc[selected_hours_handwash, "handwash"] = 1
 
-            day_mask_cooking = mask_cooking.index.date == day
-            possible_hours_cooking = mask_cooking[
-                day_mask_cooking & (mask_cooking == 1)
-            ]
             if not possible_hours_cooking.empty:
-                num_draws_cooking = min(n_cooking[i], len(possible_hours_cooking))
                 selected_hours_cooking = np.random.choice(
-                    possible_hours_cooking.index, size=num_draws_cooking, replace=False
+                    possible_hours_cooking,
+                    size=min(n_cooking[i], len(possible_hours_cooking)),
+                    replace=False,
                 )
                 result_df.loc[selected_hours_cooking, "cooking"] = 1
 
         return result_df
 
     def dhw_profile3(self, occupancy_profile=None):
-        """second version of the dhw_profile function. The objective is to make the function faster"""
+        """Generate a DHW profile based on occupancy. The objective is to make the function faster."""
         if occupancy_profile is None:
             occupancy_profile = self.occupancy_year
             if occupancy_profile is None:
@@ -386,8 +305,6 @@ class Person:
         dhw_df = pd.DataFrame(
             index=timestamps, columns=["shower", "bath", "cooking", "handwash"]
         )
-        # resample the occupancy profile to daily from hourly
-        daily_occupancy_year = occupancy_profile.resample("D").sum()
         dhw_df[:] = 0  # Initialize all values to 0
 
         # Vectorized operation for occupancy == 1
@@ -399,20 +316,22 @@ class Person:
         # setting up masks and draw counts
         shower_days = np.random.uniform(size=len(days)) < 0.7
         shower_days_hourly = np.repeat(shower_days, 24)
-        mask_select_shower = self.occupancy_year["occupancy"] * shower_days_hourly
+        mask_select_shower = occupancy_mask & shower_days_hourly
 
         bath_days = np.random.uniform(size=len(days)) < 0.044
         bath_days = np.where(shower_days, False, bath_days)
         bath_days_hourly = np.repeat(bath_days, 24)
-        mask_select_bath = self.occupancy_year["occupancy"] * bath_days_hourly
+        mask_select_bath = occupancy_mask & bath_days_hourly
 
         n_handwash = np.random.randint(1, 5, size=len(days))
-        n_handwash = np.minimum(n_handwash, daily_occupancy_year["occupancy"].values)
-        handwash_water = np.random.uniform(0.25, 1.5, size=len(timestamps))
+        n_handwash = np.minimum(
+            n_handwash, self.occupancy_year.resample("D").sum()["occupancy"].values
+        )
 
         n_cooking = np.random.randint(0, 3, size=len(days))
-        n_cooking = np.minimum(n_cooking, daily_occupancy_year["occupancy"].values)
-        cooking_lt = np.random.uniform(0.25, 10, size=len(timestamps))
+        n_cooking = np.minimum(
+            n_cooking, self.occupancy_year.resample("D").sum()["occupancy"].values
+        )
 
         dhw_times = self.select_dhw_times2(
             mask_shower=mask_select_shower,
@@ -432,39 +351,99 @@ class Person:
 
         return dhw_df
 
-        # Calculation for the DHW profiles
+    def dhw_profile4(self, occupancy_df=None):
+        """Generate a DHW profile based on occupancy. The objective is to make the function faster."""
+        if occupancy_profile is None:
+            occupancy_profile = self.occupancy_year
+            if occupancy_profile is None:
+                raise ValueError(
+                    "No occupancy profile provided. Please generate one first. Using self.defined_time_occupancy()"
+                )
 
-    # # First, this function generates the input needed to calculate the profile
-    # def dhw_input_generator(occupancy_distribution):
-    #     """is to quickly generate the inputs for the domestic hot water demand profile generator. Takes the occupancy
-    #     distribution so to package the whole thing together nicely. Don't have to do it, it is just nice to have
-    #     """
-    #     shower_time = np.random.rand()
-    #     if shower_time < 0.4:  # 40% of germans shower in the morning
-    #         pass
+        # amount of hours at home awake per day
+        occupancy_resampled = occupancy_df.resample("D").sum()["occupancy"].values
 
-    #     daily_water_consumption = 100
-    #     randomisation_factor = np.random.uniform(0, 0.4)
-    #     active_hours = len(occupancy_distribution)
-    #     min_large = 30
-    #     max_large = 60
-    #     min_draws = 3
-    #     min_lt = 1
-    #     max_lt = 10
+        # add a column for the date
+        occupancy_df["date"] = occupancy_df.index.date
+        # filter only rows where occupancy is == 1
+        occupied_hours_df = occupancy_df[occupancy_df["occupancy"] == 1].copy()
 
-    #     input_params = {
-    #         "occupancy_distribution": occupancy_distribution,
-    #         "daily_amount": daily_water_consumption,
-    #         "random_factor": randomisation_factor,
-    #         "active_hours": active_hours,
-    #         "min_large": min_large,
-    #         "max_large": max_large,
-    #         "min_draws": min_draws,
-    #         "min_lt": min_lt,
-    #         "max_lt": max_lt,
-    #     }
+        # add a column for the hour
+        occupied_hours_df["hour"] = occupied_hours_df.index.hour
 
-    #     return input_params
+        # Using pivot_table and melt
+        # pivot the table to have dates as rows and hours as columns
+        pivoted = occupied_hours_df.pivot_table(
+            index="date",
+            columns="hour",
+            values="occupancy",
+            aggfunc="size",
+            fill_value=0,
+        )
+
+        # melt the table to have the date and hour as columns
+        melted = pivoted.melt(ignore_index=False).reset_index()
+
+        # Drop rows with value == 0 and reset index
+        occupied_hours_by_day = (
+            melted[melted["value"] > 0].drop(columns="value").reset_index(drop=True)
+        )
+
+        # group by date and create list of hours
+        occupied_hours_by_day = occupied_hours_by_day.groupby("date")["hour"].apply(
+            list
+        )
+
+        # length of year
+        n_days = int(len(self.occupancy_year) / 24)
+
+        # setting up masks and draw counts
+        shower_days = np.random.uniform(size=(n_days)) < 0.7
+        # shower_days_hourly = np.repeat(shower_days, 24)
+        # mask_select_shower = occupancy_mask & shower_days_hourly
+        # shower_lt = max(np.random.normal(loc=170, scale=40), 40)
+
+        # find out how many showers in the year.
+        showers_in_year = np.sum(shower_days)
+
+        # create a list of water amount of each shower
+        shower_water = np.maximum(
+            np.random.normal(loc=170, scale=40, size=showers_in_year), 40
+        )
+
+        bath_days = np.random.uniform(size=n_days) < 0.044
+        bath_days = np.where(shower_days, False, bath_days)
+        # bath_days_hourly = np.repeat(bath_days, 24)
+
+        # find out how many baths in a year
+        baths_in_year = np.sum(bath_days)
+
+        # mask_select_bath = occupancy_mask & bath_days_hourly
+        bath_lt = max(np.random.normal(115, 5), 100)
+
+        n_handwash = np.random.randint(1, 5, size=n_days)
+        n_handwash = np.minimum(n_handwash, occupancy_resampled)
+        handwash_lt = np.random.uniform(0.25, 1.5, size=n_days)
+
+        n_cooking = np.random.randint(0, 3, size=n_days)
+        n_cooking = np.minimum(n_cooking, occupancy_resampled)
+        cooking_lt = np.random.uniform(0.25, 10, size=n_days)
+
+        def select_hours():
+            selected_hours = []
+
+            # Loop through each day's occupied hours list
+            for hours in occupied_hours_by_day["hour"]:
+                if len(hours) > 0:
+                    selected_hour = np.random.choice(hours)
+                    selected_hours.append(selected_hour)
+                else:
+                    selected_hours.append(None)
+            return selected_hours
+
+        #   this will return a random pick of the hours when the person is at home
+
+        return None
 
 
 # Example usage
@@ -475,12 +454,11 @@ if __name__ == "__main__":
     luca = Person(building_id=1, name=1)
 
     # generate the probability distribution for luca
-    # occupancy_probabilities = luca.occupancy_distribution()
+    occupancy_probabilities = luca.occupancy_distribution()
     # generate the occupancy for the whole year
-    # luca_occupancy_year = luca.defined_time_occupancy()
-    # luca_dhw = luca.dhw_profile2()
-
-    plot = False
+    luca_occupancy_year = luca.defined_time_occupancy()
+    luca_dhw = luca.dhw_profile2()
+    plot = True
 
     if plot == True:
         start_date = "2021-01-01"
@@ -500,7 +478,7 @@ if __name__ == "__main__":
     import timeit
 
     def test_time():
-        luca = Person(building_id=1, name=2)
+        tina = Person(building_id=1, name=2)
         dhw_luca = luca.dhw_profile()
 
     def test_dhw2():
