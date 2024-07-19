@@ -4,6 +4,8 @@ import warnings
 import json
 import warnings
 
+# TODO: add 200 to 300 W when person at home in internal gains. This is a rough estimate
+
 
 class Building:
 
