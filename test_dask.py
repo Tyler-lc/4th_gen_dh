@@ -6,7 +6,7 @@ from Person.Person import Person
 
 
 def create_person(building_id):
-    person = Person(building_id=building_id, name=f"Person_{building_id}")
+    person = Person(building_id=building_id, person_id=f"Person_{building_id}")
     dhw_profile = person.dhw_profile()  # Run the dhw_profile method
     return person
 
