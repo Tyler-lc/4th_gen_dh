@@ -4,7 +4,7 @@ import icecream as ic
 
 
 class Person:
-    def __init__(self, building_id, name):
+    def __init__(self, building_id, person_id):
         """This class generates a person with a specific age and building id.
         In this class we generate DHW and Occupancy profile. In this case occupancy is defined as the probability of
         being at home and awake. We do consider sleeping time as occupancy = 0.
@@ -15,6 +15,7 @@ class Person:
          It also changes based on the ages of the people
         """
         self.building_id = building_id
+        self.person_id = person_id
         self.workday_wakeup_category = self.assign_wakeup_category(workday=True)
         self.freeday_wakeup_category = self.assign_wakeup_category(workday=False)
         self.workday_sleep_category = self.assign_sleep_category(
@@ -126,7 +127,7 @@ class Person:
         if fd_occupancy_distr is None:
             fd_occupancy_distr = self.freeday_occupancy_pdf
 
-        timestamps = pd.date_range(start=start_year, periods=days * 24, freq="1H")
+        timestamps = pd.date_range(start=start_year, periods=days * 24, freq="h")
         occupancy_df = pd.DataFrame(index=timestamps, columns=["occupancy"])
         occupancy_df["weekday"] = occupancy_df.index.weekday
 
@@ -351,7 +352,7 @@ class Person:
 
         return dhw_df
 
-    def dhw_profile4(self, occupancy_df=None):
+    def dhw_profile4(self, occupancy_profile=None):
         """Generate a DHW profile based on occupancy. The objective is to make the function faster."""
         if occupancy_profile is None:
             occupancy_profile = self.occupancy_year
@@ -361,12 +362,14 @@ class Person:
                 )
 
         # amount of hours at home awake per day
-        occupancy_resampled = occupancy_df.resample("D").sum()["occupancy"].values
+        occupancy_resampled = occupancy_profile.resample("D").sum()["occupancy"].values
 
         # add a column for the date
-        occupancy_df["date"] = occupancy_df.index.date
+        occupancy_profile["date"] = occupancy_profile.index.date
         # filter only rows where occupancy is == 1
-        occupied_hours_df = occupancy_df[occupancy_df["occupancy"] == 1].copy()
+        occupied_hours_df = occupancy_profile[
+            occupancy_profile["occupancy"] == 1
+        ].copy()
 
         # add a column for the hour
         occupied_hours_df["hour"] = occupied_hours_df.index.hour
@@ -451,13 +454,13 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
 
     # instantiate a Person
-    luca = Person(building_id=1, name=1)
+    luca = Person(building_id=1, person_id=1)
 
     # generate the probability distribution for luca
     occupancy_probabilities = luca.occupancy_distribution()
     # generate the occupancy for the whole year
     luca_occupancy_year = luca.defined_time_occupancy()
-    luca_dhw = luca.dhw_profile2()
+    # luca_dhw = luca.dhw_profile2()
     plot = True
 
     if plot == True:
@@ -478,16 +481,16 @@ if __name__ == "__main__":
     import timeit
 
     def test_time():
-        tina = Person(building_id=1, name=2)
+        tina = Person(building_id=1, person_id=2)
         dhw_luca = luca.dhw_profile()
 
     def test_dhw2():
-        paolo = Person(building_id=1, name=2)
-        dhw_paolo = paolo.dhw_profile2()
+        paolo = Person(building_id=1, person_id=2)
+        dhw_paolo = paolo.dhw_profile3()
 
     def test_dhw3():
-        gianni = Person(building_id=1, name=2)
-        dhw_gianni = gianni.dhw_profile3()
+        gianni = Person(building_id=1, person_id=2)
+        dhw_gianni = gianni.dhw_profile4()
 
     print(timeit.timeit(test_time, number=1))
     print(timeit.timeit(test_dhw2, number=1))
