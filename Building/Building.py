@@ -3,6 +3,17 @@ import pandas as pd
 import warnings
 import json
 import warnings
+import os
+import sys
+
+# Get the directory of the current script. Withot this line the script can't import the Person class
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Get the parent directory
+parent_dir = os.path.dirname(current_dir)
+sys.path.append(parent_dir)
+
+from Person.Person import Person
 
 # TODO: add 200 to 300 W when person at home in internal gains. This is a rough estimate
 
@@ -11,7 +22,7 @@ class Building:
 
     def __init__(
         self,
-        name,
+        building_id,
         building_type,
         components,
         outside_temperature,
@@ -21,20 +32,22 @@ class Building:
         summer_start=6,
         summer_end=9,
     ):
-        self.name = name
+        self.building_id = building_id
         self.building_type = building_type
         self.components = components
         self.outside_temperature = outside_temperature
         self.soil_temp = soil_temp
         self.summer_start = summer_start
         self.summer_end = summer_end
+        self.people = []
+        self.water_usage = pd.DataFrame()
 
         # Ensure the outside_temperature has a DatetimeIndex and is a Dataframe
         # if not a dataframe then create one with DateTimeIndex
         if not isinstance(outside_temperature, pd.DataFrame):
             start = f"{year_start}-01-01"
             period = len(outside_temperature)
-            weather_index = pd.date_range(start=start, periods=period, freq="1H")
+            weather_index = pd.date_range(start=start, periods=period, freq="h")
             self.outside_temperature = pd.DataFrame(
                 outside_temperature, index=weather_index, columns=["Outside T °C"]
             )
@@ -42,7 +55,7 @@ class Building:
         elif not isinstance(outside_temperature.index, pd.DatetimeIndex):
             start = f"{year_start}-01-01"
             period = len(outside_temperature)
-            weather_index = pd.date_range(start=start, periods=period, freq="1H")
+            weather_index = pd.date_range(start=start, periods=period, freq="h")
             outside_temperature.set_index(weather_index, inplace=True)
             self.outside_temperature = outside_temperature
         # if it is a dataframe and has a DatetimeIndex then just use input data
@@ -357,6 +370,61 @@ class Building:
             date_index.month <= self.summer_end
         )
 
+    # here we start adding people to the building.
+
+    def add_people(self, n_people):
+        """add people in the building based on the Person.py class.
+        To calculate domestic hot water call the method 'domestic_hot_water'"""
+        for i in range(n_people):
+            person_id = f"{self.building_id}_{i}"
+            self.people.append(
+                Person(building_id=self.building_id, person_id=person_id)
+            )
+
+    def dhw_volume(self):
+        """calculate the domestic hot water demand in liters
+        to calculate the energy needed call the method dhw_demand
+        This function returns the total volume of hot water used in the building
+        If you want to check the volume used by each person, you can check Building.people[n].dhw_year
+        """
+        if not self.people:
+            warnings.warn("No people in the building.")
+            return
+        self.water_usage = sum([person.dhw_profile() for person in self.people])
+        return self.water_usage
+
+    def dhw_energy(self, cold_water_temp: float = 8, hot_water_temp: dict = None):
+        """calculate the energy needed for the domestic hot water demand in kWh
+        cold_water_temp: float, optional. Default is 8 °C
+        hot_water_temp: dict, optional. Default is None. If None, the default values are used
+        default values are: {"shower": 38, "bath": 40, "cooking": 35, "handwash": 37}"""
+        if hot_water_temp is None:
+            hot_water_temp = {
+                "shower": 38,
+                "bath": 40,
+                "cooking": 35,
+                "handwash": 37,
+            }  # °C
+            # TODO double check these number we have a paper for this!!!!
+            # TODO: we can add a function that varies the cold water temperature based on the hour of the year
+            # TODO: we can add a function that varies the hot water temperature based on the hour of the year (some cosin or sin function)
+        if self.water_usage.empty:
+            warnings.warn(
+                "No hot water demand. Makes ure to run Building.hot_water_volume() first"
+            )
+            return
+        hot_water_temp_series = pd.Series(hot_water_temp)
+        # E = m * c_p * DT. 4.182 is the specific heat of water (c_p) in kJ/kg°C
+        # 3600 is to convert kJ to kWh
+        self.dhw_energy_demand = (
+            self.water_usage
+            * 4.182
+            * (hot_water_temp_series - cold_water_temp)
+            / 3600  #
+        )
+
+        return self.dhw_energy_demand
+
     def get_useful_demand(self):
         return self.hourly_useful_demand
 
@@ -437,13 +505,20 @@ if __name__ == "__main__":
     # on/off toggle some tests and debugging options
     losses_outputs = 0
     plot = 0
-    test_speed = 1
+    test_speed = 0
     profiler = 0
 
     from Databases.mysql_utils.mysql_utils import create_connection, fetch_data
 
     # test building results
     data = fetch_data(1)
+
+    if profiler == 0:
+        sfh = Building("test", "SFH1", data, weather, irradiation)
+        sfh.thermal_balance()
+        sfh.add_people(2)
+        dhw_volume = sfh.dhw_volume()
+        dhw_energy = sfh.dhw_energy()
 
     if profiler == 1:
         from pyinstrument import Profiler
@@ -458,10 +533,6 @@ if __name__ == "__main__":
             line for line in output.split("\n") if "pandas" not in line
         )
         print(filtered_output)
-
-    if profiler == 0:
-        sfh = Building("test", "SFH1", data, weather, irradiation)
-        sfh.thermal_balance()
 
     total_ued = sfh.get_sum_useful_demand()
     original_value = 100452.379147
@@ -502,7 +573,12 @@ if __name__ == "__main__":
         )
 
         # Plot the smoothed data
-        plt.plot(df.index, df["Smoothed"], label="12-hour Rolling Average", color="red")
+        plt.plot(
+            df.index,
+            df["Smoothed"],
+            label=f"{rolling_window}-hour Rolling Average",
+            color="red",
+        )
 
         # Add title and labels
         plt.title(
