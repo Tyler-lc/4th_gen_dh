@@ -16,7 +16,10 @@ sys.path.append(parent_dir)
 from Person.Person import Person
 
 # TODO: add 200 to 300 W when person at home in internal gains. This is a rough estimate
-
+# TODO: add a function that calculates how many people are supposed to be in the building.
+#       from ISEK_Integriertes_Städtebauliches_Entwicklungskonzept_für_Griesheim-Mitte_Stand_08_2019_.pdf
+#       we know that there are on average 3.36m2/person. So we can calculate the number of people based on the floor area
+#       Stadtumbau Griesheim-Mitte _ Stadtplanungsamt Frankfurt am Main.pdf says that there are about 8000 people in Grihesheim mitte
 
 class Building:
 
