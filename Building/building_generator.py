@@ -13,8 +13,8 @@ def generate_building(
     n_neighbors: int,  # number of neighboring buildings
     n_sides: int,  # total number of sides of the building
     u_value_path: str,  # path to the csv file with the u-values
-    random_factor: float = 0.15,
-) -> pd.DataFrame:  # 15% random factor for u-values
+    random_factor: float = 0.15,  # 15% random factor for u-values
+) -> pd.DataFrame:  # TODO: we need to define the return type. Could be a gpd
     """
     This function generates a building based on the provided parameters and u-value template.
 
