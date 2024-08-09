@@ -114,49 +114,52 @@ def define_building_age(
     gdf: gpd.GeoDataFrame, age_distr: pd.DataFrame, residential: bool
 ) -> pd.Series:
     """
-    this function defines the age of the buildings. The age is randomly assigned to the buildings
-    based on the statistics that we have on the building stock. this function takes the
+    This function defines the age of the buildings. The age is randomly assigned to the buildings
+    based on the statistics that we have on the building stock. This function takes the
     age of the buildings. Then it assigns that percentage to all the buildings.
     E.g. if 10% of the buildings are 100 years old, then all building types will have 10% of the total
     buildings assigned to be 100 years old.
     :param gdf: GeoDataFrame containing the building data with columns 'height', 'neighbors_count', and 'building_use'
     :param age_distr: dictionary containing the age distribution of the buildings
     :param residential: boolean value to indicate if the building is residential or not
-    :return: Series containng the age of all the buildings.
+    :return: Series containing the age of all the buildings.
     """
-    # create a series to store the age of the buildings
+    # Create a series to store the age of the buildings
     defined_age = pd.Series(index=gdf.index, dtype="object")
 
     df = pd.DataFrame(columns=["random_numbers"])
     df["building_usage"] = gdf["building_usage"]
-    df["random_numbers"] = random_assignment(gdf)
+    # df["random_numbers"] = random_assignment(gdf)
+    df["random_numbers"] = np.random.uniform(low=0.0, high=1, size=len(df))
     df["age_code"] = None
 
-    # print(f"check if length are still the same for some reason: {len(df) == len(gdf)}")
+    # Define building types
     building_types = ["sfh", "ab", "th", "mfh"]
-    res_mask = df["building_usage"].isin(["sfh", "ab", "th", "mfh"])
-    non_res_mask = ~df["building_usage"].isin(["sfh", "ab", "th", "mfh"])
+    res_mask = df["building_usage"].isin(building_types)
+    non_res_mask = ~df["building_usage"].isin(building_types)
 
-    # here we are doing only residential buildings for now
+    # Process only residential buildings for now
     if residential:
-        # cycle through the residential building types contained in the building_types list
+        # Cycle through the residential building types contained in the building_types list
         for buildings in building_types:
-            cumulative = 0
             mask_types = df["building_usage"] == buildings
             mask_ages = age_distr["building_type"] == buildings
 
-            for percentages, id_code in zip(
-                age_distr["percentage"][mask_ages], age_distr["tabula_ID"][mask_ages]
+            # Sort age distribution by percentage
+            sorted_age_distr = age_distr[mask_ages].sort_values(by="percentage")
+            cumulative_percentage = 0
+
+            for percentage, id_code in zip(
+                sorted_age_distr["percentage"], sorted_age_distr["tabula_ID"]
             ):
-                percentage_mask = (df["random_numbers"] <= percentages) & (
-                    df["building_usage"] == buildings
+                cumulative_percentage += percentage
+                percentage_mask = (
+                    (df["random_numbers"] <= cumulative_percentage)
+                    & (df["age_code"].isnull())
+                    & (df["building_usage"] == buildings)
                 )
                 print(
                     f"number of {buildings} assigned to category {id_code}: {percentage_mask.sum()}"
-                )
-                cumulative += percentage_mask.sum()
-                print(
-                    f"cumulative amount of {buildings} ({mask_types.sum()}) assigned to category {id_code}: {cumulative}"
                 )
                 df.loc[percentage_mask, "age_code"] = id_code
 
@@ -189,7 +192,7 @@ if __name__ == "__main__":
     import numpy as np
     import sys
 
-    np.random.seed(42)
+    np.random.seed(42069)
 
     # insure we can import the qgis_utils module
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -237,8 +240,21 @@ if __name__ == "__main__":
 
     df_data["age_code"] = define_building_age(df_data, age_look_up, True)
 
-    sfh_mask = df_data["building_usage"] == "sfh"
-    sfh1_mask = df_data[sfh_mask]["age_code"] == 1
+    age_dict = {}
+    for age in range(1, 13):
+        mask_age = df_data["age_code"] == age
+        age_dict.update({age: mask_age.sum()})
+
+    percentage_dict = {}
+    total_residential = df_data["age_code"].count()
+    for age in range(1, 13):
+        percentage = age_dict[age] / total_residential
+        percentage_dict.update({age: percentage})
+        print(f"percentage of buildings in age category {age}: {percentage_dict[age]}")
+
+    # TODO: fix the csv data for duplicated entry. Sum up those numbers that are the same
+    # for example age 11 is duplicated because it needs that archetype twice because
+    # we actually have less types in ebok than in tabula.
 
     # TODO: https://mapview.region-frankfurt.de/maps4.16/resources/apps/RegioMap/index.html?lang=de&vm=2D&s=2543.2619432300075&r=0&c=471481.09638917685%2C5549632.605473744&l=siedlungsflaechentypologie%280%29%2Cstaedtekartetoc%2C-poi_3d%2C-windmills%2C-gebaeude_1
     # this link has a list of all the building types that we can use to define the building types that are not residential.
