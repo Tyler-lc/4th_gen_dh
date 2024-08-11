@@ -174,7 +174,45 @@ def define_building_age(
     return defined_age
 
 
+def assign_ceiling_height(
+    building_age: pd.Series,
+    building_types: pd.Series,
+    height_distr: pd.DataFrame,
+    res_types: List[str],
+) -> pd.Series:
+    """This function assigns the ceiling height to the buildings based on the building type and the age.
+    :param gdf: GeoDataFrame containing the building data with columns 'building_use' and 'age_code"
+    :param height_distr: the DataFrame containing the information about the ceiling height of each combination of
+                         building type and age code"""
+
+    # create a series to store the ceiling height of the buildings
+    ceiling_height = pd.Series(index=building_age.index, dtype="object")
+    df = pd.DataFrame({"age_code": building_age, "building_usage": building_types})
+    print(df)
+
+    # we are going to change the building types that are not residential to "non_res"
+    non_res_mask = ~df["building_usage"].isin(res_types)
+    df.loc[non_res_mask, "building_usage"] = "non_res"
+    building_types = df["building_usage"].unique()
+
+    for buildings in building_types:
+        mask_ages = height_distr["building_type"] == buildings
+
+        for age, ceiling_height in zip(
+            height_distr["age_code"], height_distr[mask_ages]["ceiling_height"]
+        ):
+            df_age_type = (df["building_usage"] == buildings) & (df["age_code"] == age)
+            df.loc[df_age_type, "ceiling_height"] = ceiling_height
+
+    ceiling_height = df["ceiling_height"]
+
+    return ceiling_height
+
+
 def random_assignment(gdf: gpd.GeoDataFrame):
+    """assigns a randomly generated number to each building type in the GeoDataFrame.
+    :param gdf: GeoDataFrame containing the building data with columns 'building_use'"""
+
     building_types_list = gdf["building_usage"].unique()
     random_numbers = pd.Series(index=gdf.index, dtype="object")
 
@@ -297,6 +335,41 @@ if __name__ == "__main__":
 
     percent_types = check_percent_types(df_data, res_types)
     print(percent_types)
+
+    # Ceiling height assignment
+
+    building_types = df_data["building_usage"]
+    building_age = df_data["age_code"]
+    ceiling_data = pd.read_csv("../Building/data/ceiling_heights.csv")
+    res_types = ["sfh", "ab", "th", "mfh"]
+
+    df_data["ceiling_height"] = assign_ceiling_height(
+        building_age=building_age,
+        building_types=building_types,
+        height_distr=ceiling_data,
+        res_types=res_types,
+    )
+
+    # checking now if the assignment of the ceiling height was correct
+    df_test_heights = df_data.filter(["building_usage", "age_code", "ceiling_height"])
+    non_res_mask = np.logical_not(df_test_heights["building_usage"].isin(res_types))
+    df_test_heights.loc[non_res_mask, "building_usage"] = "non_res"
+    for building in df_test_heights["building_usage"].unique():
+        for ages in range(1, 13):
+            mask_age = df_test_heights["age_code"] == ages
+            mask_type = df_test_heights["building_usage"] == building
+            current_height = df_data[(mask_age) & (mask_type)][
+                "ceiling_height"
+            ].unique()
+            height_from_data = ceiling_data[
+                (ceiling_data["building_type"] == building)
+                & (ceiling_data["age_code"] == ages)
+            ]["ceiling_height"].unique()
+
+            print(
+                f" building type {building} and age {ages}, assigned to buildings: {current_height}. Height from data  {height_from_data}"
+            )
+            # print(f"Building type {building} and age {ages}, ceiling height: {df_data[(mask_age) & (mask_type)]['ceiling_height'].unique()}")
 
     # TODO: https://mapview.region-frankfurt.de/maps4.16/resources/apps/RegioMap/index.html?lang=de&vm=2D&s=2543.2619432300075&r=0&c=471481.09638917685%2C5549632.605473744&l=siedlungsflaechentypologie%280%29%2Cstaedtekartetoc%2C-poi_3d%2C-windmills%2C-gebaeude_1
     # this link has a list of all the building types that we can use to define the building types that are not residential.
