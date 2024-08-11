@@ -5,6 +5,11 @@ import pandas as pd
 # we basically need to separate these two building types. Because the residential buildings have ages from 1 to 12,
 # while the non residential buildings have ages from 1 to 7. So we need to separate these two types of buildings.
 # TODO: check if the u-values fetching mechanism is "hard coded" or if it can handle different age ranges
+# TODO: we need to kind fix the data with the windows, we have changed it again now. Before it was nested in a json i think
+#       now we are doing something different with the new datastructure we are using. We need to fix this.
+#       Also we now want to use the same fenestration on all for sides basically and use an average value for the irradiation
+#       So we will be using the window to wall ration to calculate the window areas. And we will just say that windows
+#       are on all sides and it wont matter really. Because now we use the average values.
 
 
 def generate_building(
@@ -48,11 +53,11 @@ def generate_building(
     assert not template_df.empty, f"No entries found for building type: {building_type}"
 
     # Extract and randomize u-values
-    roof_u_value = template_df["roof"].values[0]
-    wall_u_value = template_df["wall"].values[0]
-    floor_u_value = template_df["floor"].values[0]
-    window_u_value = template_df["window"].values[0]
-    door_u_value = template_df["door"].values[0]
+    roof_u_value = template_df["roof_uvalue"].values[0]
+    wall_u_value = template_df["wall_uvalue"].values[0]
+    floor_u_value = template_df["floor_uvalue"].values[0]
+    window_u_value = template_df["window_uvalue"].values[0]
+    door_u_value = template_df["door_uvalue"].values[0]
 
     #  acquire door's area from Tabula templates. Only surface we take from tabula data
     door_area = template_df["door_surface"].values[0]
@@ -73,7 +78,7 @@ def generate_building(
     east_window_area = template_df["window_east_surface"].values[0]
     west_window_area = template_df["window_west_surface"].values[0]
 
-    # Allocate window areas
+    # TODO: All this window section will be changed to use the window to wall ration. MUCH EASIER.
     total_window_area = (
         south_window_area + north_window_area + east_window_area + west_window_area
     )
@@ -184,7 +189,6 @@ if __name__ == "__main__":
     # utils_dir = os.path.join(parent_dir, "utils")
     # sys.path.append(utils_dir)
     sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-    from utils.qgis_utils import get_building_data
     from utils.building_utilities import process_data
 
     # import data from QGIS parquet file
@@ -204,7 +208,28 @@ if __name__ == "__main__":
         path_geometry_data, "parquet", age_distr, ceiling_heights, res_types
     )
 
-    path_u_values = "data/archetype_u_value.csv"
+    u_value_path = os.path.join(base_dir, "Building", "data", "archetype_u_values.csv")
+
+    plot_area = building_data["plot_area"][1]
+    roof_area = building_data["roof_surface"][1]
+    wall_area = building_data["wall_surface"][1]
+    volume = building_data["volume"][1]
+    n_neighbors = building_data["neighbors_count"][1]
+    n_sides = building_data["n_sides"][1]
+    building_height = building_data["height"][1]
+    data_frame = generate_building(
+        "sfh",
+        1,
+        plot_area,
+        roof_area,
+        wall_area,
+        volume,
+        n_neighbors,
+        n_sides,
+        building_height,
+        u_value_path,
+    )
+
     # building_1 = generate_building("MFH1", 200, 220, 450, 500, 600, 2, path)
 
     # building_1 = generate_building(
