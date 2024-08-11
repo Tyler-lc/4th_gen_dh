@@ -1,17 +1,24 @@
 import numpy as np
 import pandas as pd
 
+# TODO: since we have two different databases for u-values in the data (Tabula for residentia, BSO for non-res)
+# we basically need to separate these two building types. Because the residential buildings have ages from 1 to 12,
+# while the non residential buildings have ages from 1 to 7. So we need to separate these two types of buildings.
+# TODO: check if the u-values fetching mechanism is "hard coded" or if it can handle different age ranges
+
 
 def generate_building(
-    building_type: str,  # mfhx, sfhx, thx, abx. Where x is a integer from 1 to 12 and indicates the age
+    building_usage: str,  # mfhx, sfhx, thx, abx. Where x is a integer from 1 to 12 and indicates the age
+    age_code: int,  # age of the building
     plot_area: float,  # area of the plot the building is on
     roof_area: float,  # area of the roof of the building
     wall_area: float,  # area of the walls of the building
     volume: float,  # volume of the building
-    GFA: float,  # gross flooar area #TODO i think we need to calculate this one
-    n_floors: int,  # number of floors in the building #TODO i think we need to calculate this one
+    # GFA: float,  # gross flooar area #TODO i think we need to calculate this one
+    # n_floors: int,  # number of floors in the building #TODO i think we need to calculate this one
     n_neighbors: int,  # number of neighboring buildings
     n_sides: int,  # total number of sides of the building
+    building_height: float,  # height of the building
     u_value_path: str,  # path to the csv file with the u-values
     random_factor: float = 0.15,  # 15% random factor for u-values
 ) -> pd.DataFrame:  # TODO: we need to define the return type. Could be a gpd
@@ -28,7 +35,9 @@ def generate_building(
     :param u_value_path: Path to the CSV containing u-values for different building types
     :return: A DataFrame containing the updated values for the building
     """
-    building_type = building_type.lower()
+
+    building_usage = building_usage.lower()
+    building_type = building_usage + str(age_code)
     # Read the U-values from the provided CSV path
     template_df = pd.read_csv(u_value_path)
 
@@ -156,7 +165,10 @@ def generate_building(
         "SHGC": np.nan,
         "number of floors": n_floors,
     }
-
+    # calculate the number of floors:
+    n_floors = np.floor(plot_area / building_height)
+    # calculate the GFA
+    gfa = plot_area * n_floors
     # Convert dictionaries to a dataframe
     df = pd.DataFrame([roof_dict, wall_dict, floor_dict, door_dict] + windows)
 
@@ -164,17 +176,38 @@ def generate_building(
 
 
 if __name__ == "__main__":
-    path = "input_building_gen/archetype_u_values.csv"
-    # building_1 = generate_building("MFH1", 200, 220, 450, 500, 600, 2, path)
-    building_1 = generate_building(
-        "mfh1",
-        plot_area=200,
-        roof_area=220,
-        wall_area=450,
-        volume=500,
-        GFA=280,
-        n_floors=2,
-        n_neighbors=2,
-        u_value_path=path,
+    import os
+    import sys
+
+    # current_dir = os.path.dirname(os.path.abspath(__file__))
+    # parent_dir = os.path.dirname(current_dir)
+    # utils_dir = os.path.join(parent_dir, "utils")
+    # sys.path.append(utils_dir)
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+    from utils.qgis_utils import get_building_data
+    from utils.building_utilities import process_data
+
+    # import data from QGIS parquet file
+
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+    # Import data from QGIS parquet file
+    path_geometry_data = os.path.join(base_dir, "Building", "data", "frankfurt.parquet")
+    path_ceiling_heights = os.path.join(
+        base_dir, "Building", "data", "ceiling_heights.csv"
     )
-    print(building_1)
+    ceiling_heights = pd.read_csv(path_ceiling_heights)
+    age_path = os.path.join(base_dir, "Building", "data", "buildings_age.csv")
+    age_distr = pd.read_csv(age_path)
+    res_types = ["mfh", "sfh", "th", "ab"]
+    building_data = process_data(
+        path_geometry_data, "parquet", age_distr, ceiling_heights, res_types
+    )
+
+    path_u_values = "data/archetype_u_value.csv"
+    # building_1 = generate_building("MFH1", 200, 220, 450, 500, 600, 2, path)
+
+    # building_1 = generate_building(
+    #     "mfh1",
+    # )
+    # print(building_1)
