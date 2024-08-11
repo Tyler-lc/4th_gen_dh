@@ -2,6 +2,86 @@ import geopandas as gpd
 import pandas as pd
 import numpy as np
 from typing import List, Dict
+import os
+import sys
+
+
+def get_building_data(path: str, filetype: str) -> gpd.GeoDataFrame:
+    """
+    This function reads the building data from the provided geopackage and returns a DataFrame.
+
+    :param path: Path to the building data
+    :param filetype: Type of the file, either 'gpkg' or 'parquet'
+    :return: DataFrame containing the building data
+    """
+    try:
+        if filetype == "gpkg":
+            building_data = gpd.read_file(path)
+        if filetype == "parquet":
+            building_data = pd.read_parquet(path)
+        else:
+            raise ValueError(
+                f"Invalid file type {filetype} . Please provide either 'gpkg' or 'parquet'."
+            )
+    except Exception as e:
+        print(f"Error while reading the file: {e}")
+        return None
+
+    full_id: str = building_data["full_id"]
+    osm_id: int = building_data["osm_id"]
+    building_type: str = building_data["building"]
+    roof_slope: float = building_data["slope_mean"].apply(float)
+    roof_surface: float = building_data["roof_sum"].apply(float)
+    building_height: float = building_data["height_mean_point"].apply(float)
+    is_isolated: int = building_data["is_isolated"].apply(int)
+    wall_surface: float = building_data["vertical_s"].apply(float)
+    plot_area: float = building_data["area"].apply(float)
+    building_perimiter: float = building_data["perimeter"].apply(float)
+    volume: float = building_data["height_sum_raster"].apply(float)
+    n_sides: int = building_data["n_all_sides"].apply(int)
+    building_use: str = building_data["B_REALXX"]
+    geometry = building_data["geometry"]
+
+    # QGIS writes these lists as strings, so I need to convert them into lists before i proceed
+    building_neighbors = building_data["neighbors"].apply(convert_to_list)
+    border_length = building_data["border_len"].apply(convert_to_list)
+
+    data = {
+        "full_id": full_id,
+        "osm_id": osm_id,
+        "type": building_type,
+        "roof_slope": roof_slope,
+        "roof_surface": roof_surface,
+        "height": building_height,
+        "is_isolated": is_isolated,
+        "wall_surface": wall_surface,
+        "plot_area": plot_area,
+        "perimiter": building_perimiter,
+        "volume": volume,
+        "n_sides": n_sides,
+        "neighbors_count": building_neighbors,
+        "border_length": border_length,
+        "building_use": building_use,
+        "geometry": geometry,
+    }
+
+    export_data = gpd.GeoDataFrame(data)
+
+    return export_data
+
+
+def convert_to_list(value):
+    """As QGIS writes lists as strings, this function converts them back to lists.
+    Sample usage, where building_data is a geopandas dataframe and QGIs stored a list of neighboring
+    buildings as a string in the neighbors column:
+    Use the "apply" method to convert the string to a list:
+
+    building_data["neighbors"] = building_data["neighbors"].apply(convert_to_list)
+
+    """
+    if pd.isnull(value):
+        return []
+    return value.split(",")
 
 
 def define_building_type(gdf: gpd.GeoDataFrame) -> pd.Series:
@@ -257,8 +337,48 @@ def check_percent_types(gdf: gpd.GeoDataFrame, res_types: List[str]) -> pd.DataF
     return counts
 
 
+def process_data(
+    gdf_path: str,
+    filetype: str,
+    age_distr: pd.DataFrame,
+    height_distr: pd.DataFrame,
+    res_types: List[str],
+) -> gpd.GeoDataFrame:
+    # from qgis_utils import get_building_data
+
+    """
+    This function processes the data from the GeoDataFrame and assigns the building type, age and ceiling height to the buildings.
+    :param gdf: GeoDataFrame containing the building data with columns 'height', 'neighbors_count', 'building_use'
+    :param age_distr: DataFrame containing the age distribution of the buildings
+    :param height_distr: DataFrame containing the ceiling height distribution of the buildings
+    :res_types: a list of strings that identifies residential buildings in age_distr
+    :return: GeoDataFrame containing the updated values for the building
+    """
+
+    # Retrieve the buildings data from the parquet or gpkg file
+    building_data = get_building_data(path=gdf_path, filetype=filetype)
+
+    # save the building usage in a new column
+    building_data["building_usage"] = define_building_type(building_data)
+
+    # save the building age in a new column called "age_code"
+    building_data["age_code"] = define_building_age(building_data, age_distr, res_types)
+
+    # save the ceiling heights in a new column called "ceiling_height"
+    building_types = building_data["building_usage"]
+    building_age = building_data["age_code"]
+
+    building_data["ceiling_height"] = assign_ceiling_height(
+        building_age=building_age,
+        building_types=building_types,
+        height_distr=height_distr,
+        res_types=res_types,
+    )
+
+    return building_data
+
+
 if __name__ == "__main__":
-    from qgis_utils import get_building_data
     from qgis_utils import convert_to_list
     import os
     import pandas as pd
@@ -266,7 +386,7 @@ if __name__ == "__main__":
     import numpy as np
     import sys
 
-    np.random.seed(42069)
+    np.random.seed(42)
 
     # insure we can import the qgis_utils module
     current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -340,7 +460,10 @@ if __name__ == "__main__":
 
     building_types = df_data["building_usage"]
     building_age = df_data["age_code"]
-    ceiling_data = pd.read_csv("../Building/data/ceiling_heights.csv")
+    path_heights = "../Building/data/ceiling_heights.csv"
+    abs_heights = os.path.abspath(os.path.join(os.path.dirname(__file__), path_heights))
+
+    ceiling_data = pd.read_csv(abs_heights)
     res_types = ["sfh", "ab", "th", "mfh"]
 
     df_data["ceiling_height"] = assign_ceiling_height(
@@ -371,5 +494,12 @@ if __name__ == "__main__":
             )
             # print(f"Building type {building} and age {ages}, ceiling height: {df_data[(mask_age) & (mask_type)]['ceiling_height'].unique()}")
 
+    processed_data = process_data(
+        gdf_path=abs_path,
+        filetype="parquet",
+        age_distr=age_look_up,
+        height_distr=ceiling_data,
+        res_types=res_types,
+    )
     # TODO: https://mapview.region-frankfurt.de/maps4.16/resources/apps/RegioMap/index.html?lang=de&vm=2D&s=2543.2619432300075&r=0&c=471481.09638917685%2C5549632.605473744&l=siedlungsflaechentypologie%280%29%2Cstaedtekartetoc%2C-poi_3d%2C-windmills%2C-gebaeude_1
     # this link has a list of all the building types that we can use to define the building types that are not residential.
