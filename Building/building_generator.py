@@ -1,5 +1,8 @@
 import numpy as np
 import pandas as pd
+import geopandas as gpd
+import warnings
+from shapely import wkb
 
 # TODO: since we have two different databases for u-values in the data (Tabula for residentia, BSO for non-res)
 # we basically need to separate these two building types. Because the residential buildings have ages from 1 to 12,
@@ -13,37 +16,42 @@ import pandas as pd
 
 
 def generate_building(
-    building_usage: str,  # mfhx, sfhx, thx, abx. Where x is a integer from 1 to 12 and indicates the age
+    building_usage: str,  # mfh, sfh, th, ab. Where x is a integer from 1 to 12 and indicates the age
     age_code: int,  # age of the building
+    building_id: int,  # id of the building. this should be the full_id from the geometry data
     plot_area: float,  # area of the plot the building is on
     roof_area: float,  # area of the roof of the building
     wall_area: float,  # area of the walls of the building
     volume: float,  # volume of the building
-    # GFA: float,  # gross flooar area #TODO i think we need to calculate this one
-    # n_floors: int,  # number of floors in the building #TODO i think we need to calculate this one
-    n_neighbors: int,  # number of neighboring buildings
-    n_sides: int,  # total number of sides of the building
     building_height: float,  # height of the building
     u_value_path: str,  # path to the csv file with the u-values
+    geometry: gpd.GeoDataFrame,  # geometry of the building. This is a geopandas dataframe. We need the geometry column
     random_factor: float = 0.15,  # 15% random factor for u-values
-) -> pd.DataFrame:  # TODO: we need to define the return type. Could be a gpd
+    convert_wkb: bool = True,  # convert the geometry from wkb to shapely. this allows usage in gdf
+) -> gpd.GeoDataFrame:  # TODO: we need to define the return type. Could be a gpd
     """
     This function generates a building based on the provided parameters and u-value template.
 
-    :param building_type: Building type to determine which u-values to pull from the u_value_path
-    :param plot_area: Area of the plot the building is on
+    :param building_usage: Usage of the building (e.g., mfh, sfh, th, ab)
+    :param age_code: Age code of the building
+    :param building_id: ID of the building
+    :param plot_area: Plot Area of the building
     :param roof_area: Area of the roof of the building
     :param wall_area: Area of the walls of the building
     :param volume: Volume of the building
-    :param GFH: Gross floor height of the building
-    :param n_floors: Number of floors in the building
+    :param n_neighbors: Number of neighboring buildings
+    :param building_height: Height of the building
     :param u_value_path: Path to the CSV containing u-values for different building types
-    :return: A DataFrame containing the updated values for the building
+    :param geometry: Geometry of the building
+    :param random_factor: Random factor for u-values (default: 0.15)
+    :param convert_wkb: Convert the geometry from WKB to Shapely (default: True)
+    :return: A GeoDataFrame containing the updated values for the building
     """
 
     building_usage = building_usage.lower()
     building_type = building_usage + str(age_code)
     # Read the U-values from the provided CSV path
+
     template_df = pd.read_csv(u_value_path)
 
     # Filter for the specific building type
@@ -70,119 +78,66 @@ def generate_building(
 
     # the number of sides with windows depends on the number of neighboring buildings
     # so the number of sides will be 4 - n_neighboring_buildings
-    windows_sides = 4 - n_neighbors  # TODO: we need to define n_neighbors now
+
+    windows_to_walls_ratio: float = (template_df["windows_to_walls_ratio"]).values[
+        0
+    ]  # ratio of windows to walls
 
     # retrieve window areas from Tabula templates
-    south_window_area = template_df["window_south_surface"].values[0]
-    north_window_area = template_df["window_north_surface"].values[0]
-    east_window_area = template_df["window_east_surface"].values[0]
-    west_window_area = template_df["window_west_surface"].values[0]
+    windows_area = windows_to_walls_ratio * wall_area
 
-    # TODO: All this window section will be changed to use the window to wall ration. MUCH EASIER.
-    total_window_area = (
-        south_window_area + north_window_area + east_window_area + west_window_area
-    )
+    # retrieve window shgc from Tabula templates
+    windows_shgc = template_df["window_shgc"].values[0]
 
-    # Constructing the windows list based on number of sides and areas
-    orientations = ["south"] + np.random.choice(
-        ["east", "west", "north"], size=windows_sides - 1, replace=False
-    ).tolist()
-
-    windows = []
-    windows.append(
-        {
-            "building type": building_type,
-            "surface type": "transparent",
-            "surface name": "window1",
-            "total surface": south_window_area,
-            "u-value": window_u_value,
-            "orientation": "south",
-            "SHGC": 0.65,
-            "number of floors": n_floors,
-        }
-    )
-
-    # Other window orientations
-    other_orientations = np.random.choice(
-        ["east", "west", "north"], size=windows_sides - 1, replace=False
-    ).tolist()
-    for idx, area in enumerate(other_windows_area):
-        windows.append(
-            {
-                "building type": building_type,
-                "surface type": "transparent",
-                "surface name": f"window{idx + 2}",
-                "total surface": area,
-                "u-value": window_u_value,
-                "orientation": other_orientations[idx],
-                "SHGC": 0.65,
-                "number of floors": n_floors,
-            }
-        )
-
-    # Ensure no window is too small
-    min_window_area = 0.5  # m^2
-    for window_dict in windows:
-        if window_dict["total surface"] < min_window_area:
-            window_dict["total surface"] = min_window_area
-
-    # Construct dictionaries
-    roof_dict = {
-        "building type": building_type,
-        "surface type": "opaque",
-        "surface name": "roof",
-        "total surface": roof_area,
-        "u-value": roof_u_value,
-        "orientation": np.nan,
-        "SHGC": np.nan,
-        "number of floors": n_floors,
-    }
-
-    wall_dict = {
-        "building type": building_type,
-        "surface type": "opaque",
-        "surface name": "wall",
-        "total surface": wall_area,
-        "u-value": wall_u_value,
-        "orientation": np.nan,
-        "SHGC": np.nan,
-        "number of floors": n_floors,
-    }
-
-    floor_dict = {
-        "building type": building_type,
-        "surface type": "ground contact",
-        "surface name": "floor",
-        "total surface": plot_area,
-        "u-value": floor_u_value,
-        "orientation": np.nan,
-        "SHGC": np.nan,
-        "number of floors": n_floors,
-    }
-
-    door_dict = {
-        "building type": building_type,
-        "surface type": "opaque",
-        "surface name": "door",
-        "total surface": door_area,
-        "u-value": door_u_value,
-        "orientation": np.nan,
-        "SHGC": np.nan,
-        "number of floors": n_floors,
-    }
     # calculate the number of floors:
     n_floors = np.floor(plot_area / building_height)
+
     # calculate the GFA
     gfa = plot_area * n_floors
-    # Convert dictionaries to a dataframe
-    df = pd.DataFrame([roof_dict, wall_dict, floor_dict, door_dict] + windows)
 
-    return df
+    door_area = template_df["door_surface"].values[0]
+    door_u_value = template_df["door_uvalue"].values[0]
+
+    # if no data is entered about the door, we set the area and u-value to 0
+    if np.isnan(door_area):
+        warnings.warn("door_area is NaN. Setting door_area and door_u_value to 0")
+        door_area = 0
+        door_u_value = 0
+
+    if convert_wkb:
+        if isinstance(geometry, bytes):
+            geometry = wkb.loads(geometry)
+
+    export_data = {
+        "building_id": building_id,
+        "building_usage": building_usage,
+        "age_code": age_code,
+        "roof_area": roof_area,
+        "roof_u_value": roof_u_value,
+        "walls_area": wall_area,
+        "wall_u_value": wall_u_value,
+        "ground_contact_area": plot_area,
+        "ground_contact_u_value": floor_u_value,
+        "door_area": door_area,
+        "door_u_value": door_u_value,
+        "wall_area": wall_area,
+        "windows_area": windows_area,
+        "windows_shgc": windows_shgc,
+        "volume": volume,
+        "n_floors": n_floors,
+        "GFA": gfa,
+        "geometry": geometry,
+    }
+
+    gdf = gpd.GeoDataFrame(export_data, index=[0])
+
+    return gdf
 
 
 if __name__ == "__main__":
     import os
     import sys
+    from shapely import wkb
 
     # current_dir = os.path.dirname(os.path.abspath(__file__))
     # parent_dir = os.path.dirname(current_dir)
@@ -210,29 +165,41 @@ if __name__ == "__main__":
 
     u_value_path = os.path.join(base_dir, "Building", "data", "archetype_u_values.csv")
 
-    plot_area = building_data["plot_area"][1]
-    roof_area = building_data["roof_surface"][1]
-    wall_area = building_data["wall_surface"][1]
-    volume = building_data["volume"][1]
-    n_neighbors = building_data["neighbors_count"][1]
-    n_sides = building_data["n_sides"][1]
-    building_height = building_data["height"][1]
-    data_frame = generate_building(
-        "sfh",
-        1,
-        plot_area,
-        roof_area,
-        wall_area,
-        volume,
-        n_neighbors,
-        n_sides,
-        building_height,
-        u_value_path,
-    )
+    # Initialize an empty list to store the results
+    results_list = []
 
-    # building_1 = generate_building("MFH1", 200, 220, 450, 500, 600, 2, path)
+    for idx, row in building_data.iterrows():
+        building_usage = row["building_usage"]
+        age_code = row["age_code"]
+        building_id = row["full_id"]
+        plot_area = row["plot_area"]
+        roof_area = row["roof_surface"]
+        wall_area = row["wall_surface"]
+        volume = row["volume"]
+        n_neighbors = row["neighbors_count"]
+        building_height = row["height"]
+        geometry = row["geometry"]
 
-    # building_1 = generate_building(
-    #     "mfh1",
-    # )
-    # print(building_1)
+        # if isinstance(geometry, bytes):
+        #     geometry = wkb.loads(geometry)
+
+        # Call the generate_building function for each row
+        result = generate_building(
+            building_usage,
+            age_code,
+            building_id,
+            plot_area,
+            roof_area,
+            wall_area,
+            volume,
+            building_height,
+            u_value_path,
+            geometry,
+        )
+        results_list.append(result)
+
+    # Convert the results list to a DataFrame
+    results_df = pd.concat(results_list, ignore_index=True)
+
+    # Convert the DataFrame to a GeoDataFrame
+    building_data_gdf = gpd.GeoDataFrame(results_df, geometry="geometry")
