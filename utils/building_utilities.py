@@ -124,7 +124,7 @@ def define_building_type(gdf: gpd.GeoDataFrame) -> pd.Series:
         "1650 Baumarkt": "trade",  # trade
         "1610 Möbelmarkt": "trade",  # trade
         "1320 Handel und Dienstl.": "trade",  # trade
-        "2204 Bürgerhs.,Stadthalle": "offices",  # offices
+        "2204 Bürgerhs.,Stadthalle": "office",  # offices
         "1300 Industrie u. Gewerbe": "other",  # other non-residential buildings
         "1670 Lebensmittelmarkt": "trade",  # trade
         "1310 Lagerfläche": "other",  # other non-residential buildings
