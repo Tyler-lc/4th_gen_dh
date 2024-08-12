@@ -4,6 +4,7 @@ import numpy as np
 from typing import List, Dict
 import os
 import sys
+from tqdm import tqdm
 
 
 def get_building_data(path: str, filetype: str) -> gpd.GeoDataFrame:
@@ -40,11 +41,19 @@ def get_building_data(path: str, filetype: str) -> gpd.GeoDataFrame:
     volume: float = building_data["height_sum_raster"].apply(float)
     n_sides: int = building_data["n_all_sides"].apply(int)
     building_use: str = building_data["B_REALXX"]
+    angles_shared_walls = building_data["angles_shared_borders_standard"]
     geometry = building_data["geometry"]
 
     # QGIS writes these lists as strings, so I need to convert them into lists before i proceed
     building_neighbors = building_data["neighbors"].apply(convert_to_list)
-    border_length = building_data["border_len"].apply(convert_to_list)
+    border_length = building_data["border_len"].apply(convert_to_float_list)
+    angles_shared_walls = building_data["angles_shared_borders_standard"].apply(
+        convert_to_float_list
+    )
+    # angles
+    cardinal_directions_shared_borders = angles_shared_walls.apply(
+        convert_angle_to_cardinal
+    )
 
     data = {
         "full_id": full_id,
@@ -56,18 +65,46 @@ def get_building_data(path: str, filetype: str) -> gpd.GeoDataFrame:
         "is_isolated": is_isolated,
         "wall_surface": wall_surface,
         "plot_area": plot_area,
-        "perimiter": building_perimiter,
+        "perimeter": building_perimiter,
         "volume": volume,
         "n_sides": n_sides,
         "neighbors_count": building_neighbors,
         "border_length": border_length,
         "building_use": building_use,
+        "angles_shared_borders_standard": angles_shared_walls,
+        "cardinal_dir_shared_borders": cardinal_directions_shared_borders,
         "geometry": geometry,
     }
 
     export_data = gpd.GeoDataFrame(data)
 
     return export_data
+
+
+def convert_angle_to_cardinal(angle: List[float]) -> List[str]:
+    angle_list = []
+    for angles in angle:
+        if angles < 0:
+            angles += 360
+
+        if 337.5 <= angles < 360 or 0 <= angles < 22.5:
+            angle_list.append("north")
+        elif 22.5 <= angles < 67.5:
+            angle_list.append("north-east")
+        elif 67.5 <= angles < 112.5:
+            angle_list.append("east")
+        elif 112.5 <= angles < 157.5:
+            angle_list.append("south-east")
+        elif 157.5 <= angles < 202.5:
+            angle_list.append("south")
+        elif 202.5 <= angles < 247.5:
+            angle_list.append("south-west")
+        elif 247.5 <= angles < 292.5:
+            angle_list.append("west")
+        elif 292.5 <= angles < 337.5:
+            angle_list.append("north-west")
+
+    return angle_list
 
 
 def convert_to_list(value):
@@ -82,6 +119,22 @@ def convert_to_list(value):
     if pd.isnull(value):
         return []
     return value.split(",")
+
+
+def convert_to_float_list(string):
+    """
+    Convert a string representation of a list to an actual list of floats.
+
+    Parameters:
+    string (str): String representation of a list (e.g., "[1.0, 2.0, 3.0]").
+
+    Returns:
+    List[float]: List of floats.
+    """
+    if pd.isnull(string):
+        return []
+
+    return [float(x) for x in string.strip("[]").split(",")]
 
 
 def define_building_type(gdf: gpd.GeoDataFrame) -> pd.Series:
@@ -379,6 +432,52 @@ def process_data(
     return building_data
 
 
+def net_vertical_surface(
+    building_id: pd.Series,
+    perimeter: pd.Series,
+    neighbors: pd.Series,
+    border_length: pd.Series,
+    building_height: pd.Series,
+):
+    print("calculating net vertical surface")
+    df_data = pd.DataFrame(
+        {
+            "full_id": building_id,
+            "perimeter": perimeter,
+            "neighbors": neighbors,
+            "border_length": border_length,
+            "building_height": building_height,
+        }
+    )
+    net_surfaces = []
+
+    for idx, row in tqdm(df_data.iterrows(), total=df_data.shape[0]):
+        full_id = row["full_id"]
+        neighbors_id = row["neighbors"]
+        border_lengths = row["border_length"]
+        current_building_height = row["building_height"]
+        current_perimeter = row["perimeter"]
+        gross_surface = current_building_height * current_perimeter
+        neighbors_heights = []
+        for neighbor in neighbors_id:
+            neighbor_height = df_data[df_data["full_id"] == neighbor][
+                "building_height"
+            ].values[0]
+            neighbors_heights.append(neighbor_height)
+
+        shared_surface = []
+        for heights, borders in zip(neighbors_heights, border_lengths):
+            min_height = min(heights, current_building_height)
+            shared_surface.append(min_height * borders)
+
+        net_surface_current = gross_surface - np.sum(shared_surface)
+        net_surfaces.append(net_surface_current)
+
+    df_data["net_vertical_surface"] = net_surfaces
+
+    return df_data["net_vertical_surface"]
+
+
 if __name__ == "__main__":
     from qgis_utils import convert_to_list
     import os
@@ -394,15 +493,16 @@ if __name__ == "__main__":
     parent_dir = os.path.dirname(current_dir)
     sys.path.append(parent_dir)
 
-    path_parquet = "../Building/data/frankfurt.parquet"
+    path_parquet = "../Building/building_generator_data/frankfurt_v3.parquet"
     abs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), path_parquet))
 
     # Retrieve the buildings data from the parquet file
-    building_data = get_building_data(path=abs_path, filetype="parquet")
+    data_gdf = get_building_data(path=abs_path, filetype="parquet")
+    raw_data = gpd.read_parquet(path_parquet)
 
     # save the building useage in a new column
-    building_data["building_usage"] = define_building_type(building_data)
-    df_data = pd.DataFrame(building_data)
+    data_gdf["building_usage"] = define_building_type(data_gdf)
+    df_data = pd.DataFrame(data_gdf)
 
     # create the masks and print the number of buildings of each type
     all_res = df_data["building_usage"].isin(["sfh", "ab", "th", "mfh"])
@@ -428,7 +528,7 @@ if __name__ == "__main__":
 
     # Age of the building assignment
 
-    path_age = "../Building/data/buildings_age.csv"
+    path_age = "../Building/building_generator_data/buildings_age.csv"
     abs_age = os.path.abspath(os.path.join(os.path.dirname(__file__), path_age))
 
     age_look_up = pd.read_csv(abs_age)
@@ -461,7 +561,7 @@ if __name__ == "__main__":
 
     building_types = df_data["building_usage"]
     building_age = df_data["age_code"]
-    path_heights = "../Building/data/ceiling_heights.csv"
+    path_heights = "../Building/building_generator_data/ceiling_heights.csv"
     abs_heights = os.path.abspath(os.path.join(os.path.dirname(__file__), path_heights))
 
     ceiling_data = pd.read_csv(abs_heights)
@@ -501,6 +601,16 @@ if __name__ == "__main__":
         age_distr=age_look_up,
         height_distr=ceiling_data,
         res_types=res_types,
+    )
+
+    building_id = processed_data["full_id"]
+    perimeter = processed_data["perimeter"]
+    neighbors = processed_data["neighbors_count"]
+    border_length = processed_data["border_length"]
+    building_height = processed_data["height"]
+
+    wall_surface = net_vertical_surface(
+        building_id, perimeter, neighbors, border_length, building_height
     )
     # TODO: https://mapview.region-frankfurt.de/maps4.16/resources/apps/RegioMap/index.html?lang=de&vm=2D&s=2543.2619432300075&r=0&c=471481.09638917685%2C5549632.605473744&l=siedlungsflaechentypologie%280%29%2Cstaedtekartetoc%2C-poi_3d%2C-windmills%2C-gebaeude_1
     # this link has a list of all the building types that we can use to define the building types that are not residential.

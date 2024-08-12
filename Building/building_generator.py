@@ -21,7 +21,7 @@ def generate_building(
     building_id: int,  # id of the building. this should be the full_id from the geometry data
     plot_area: float,  # area of the plot the building is on
     roof_area: float,  # area of the roof of the building
-    wall_area: float,  # area of the walls of the building
+    wall_area: float,  # area of the walls of the building. This is the NET area (minus shared walls with other buildings)
     volume: float,  # volume of the building
     building_height: float,  # height of the building
     ceiling_height: float,  # height of the ceiling
