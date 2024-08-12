@@ -24,6 +24,7 @@ def generate_building(
     wall_area: float,  # area of the walls of the building
     volume: float,  # volume of the building
     building_height: float,  # height of the building
+    ceiling_height: float,  # height of the ceiling
     u_value_path: str,  # path to the csv file with the u-values
     geometry: gpd.GeoDataFrame,  # geometry of the building. This is a geopandas dataframe. We need the geometry column
     random_factor: float = 0.15,  # 15% random factor for u-values
@@ -42,6 +43,7 @@ def generate_building(
     :param volume: Volume of the building
     :param n_neighbors: Number of neighboring buildings
     :param building_height: Height of the building
+    :param ceiling_height: Height of the ceiling
     :param u_value_path: Path to the CSV containing u-values for different building types
     :param geometry: Geometry of the building
     :param random_factor: Random factor for u-values (default: 0.15)
@@ -92,7 +94,7 @@ def generate_building(
     windows_shgc = template_df["window_shgc"].values[0]
 
     # calculate the number of floors:
-    n_floors = np.floor(plot_area / building_height)
+    n_floors = np.floor(building_height / ceiling_height)
 
     # calculate the GFA
     gfa = plot_area * n_floors
@@ -127,6 +129,8 @@ def generate_building(
         "windows_area": windows_area,
         "windows_shgc": windows_shgc,
         "volume": volume,
+        "building_height": building_height,
+        "ceiling_height": ceiling_height,
         "n_floors": n_floors,
         "GFA": gfa,
         "geometry": geometry,
@@ -189,6 +193,7 @@ if __name__ == "__main__":
         n_neighbors = row["neighbors_count"]
         building_height = row["height"]
         geometry = row["geometry"]
+        ceiling_height = row["ceiling_height"]
 
         # if isinstance(geometry, bytes):
         #     geometry = wkb.loads(geometry)
@@ -203,6 +208,7 @@ if __name__ == "__main__":
             wall_area,
             volume,
             building_height,
+            ceiling_height,
             u_value_path,
             geometry,
         )
@@ -213,3 +219,5 @@ if __name__ == "__main__":
 
     # Convert the DataFrame to a GeoDataFrame
     building_data_gdf = gpd.GeoDataFrame(results_df, geometry="geometry")
+    mask_res = building_data_gdf["building_usage"].isin(["mfh", "sfh", "th", "ab"])
+    print(building_data_gdf[mask_res].head())
