@@ -192,7 +192,7 @@ def define_building_type(gdf: gpd.GeoDataFrame) -> pd.Series:
 
 
 def define_building_age(
-    gdf: gpd.GeoDataFrame, age_distr: pd.DataFrame, res_types: List[str]
+    gdf: gpd.GeoDataFrame, age_distr: pd.DataFrame, res_types: List[str], verbose=False
 ) -> pd.Series:
     """
     This function defines the age of the buildings. The age is randomly assigned to the buildings
@@ -203,6 +203,7 @@ def define_building_age(
     :param gdf: GeoDataFrame containing the building data with columns 'height', 'neighbors_count', and 'building_use'
     :param age_distr: dictionary containing the age distribution of the buildings
     :res_types: a list of strings that identifies residential buildings in age_distr
+    :param verbose: If True, prints the number of buildings assigned to each building type (default: False)
     :return: Series containing the age of all the buildings.
     """
     # Create a series to store the age of the buildings
@@ -245,9 +246,10 @@ def define_building_age(
                 & (df["age_code"].isnull())
                 & (df["building_usage"] == buildings)
             )
-            print(
-                f"number of {buildings} assigned to category {id_code}: {percentage_mask.sum()}"
-            )
+            if verbose:
+                print(
+                    f"number of {buildings} assigned to category {id_code}: {percentage_mask.sum()}"
+                )
             df.loc[percentage_mask, "age_code"] = id_code
 
     defined_age = df["age_code"]
@@ -268,7 +270,6 @@ def assign_ceiling_height(
     # create a series to store the ceiling height of the buildings
     ceiling_height = pd.Series(index=building_age.index, dtype="object")
     df = pd.DataFrame({"age_code": building_age, "building_usage": building_types})
-    print(df)
 
     # we are going to change the building types that are not residential to "non_res"
     non_res_mask = ~df["building_usage"].isin(res_types)

@@ -28,6 +28,7 @@ def generate_building(
     geometry: gpd.GeoDataFrame,  # geometry of the building. This is a geopandas dataframe. We need the geometry column
     random_factor: float = 0.15,  # 15% random factor for u-values
     convert_wkb: bool = True,  # convert the geometry from wkb to shapely. this allows usage in gdf
+    verbose: bool = False,  # print warnings if data is missing when True
 ) -> gpd.GeoDataFrame:  # TODO: we need to define the return type. Could be a gpd
     """
     This function generates a building based on the provided parameters and u-value template.
@@ -45,6 +46,7 @@ def generate_building(
     :param geometry: Geometry of the building
     :param random_factor: Random factor for u-values (default: 0.15)
     :param convert_wkb: Convert the geometry from WKB to Shapely (default: True)
+    :param verbose: Print warnings if data is missing (default: False)
     :return: A GeoDataFrame containing the updated values for the building
     """
 
@@ -100,7 +102,8 @@ def generate_building(
 
     # if no data is entered about the door, we set the area and u-value to 0
     if np.isnan(door_area):
-        warnings.warn("door_area is NaN. Setting door_area and door_u_value to 0")
+        if verbose:
+            warnings.warn("door_area is NaN. Setting door_area and door_u_value to 0")
         door_area = 0
         door_u_value = 0
 
@@ -138,6 +141,7 @@ if __name__ == "__main__":
     import os
     import sys
     from shapely import wkb
+    from tqdm import tqdm
 
     # current_dir = os.path.dirname(os.path.abspath(__file__))
     # parent_dir = os.path.dirname(current_dir)
@@ -151,24 +155,30 @@ if __name__ == "__main__":
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
     # Import data from QGIS parquet file
-    path_geometry_data = os.path.join(base_dir, "Building", "data", "frankfurt.parquet")
+    path_geometry_data = os.path.join(
+        base_dir, "Building", "building_generator_data", "frankfurt.parquet"
+    )
     path_ceiling_heights = os.path.join(
-        base_dir, "Building", "data", "ceiling_heights.csv"
+        base_dir, "Building", "building_generator_data", "ceiling_heights.csv"
     )
     ceiling_heights = pd.read_csv(path_ceiling_heights)
-    age_path = os.path.join(base_dir, "Building", "data", "buildings_age.csv")
+    age_path = os.path.join(
+        base_dir, "Building", "building_generator_data", "buildings_age.csv"
+    )
     age_distr = pd.read_csv(age_path)
     res_types = ["mfh", "sfh", "th", "ab"]
     building_data = process_data(
         path_geometry_data, "parquet", age_distr, ceiling_heights, res_types
     )
 
-    u_value_path = os.path.join(base_dir, "Building", "data", "archetype_u_values.csv")
+    u_value_path = os.path.join(
+        base_dir, "Building", "building_generator_data", "archetype_u_values.csv"
+    )
 
     # Initialize an empty list to store the results
     results_list = []
 
-    for idx, row in building_data.iterrows():
+    for idx, row in tqdm(building_data.iterrows(), total=building_data.shape[0]):
         building_usage = row["building_usage"]
         age_code = row["age_code"]
         building_id = row["full_id"]
