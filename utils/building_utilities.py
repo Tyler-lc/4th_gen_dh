@@ -27,9 +27,9 @@ def get_building_data(path: str, filetype: str) -> gpd.GeoDataFrame:
     except Exception as e:
         print(f"Error while reading the file: {e}")
         return None
-
+    fid: int = building_data["fid"].apply(int)
     full_id: str = building_data["full_id"]
-    osm_id: int = building_data["osm_id"]
+    osm_id: int = building_data["osm_id"].apply(int)
     building_type: str = building_data["building"]
     roof_slope: float = building_data["slope_mean"].apply(float)
     roof_surface: float = building_data["roof_sum"].apply(float)
@@ -56,6 +56,7 @@ def get_building_data(path: str, filetype: str) -> gpd.GeoDataFrame:
     )
 
     data = {
+        "fid": fid,
         "full_id": full_id,
         "osm_id": osm_id,
         "type": building_type,
@@ -86,23 +87,17 @@ def convert_angle_to_cardinal(angle: List[float]) -> List[str]:
     for angles in angle:
         if angles < 0:
             angles += 360
+        if angles >= 360:
+            angles -= 360
 
-        if 337.5 <= angles < 360 or 0 <= angles < 22.5:
+        if 315 <= angles < 360 or 0 <= angles < 45:
             angle_list.append("north")
-        elif 22.5 <= angles < 67.5:
-            angle_list.append("north-east")
-        elif 67.5 <= angles < 112.5:
+        elif 45 <= angles < 135:
             angle_list.append("east")
-        elif 112.5 <= angles < 157.5:
-            angle_list.append("south-east")
-        elif 157.5 <= angles < 202.5:
+        elif 135 <= angles < 225:
             angle_list.append("south")
-        elif 202.5 <= angles < 247.5:
-            angle_list.append("south-west")
-        elif 247.5 <= angles < 292.5:
+        elif 225 <= angles < 315:
             angle_list.append("west")
-        elif 292.5 <= angles < 337.5:
-            angle_list.append("north-west")
 
     return angle_list
 

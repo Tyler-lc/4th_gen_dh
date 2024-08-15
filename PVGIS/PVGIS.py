@@ -30,8 +30,11 @@ end_year: int = 2020
 database: str = "PVGIS-SARAH2"
 pv_calc: int = 0  # we do not want to calculate pv production
 angle: int = 90  # we want a vertical facade
-city: str = "Frankfurt-Griesheim_Mitte"
-
+city: str = "Frankfurt_Griesheim_Mitte"
+global_radiation: int = 0  # Output the global, direct and diffuse in-plane irradiances.
+# Value of 1 for "yes". All other values (or no value) mean "no".
+# This is the default value. Also we'd have to modify the code to accept
+# the other values.
 dfs = {}
 for direction, azimuth in azimuths.items():
     # Define the parameters for the API request
@@ -44,6 +47,7 @@ for direction, azimuth in azimuths.items():
         "pvcalculation": pv_calc,  # we are not performing PV, we only want radiation
         "angle": angle,  # we want a vertical facade
         "aspect": azimuth,  # set the azimuth direction
+        "components": global_radiation,
         "outputformat": "json",
     }
 
@@ -69,6 +73,9 @@ for direction in dfs:
 irradiation_df = pd.DataFrame()
 for direction, df in dfs.items():
     irradiation_df[direction + " G(i) [kWh/m2]"] = df["G(i)"]
+irradiation_df["T2m"] = dfs["south"][
+    "T2m"
+]  # saving the temperature at 2m height from soil
 
 final_file_path = path / f"{city}_irradiation_data_{start_year}_{end_year}.csv"
 print(f"Saving final data to {final_file_path}")
