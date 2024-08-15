@@ -214,6 +214,23 @@ class Person:
         self.dhw_year = dhw_df
         return dhw_df
 
+    def set_dhw_profile(self, dhw_profile):
+        """utility to add pre-calculated dhw_profile to the person object. The dhw volume must be in liters
+        and 8760 hours long or 8761 hours long if the year is a leap year.
+
+        :param dhw_profile: pd.DataFrame with columns ['shower', 'bath', 'cooking', 'handwash']
+        """
+        required_columns = ["shower", "bath", "cooking", "handwash"]
+
+        # Check length of dhw_profile
+        if len(dhw_profile) not in [8760, 8761]:
+            raise ValueError("dhw_profile must be 8760 or 8761 hours long.")
+
+        # Check for required columns
+        for column in required_columns:
+            if column not in dhw_profile:
+                raise KeyError(f"dhw_profile must contain the column '{column}'")
+
     def select_dhw_times2(
         self,
         mask_shower,
@@ -452,6 +469,7 @@ class Person:
 # Example usage
 if __name__ == "__main__":
     import matplotlib.pyplot as plt
+    from tqdm import tqdm
 
     # instantiate a Person
     luca = Person(building_id=1, person_id=1)
@@ -507,3 +525,41 @@ if __name__ == "__main__":
     # #         line for line in output.split("\n") if "pandas" not in line
     # # )
     # print(output)
+
+    import os
+    import sys
+
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # Ensure the parent directory is in the Python path
+    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+    buildings_path = "../building_analysis/building_input.parquet"
+    buildings_data = pd.read_parquet(buildings_path)
+
+    res_mask = buildings_data["building_usage"].isin(["sfh", "mfh", "ab", "th"])
+    total_GFA = buildings_data[res_mask]["GFA"].sum()
+    maximum_people = 9500
+    people_per_GFA = maximum_people / total_GFA
+    buildings_data.loc[res_mask, "n_people"] = round(
+        buildings_data["GFA"] * people_per_GFA
+    )
+    buildings_data["n_people"] = (
+        buildings_data["n_people"].fillna(0).infer_objects(copy=False)
+    )
+
+    # conver n_people to integer
+    buildings_data["n_people"] = buildings_data["n_people"].astype(int)
+
+    i = 0
+    for idx, row in buildings_data[res_mask].iterrows():
+        fid = row["fid"]
+        full_id = row["full_id"]
+        osmid = row["osm_id"]
+        n_people = row["n_people"]
+        print(f"Building {full_id} has {n_people} people")
+        for people in range(n_people):
+            print(f"analyising person {person} in building {full_id}")
+            person = Person(full_id, people)
+            dhw_data = person.dhw_profile()
+            os.makedirs("../building_analysis/dhw_profiles", exist_ok=True)
+            dhw_data.to_csv(f"../building_analysis/dhw_profiles/{full_id}_{people}.csv")
