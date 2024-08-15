@@ -32,7 +32,8 @@ class Building:
         outside_temperature,
         irradiation_data,
         soil_temp=8,
-        year_start=2015,
+        inside_temp=20,
+        year_start=2019,
         summer_start=6,
         summer_end=9,
     ):
@@ -41,6 +42,8 @@ class Building:
         self.components = components
         self.outside_temperature = outside_temperature
         self.soil_temp = soil_temp
+        self.inside_temp = inside_temp
+        print("inside temperature type is ", type(self.inside_temp))
         self.summer_start = summer_start
         self.summer_end = summer_end
         self.people = []
@@ -75,22 +78,14 @@ class Building:
 
         # if soil temperature is single value then expand it to be as long as the outside_temperature
         # Ensure soil_temp is a pandas Series with the same index as outside_temperature
-        if isinstance(self.soil_temp, (int, float)):
-            self.soil_temp = pd.Series(
-                [self.soil_temp] * len(self.outside_temperature),
-                index=self.outside_temperature.index,
-            )
-        elif isinstance(self.soil_temp, list):
-            self.soil_temp = pd.Series(
-                self.soil_temp, index=self.outside_temperature.index
-            )
-        elif isinstance(self.soil_temp, pd.Series):
-            if not self.soil_temp.index.equals(self.outside_temperature.index):
-                self.soil_temp = pd.Series(
-                    self.soil_temp.values, index=self.outside_temperature.index
-                )
-        else:
-            raise TypeError("soil_temp must be an int, float, list, or pandas Series")
+
+        self.soil_temp = self.convert_temps(self.soil_temp, self.outside_temperature)
+        print("soil temperature is set")
+        # convert the inside temperature to a pandas Series
+        self.inside_temp = self.convert_temps(
+            self.inside_temp, self.outside_temperature
+        )
+        print("inside temperature is set")
 
         # gather geometric data from the components dataframe
         self.n_floors = self.components["n_floors"].values[0]
@@ -132,6 +127,9 @@ class Building:
         self.solar_gain = pd.DataFrame(
             index=weather_index, columns=self.transparent_surfaces["surface_name"]
         )
+        self.internal_heat_sources = pd.DataFrame(
+            index=weather_index, columns=["internal_gains [kWh]"]
+        )
         self.ventilation_losses = pd.DataFrame(
             index=weather_index, columns=["ventilation losses [kWh]"]
         )
@@ -139,6 +137,22 @@ class Building:
             index=weather_index, columns=["net useful hourly demand [kWh]"]
         )
         self.summer_months = self.is_summer(self.outside_temperature.index)
+
+    def convert_temps(self, temp_data, outside_temperature):
+
+        if isinstance(temp_data, (int, float)):
+            temp_data = pd.Series(
+                [temp_data] * len(outside_temperature),
+                index=self.outside_temperature.index,
+            )
+        elif isinstance(temp_data, list):
+            temp_data = pd.Series(temp_data, index=outside_temperature.index)
+        elif isinstance(temp_data, pd.Series):
+            if not temp_data.index.equals(outside_temperature.index):
+                temp_data = pd.Series(temp_data.values, index=outside_temperature.index)
+        else:
+            raise TypeError("soil_temp must be an int, float, list, or pandas Series")
+        return temp_data
 
     # in this first section we parse the data from the components dataframe to create
     # the data structure we use in the calculations
@@ -269,6 +283,9 @@ class Building:
             self.ground_contact_surfaces, soil_temp, inside_temp
         )
 
+        soil_temp_mask = soil_temp > inside_temp
+        self.ground_losses.loc[soil_temp_mask] = 0
+
     # this function simply groups all type of transmission losses at once
     # so that we do not have to call them one by one
 
@@ -277,7 +294,7 @@ class Building:
         self.transmission_losses_transparent()
         self.transmission_losses_ground()
 
-    def sol_gain(self):
+    def sol_gain(self, inside_temp: float = 20):
         for _, row in self.transparent_surfaces.iterrows():
             window_area = row["total_surface"]
             window_SHGC = row["SHGC"]
@@ -291,7 +308,36 @@ class Building:
             # Set gains to zero during summer months
             gains[self.summer_months] = 0
 
+            mask_inside_temp = self.outside_temperature["T2m"] >= inside_temp
+            gains.loc[mask_inside_temp] = 0
             self.solar_gain[row["surface_name"]] = gains
+
+    def internal_gains(
+        self, watts_per_sqm: pd.DataFrame = None, inside_temp: float = 20
+    ):
+        """calculate the internal gains in the building
+        watts_per_sqm: int, optional. Default is 3. The internal gains in the building in W/m2
+        """
+        if watts_per_sqm is None:
+            watts_per_sqm = pd.DataFrame(
+                [3] * len(self.outside_temperature),
+                index=self.outside_temperature.index,
+            )
+
+        internal_heat_sources = pd.DataFrame(index=self.outside_temperature.index)
+
+        internal_heat_sources["internal_gains"] = (
+            watts_per_sqm / 1000 * self.net_floor_area
+        )
+
+        # set internal gains to 0 during summer months
+        internal_heat_sources[self.summer_months] = 0
+
+        # set internal gains to zero when the inside temperature is equal or higher than the setpoint
+        inside_temp_mask = self.outside_temperature["T2m"] >= inside_temp
+        internal_heat_sources.loc[inside_temp_mask, "internal_gains"] = 0
+
+        self.internal_heat_sources = internal_heat_sources
 
     def vent_loss(self, inside_temp=20):
         # Qv = 0.34 * (0.4 + 0.2) * V
@@ -320,6 +366,7 @@ class Building:
         self.transmission_losses_ground()  # ok
         self.sol_gain()  # ok
         self.vent_loss()  # ok
+        self.internal_gains()  # ok
         self.useful_demand()  # ok
         self.total_use_energy_demand()  # ok
 
@@ -358,7 +405,9 @@ class Building:
             + self.ground_losses.sum(axis=1)
             + self.ventilation_losses.sum(axis=1)
         )
-        total_gains = self.solar_gain.sum(axis=1)
+        total_gains = self.solar_gain.sum(axis=1) + self.internal_heat_sources.sum(
+            axis=1
+        )
         # total_gains[self.outside_temperature.iloc[:, 0] >= 20] = (
         #     0  # TODO: i'm not sure this is the correct way to address the
         # )
@@ -456,13 +505,19 @@ class Building:
     def get_solar_gain(self):
         return self.solar_gain
 
+    def get_internal_heat_sources(self):
+        return self.internal_heat_sources
+
     def get_ventilation_losses(self):
         return self.ventilation_losses
 
     def get_hourly_useful_demand(self):
+        """the same as get_useful_demand"""
         return self.hourly_useful_demand
 
     def get_total_useful_energy_demand(self):
+        """same results as get_hourly_useful_deamdn and get_sum_useful_demand
+        but it comes in pandas.core.series.Series format"""
         return self.total_useful_energy_demand
 
     def get_total_walls_surface(self):
@@ -510,9 +565,9 @@ if __name__ == "__main__":
 
     # import the weather and irradiation data. This time we will use the same file for both
     city_name = "Frankfurt_Griesheim_Mitte"
-    year_start = 2020
-    year_end = 2020
-    path_weather = f"../irradiation_data/{city_name}/{city_name}_irradiation_data_{year_start}_{year_end}.csv"
+    year_start = 2019
+    year_end = 2019
+    path_weather = f"../irradiation_data/{city_name}_{year_start}_{year_end}/{city_name}_irradiation_data_{year_start}_{year_end}.csv"
     temperature = pd.read_csv(path_weather, usecols=["T2m"])
     irradiation = pd.read_csv(path_weather)
     irradiation = irradiation.filter(regex="G\(i\)")
@@ -558,11 +613,67 @@ if __name__ == "__main__":
         building_values["age_code"].values[0]
     )
 
+    # adding soil temperatures from https://opendata.dwd.de/climate_environment/CDC/observations_germany/climate/hourly/soil_temperature/historical/
+    # station number 01420.
+
+    soil_temp_path = "../irradiation_data/Frankfurt_Griesheim_Mitte_2019_2019/Frankfurt_Griesheim_Mitte_soil_temperature_2019_2019.csv"
+    soil_path_abs = os.path.abspath(os.path.join(current_dir, soil_temp_path))
+    df_soil_temp = pd.read_csv(soil_path_abs, usecols=["V_TE0052"])
+
+    # cleaning the data a little. The dwd uses -99.9 to indicate missing data
+    # first replace the -99.9 with np.nan
+    df_soil_temp.replace(-99.9, np.nan, inplace=True)
+    print(df_soil_temp["V_TE0052"].isna().sum())
+
+    # now interpolate the missing values
+    df_soil_temp["V_TE0052"] = df_soil_temp["V_TE0052"].interpolate()
+    print(df_soil_temp["V_TE0052"].isna().sum())
+
+    # creating a dataframe with the inside temperatures to be used throughout the year
+    # it is set to be 20 °c from 8am to 10pm and 17°C at any other time.
+
+    time_index = pd.date_range(start="2019-01-01", periods=8760, freq="h")
+    inside_temp = pd.DataFrame(index=time_index)
+    inside_temp["inside_temp"] = 20
+    mask_heating = inside_temp.index.hour.isin(range(8, 22))
+    inside_temp.loc[np.logical_not(mask_heating), "inside_temp"] = 17
+
     test_sfh = Building(
-        building_id, building_type, building_values, temperature, irradiation
+        building_id,
+        building_type,
+        building_values,
+        temperature,
+        irradiation,
+        df_soil_temp["V_TE0052"],
+        inside_temp["inside_temp"],
     )
 
-    results = test_sfh.thermal_balance()
+    test_sfh.thermal_balance()
+
+    # extracting the hourly data of all the components
+
+    solar_gain = test_sfh.get_solar_gain()
+    internal_gains = test_sfh.get_internal_heat_sources()
+    ground_losses = test_sfh.get_ground_losses()
+    opaque_losses = test_sfh.get_opaque_losses()
+    transparent_losses = test_sfh.get_transparent_losses()
+    ventilation_losses = test_sfh.get_ventilation_losses()
+    useful_demand = test_sfh.get_hourly_useful_demand()
+
+    # saving the data to csv files
+    df_results = pd.concat(
+        [
+            solar_gain,
+            internal_gains,
+            ground_losses,
+            opaque_losses,
+            transparent_losses,
+            ventilation_losses,
+            useful_demand,
+        ],
+        axis=1,
+    )
+    df_results.to_csv("sht_test_results.csv")
 
     # # on/off toggle some tests and debugging options
     # losses_outputs = 0

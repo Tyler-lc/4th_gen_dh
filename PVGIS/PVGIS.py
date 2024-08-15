@@ -10,23 +10,26 @@ url = "https://re.jrc.ec.europa.eu/api/v5_2/seriescalc?"
 # url = "https://re.jrc.ec.europa.eu/api/v5_2/tool_name?param1=value1&param2=value2&..."
 
 # set-up the azimuths
-
+# we are not using the intercardinal directions in our calculations
 azimuths = {
     "south": 0,
-    "south_east": -45,
+    # "south_east": -45,
     "east": -90,
-    "north_east": -135,
+    # "north_east": -135,
     "north": 180,
-    "north_west": 135,
+    # "north_west": 135,
     "west": 90,
-    "south_west": 45,
+    # "south_west": 45,
 }
 
 # set up some parameters that we would like to change
+# we chose 2019 because the 2020 data presents some weirdness
+# they go up to 2021 january the 23rd. The data input was correct and I checked the API documentation
+#
 lat: float = 50.098
 lon: float = 8.600
-start_year: int = 2020
-end_year: int = 2020
+start_year: int = 2019  #
+end_year: int = 2019  #
 database: str = "PVGIS-SARAH2"
 pv_calc: int = 0  # we do not want to calculate pv production
 angle: int = 90  # we want a vertical facade
@@ -42,8 +45,8 @@ for direction, azimuth in azimuths.items():
         "lat": lat,  # latitude
         "lon": lon,  # longitude
         "raddatabase": database,
-        "startyear": start_year,  # we are only using 2015 as test
-        "endyear": end_year,  # hence also here 2015
+        "startyear": start_year,
+        "endyear": end_year,
         "pvcalculation": pv_calc,  # we are not performing PV, we only want radiation
         "angle": angle,  # we want a vertical facade
         "aspect": azimuth,  # set the azimuth direction
@@ -61,7 +64,7 @@ for direction, azimuth in azimuths.items():
 
 
 # Saving the data and setting up paths
-path = Path(f"../irradiation_data/{city}")
+path = Path(f"../irradiation_data/{city}_{start_year}_{end_year}")
 path.mkdir(parents=True, exist_ok=True)
 
 # First we save each column in a separate CSV file
