@@ -215,9 +215,7 @@ class Building:
         losses_df.loc[self.summer_months] = 0
         return losses_df
 
-    def transmission_losses_opaque(
-        self, outside_temp=None, inside_temp=20, temp_col_index=0
-    ):
+    def transmission_losses_opaque(self, outside_temp=None, temp_col_index=0):
         """by default the outside temperature is the temperature passed when creating the Building instance
         Also the inside temperature is by default 20 °C constant. It is possible to also pass a list
         """
@@ -225,20 +223,15 @@ class Building:
         if outside_temp is None:
             outside_temp = self.outside_temperature.iloc[:, temp_col_index]
 
-        if isinstance(inside_temp, int):
-            inside_temp = [inside_temp] * len(self.outside_temperature)
-
         # convert inside_temp to a pandas Series for vectorized operation
-        inside_temp = pd.Series(inside_temp, index=self.outside_temperature.index)
+        inside_temp = self.inside_temp
 
         # call the helper function
         self.opaque_losses = self.compute_losses(
             self.opaque_surfaces, outside_temp, inside_temp
         )
 
-    def transmission_losses_transparent(
-        self, outside_temp=None, inside_temp=20, temp_col_index=0
-    ):
+    def transmission_losses_transparent(self, outside_temp=None, temp_col_index=0):
         """by default the outside temperature is the temperature passed when creating the Building instance
         Also the inside temperature is by default 20 °C constant. It is possible to also pass a list
         """
@@ -246,20 +239,15 @@ class Building:
         if outside_temp is None:
             outside_temp = self.outside_temperature.iloc[:, temp_col_index]
 
-        if isinstance(inside_temp, int):
-            inside_temp = [inside_temp] * len(self.outside_temperature)
-
         # convert inside_temp to a pandas Series for vectorized operation
-        inside_temp = pd.Series(inside_temp, index=self.outside_temperature.index)
+        inside_temp = self.inside_temp
 
         # call the helper function
         self.transparent_losses = self.compute_losses(
             self.transparent_surfaces, outside_temp, inside_temp
         )
 
-    def transmission_losses_ground(
-        self, soil_temp=None, inside_temp=20, temp_col_index=0
-    ):
+    def transmission_losses_ground(self, soil_temp=None, temp_col_index=0):
         """by default the soil temperature is the temperature passed when creating the Building instance
         Also the inside temperature is by default 20 °C constant. It is possible to also pass a list
         """
@@ -267,13 +255,9 @@ class Building:
         if soil_temp is None:
             soil_temp = self.soil_temp
 
-        if isinstance(inside_temp, int):
-            inside_temp = [inside_temp] * len(self.outside_temperature)
-
         # convert inside_temp to a pandas Series for vectorized operation
-        inside_temp = pd.Series(
-            inside_temp, index=self.outside_temperature.index
-        )  # convert inside_temp to a pandas Series
+        inside_temp = self.inside_temp
+
         soil_temp = pd.Series(
             soil_temp, index=self.outside_temperature.index
         )  # convert soil_temp to a pandas Series
@@ -294,7 +278,7 @@ class Building:
         self.transmission_losses_transparent()
         self.transmission_losses_ground()
 
-    def sol_gain(self, inside_temp: float = 20):
+    def sol_gain(self):
         for _, row in self.transparent_surfaces.iterrows():
             window_area = row["total_surface"]
             window_SHGC = row["SHGC"]
@@ -308,13 +292,11 @@ class Building:
             # Set gains to zero during summer months
             gains[self.summer_months] = 0
 
-            mask_inside_temp = self.outside_temperature["T2m"] >= inside_temp
+            mask_inside_temp = self.outside_temperature["T2m"] >= self.inside_temp
             gains.loc[mask_inside_temp] = 0
             self.solar_gain[row["surface_name"]] = gains
 
-    def internal_gains(
-        self, watts_per_sqm: pd.DataFrame = None, inside_temp: float = 20
-    ):
+    def internal_gains(self, watts_per_sqm: pd.DataFrame = None):
         """calculate the internal gains in the building
         watts_per_sqm: int, optional. Default is 3. The internal gains in the building in W/m2
         """
@@ -334,14 +316,15 @@ class Building:
         internal_heat_sources[self.summer_months] = 0
 
         # set internal gains to zero when the inside temperature is equal or higher than the setpoint
-        inside_temp_mask = self.outside_temperature["T2m"] >= inside_temp
+        inside_temp_mask = self.outside_temperature["T2m"] >= self.inside_temp
         internal_heat_sources.loc[inside_temp_mask, "internal_gains"] = 0
 
         self.internal_heat_sources = internal_heat_sources
 
-    def vent_loss(self, inside_temp=20):
+    def vent_loss(self):
         # Qv = 0.34 * (0.4 + 0.2) * V
 
+        inside_temp = self.inside_temp
         vent_coeff = 0.34 * (self.unwanted_vent_coeff + 0.2) * self.volume
 
         # compute loss for all hours in one vectorized operation
@@ -434,6 +417,15 @@ class Building:
                 Person(building_id=self.building_id, person_id=person_id)
             )
 
+    def append_people(self, person_instance):
+        """add a person to the building based on the Person.py class.
+        To calculate domestic hot water call the method 'domestic_hot_water'
+        This is in case the user wants to add a person that has already been created
+        and pre-calculated the hot water demand
+        """
+
+        self.people.append(person_instance)
+
     def dhw_volume(self):
         """calculate the domestic hot water demand in liters
         to calculate the energy needed call the method dhw_demand
@@ -463,7 +455,7 @@ class Building:
             # TODO: we can add a function that varies the hot water temperature based on the hour of the year (some cosin or sin function)
         if self.water_usage.empty:
             warnings.warn(
-                "No hot water demand. Makes ure to run Building.hot_water_volume() first"
+                "No hot water demand. Make sure to run Building.dhw_volume() first"
             )
             return
         hot_water_temp_series = pd.Series(hot_water_temp)
@@ -636,6 +628,7 @@ if __name__ == "__main__":
     inside_temp = pd.DataFrame(index=time_index)
     inside_temp["inside_temp"] = 20
     mask_heating = inside_temp.index.hour.isin(range(8, 22))
+
     inside_temp.loc[np.logical_not(mask_heating), "inside_temp"] = 17
 
     test_sfh = Building(
