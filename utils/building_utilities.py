@@ -390,7 +390,7 @@ def process_data(
     gdf_path: str,
     filetype: str,
     age_distr: pd.DataFrame,
-    height_distr: pd.DataFrame,
+    ceiling_height_distr: pd.DataFrame,
     res_types: List[str],
 ) -> gpd.GeoDataFrame:
     # from qgis_utils import get_building_data
@@ -420,7 +420,7 @@ def process_data(
     building_data["ceiling_height"] = assign_ceiling_height(
         building_age=building_age,
         building_types=building_types,
-        height_distr=height_distr,
+        height_distr=ceiling_height_distr,
         res_types=res_types,
     )
 
@@ -594,7 +594,7 @@ if __name__ == "__main__":
         gdf_path=abs_path,
         filetype="parquet",
         age_distr=age_look_up,
-        height_distr=ceiling_data,
+        ceiling_height_distr=ceiling_data,
         res_types=res_types,
     )
 
