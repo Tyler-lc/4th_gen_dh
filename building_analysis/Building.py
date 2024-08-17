@@ -417,12 +417,15 @@ class Building:
                 Person(building_id=self.building_id, person_id=person_id)
             )
 
-    def append_people(self, person_instance):
+    def append_water_usage(self, person_instance):
         """add a person to the building based on the Person.py class.
         To calculate domestic hot water call the method 'domestic_hot_water'
         This is in case the user wants to add a person that has already been created
         and pre-calculated the hot water demand
         """
+        # TODO: we actually need to implement this now properly. We can add_people and then append the water usage
+        # to each of these people. We need to make sure that the naming convention for the people added and the
+        # dhw profiles we append are the same. We also need to make sure we know how many people there are in each building:
 
         self.people.append(person_instance)
 
@@ -445,10 +448,10 @@ class Building:
         default values are: {"shower": 38, "bath": 40, "cooking": 35, "handwash": 37}"""
         if hot_water_temp is None:
             hot_water_temp = {
-                "shower": 38,
+                "shower": 40,
                 "bath": 40,
                 "cooking": 35,
-                "handwash": 37,
+                "handwash": 35,
             }  # °C
             # TODO double check these number we have a paper for this!!!!
             # TODO: we can add a function that varies the cold water temperature based on the hour of the year
@@ -600,7 +603,7 @@ if __name__ == "__main__":
     building_values = building_input[building_input["building_usage"] == "sfh"][
         building_input["fid"] == 30
     ]
-    building_id = building_values["osm_id"]
+    building_id = building_values["full_id"]
     building_type = building_values["building_usage"].values[0] + str(
         building_values["age_code"].values[0]
     )
