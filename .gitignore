@@ -13,3 +13,4 @@ building_analysis/stundenwerte_EB_01420_19790101_20231231_hist/Metadaten_Station
 building_analysis/stundenwerte_EB_01420_19790101_20231231_hist/produkt_eb_stunde_19790101_20231231_01420.txt
 building_analysis/dhw_profiles
 building_analysis.log
+tests/speed_tests
