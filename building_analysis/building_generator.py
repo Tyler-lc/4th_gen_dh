@@ -261,11 +261,20 @@ def assign_windows(
     return json.dumps(windows_dict)
 
 
-def iterator_generate_buildings(building_data, u_value_path):
+def iterator_generate_buildings(
+    building_data,
+    u_value_path,
+    convert_wkb=True,
+    randomization_factor: float = 0.15,
+    verbose: bool = False,
+):
     """a small utility that will iterate over the buildings and generate the buildings.
-    This is useful when we want to generate the buildings in a loop
+    This is useful when we want to generate the buildings in a loop. The function will return eventually a
+    GeoDataFrame with all the buildings generated.
     :param building_data: the building data that we want to iterate over. This should come from the process_data function
     :param u_value_path: the path to the csv file with the u-values. If relative paths don't work, use absolute paths.
+    :param randomization_factor: the randomization factor for the u-values. Default is 0.15
+    :param verbose: prints warnings if data is missing when True. Default is False
     """
     results_list = []
 
@@ -307,6 +316,9 @@ def iterator_generate_buildings(building_data, u_value_path):
             cardinal_directions,
             u_value_path,
             geometry,
+            randomization_factor,
+            convert_wkb,
+            verbose,
         )
         results_list.append(result)
     results_df = pd.concat(results_list, ignore_index=True)
