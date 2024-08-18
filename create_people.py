@@ -23,7 +23,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Load the building data
-buildings_path = "building_analysis/building_input.parquet"
+buildings_path = "building_analysis/buildingstock/buildingstock.parquet"
 buildings_data = pd.read_parquet(buildings_path)
 
 # Filter residential buildings and calculate the number of people per building
