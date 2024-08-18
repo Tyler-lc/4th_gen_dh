@@ -130,6 +130,7 @@ def generate_building(
     # calculate the GFA
     gfa = plot_area * n_floors
 
+    # door data evaluation. If no door data are available then we set the area and u-value to 0
     door_area = template_df["door_surface"].values[0]
     door_u_value = template_df["door_uvalue"].values[0]
 
@@ -178,6 +179,48 @@ def generate_building(
     gdf = gpd.GeoDataFrame(export_data, index=[0])
 
     return gdf
+
+
+def assign_people_id(gdf: gpd.GeoDataFrame, res_types: List[str]) -> pd.Series:
+    """Assigns a unique ID to each person in the building. The ID is a combination of the building_id
+    and the number of the person in the building. For example if the building ID is w123 and there are 10 people
+    the IDs will be w123_0, w123_1, w123_2, ..., w123_9. We only assign IDs to residential buildings.
+    :param building_id: The ID of the building
+    :param n_people: The number of people in the building"""
+    people_id = []
+    res_mask = gdf["building_usage"].isin(res_types)
+    gdf["people_id"] = None
+
+    for idx, row in gdf[res_mask].iterrows():
+        building_id = row["full_id"]
+        n_people = row["n_people"]
+        for i in range(n_people):
+            people_id.append(f"{building_id}_{i}")
+        gdf.at[idx, "people_id"] = people_id
+        people_id = []
+
+    return gdf["people_id"]
+
+
+def people_in_building(
+    gdf: gpd.GeoDataFrame, res_types: List[str], total_people: int
+) -> pd.Series:
+    """Calculates the amount of people in each building. It is based on the GFA of the building and the
+    population density in terms of Gross Floor Area (GFA) per person.
+    We only assign people to residential buildings.
+    :param gdf: The GeoDataFrame containing the building data
+    :res_types: The list of residential building types
+    :total_people: The total number of people in the area
+    """
+
+    res_mask = gdf["building_usage"].isin(res_types)
+    total_GFA = gdf[res_mask]["GFA"].sum()
+    people_per_GFA = total_people / total_GFA
+    gdf.loc[res_mask, "n_people"] = round(gdf["GFA"] * people_per_GFA)
+    gdf["n_people"] = gdf["n_people"].fillna(0).infer_objects(copy=False)
+    gdf["n_people"] = gdf["n_people"].astype(int)
+
+    return gdf["n_people"]
 
 
 def readjust_angle(angle: float) -> float:
@@ -262,20 +305,22 @@ def assign_windows(
 
 
 def iterator_generate_buildings(
-    building_data,
-    u_value_path,
-    convert_wkb=True,
-    randomization_factor: float = 0.15,
-    verbose: bool = False,
-):
+    building_data,  # the building data that we want to iterate over (GDF). This should come from the process_data function
+    u_value_path,  # the path to the csv file with the u-values. If relative paths don't work, use absolute paths.
+    convert_wkb=True,  # convert the geometry from wkb to shapely. this allows usage in gdf
+    randomization_factor: float = 0.15,  # the randomization factor for the u-values. Default is 0.15
+    verbose: bool = False,  # prints warnings if data is missing when True. Default is False
+) -> gpd.GeoDataFrame:
     """a small utility that will iterate over the buildings and generate the buildings.
     This is useful when we want to generate the buildings in a loop. The function will return eventually a
     GeoDataFrame with all the buildings generated.
     :param building_data: the building data that we want to iterate over. This should come from the process_data function
     :param u_value_path: the path to the csv file with the u-values. If relative paths don't work, use absolute paths.
+    :param convert_wkb: convert the geometry from wkb to shapely. this allows usage in gdf
     :param randomization_factor: the randomization factor for the u-values. Default is 0.15
     :param verbose: prints warnings if data is missing when True. Default is False
     """
+
     results_list = []
 
     for idx, row in tqdm(building_data.iterrows(), total=building_data.shape[0]):

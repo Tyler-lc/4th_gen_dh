@@ -3,7 +3,11 @@ import numpy as np
 import geopandas as gpd
 import os
 import sys
-from building_analysis.building_generator import iterator_generate_buildings
+from building_analysis.building_generator import (
+    iterator_generate_buildings,
+    people_in_building,
+    assign_people_id,
+)
 from utils.building_utilities import process_data
 
 # as there is some randomness built-in to the generation of the buildings, we set the seed here for consistency
@@ -29,13 +33,36 @@ geometric_data = process_data(
     res_types,
 )
 
-
 # finally we use the iterator_generate_buildings function to generate the buildings with all the information
 # needed to create the buildingstock. This gdf will be used in the Building class to calculate the useful energy demand
 # First we need to set the path where the u-values for all the archetypes are stored. This should be a csv
 # then we use the iterator_generate_buildings function to generate the buildings.
 u_values_path = "building_analysis/building_generator_data/archetype_u_values.csv"
 buildingstock = iterator_generate_buildings(geometric_data, u_values_path)
+
+# once we have generated the buildingstock we can add people to the building, since this requires us to know the total
+# GFA of the area we analyze. So we need to first generate  the buildingstock. Now we can append information about people
+# We need to first calculate the number of people per Gross Floor Area. We assume there are 9500 people in the area
+buildingstock["n_people"] = people_in_building(buildingstock, res_types, 9500)
+buildingstock["people_id"] = assign_people_id(buildingstock, res_types)
+
+# making a dataframe is actually for data exploration with datawrangler in VS code. It is actually not necessary
+df_buildingstock = pd.DataFrame(buildingstock)
+
+
+# out of convention we put the geometry column at the end. Right now it is not. So we want to move it to the end
+# Get the list of columns
+columns = list(buildingstock.columns)
+
+# Remove 'geometry' from the list and append it to the end
+columns.remove("geometry")
+columns.append("geometry")
+
+# Reorder the DataFrame
+buildingstock = buildingstock[columns]
+
+# Verify the new order
+
 
 # now we can save the buildingstock data to a file. We will save it as a parquet file
 buildingstock.to_parquet("building_analysis/buildingstock/buildingstock.parquet")
@@ -59,6 +86,8 @@ print(
     f"do the two dataframes have the same shape? {buildingstock_from_parquet.shape == buildingstock.shape}"
 )
 
+
+# TODO we could actually turn this whole section into a utility function that checks the dataframe "integrity"
 
 different_cols = []
 if (buildingstock.equals(buildingstock_from_parquet)) == False:
