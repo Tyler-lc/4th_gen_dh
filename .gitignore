@@ -14,3 +14,4 @@ building_analysis/stundenwerte_EB_01420_19790101_20231231_hist/produkt_eb_stunde
 building_analysis/dhw_profiles
 building_analysis.log
 tests/speed_tests
+building_analysis/test_dhw_w98916075.csv
