@@ -36,6 +36,7 @@ class Building:
         year_start=2019,
         summer_start=6,
         summer_end=9,
+        verbose: bool = False,
     ):
         self.building_id = building_id
         self.building_type = building_type
@@ -43,11 +44,12 @@ class Building:
         self.outside_temperature = outside_temperature
         self.soil_temp = soil_temp
         self.inside_temp = inside_temp
-        print("inside temperature type is ", type(self.inside_temp))
         self.summer_start = summer_start
         self.summer_end = summer_end
         self.people = []
-        self.water_usage = pd.DataFrame()
+        self.building_water_usage = pd.DataFrame()
+        self.total_dhw_energy = pd.DataFrame()
+        self.verbose = verbose
 
         # Ensure the outside_temperature has a DatetimeIndex and is a Dataframe
         # if not a dataframe then create one with DateTimeIndex
@@ -80,17 +82,17 @@ class Building:
         # Ensure soil_temp is a pandas Series with the same index as outside_temperature
 
         self.soil_temp = self.convert_temps(self.soil_temp, self.outside_temperature)
-        print("soil temperature is set")
         # convert the inside temperature to a pandas Series
         self.inside_temp = self.convert_temps(
             self.inside_temp, self.outside_temperature
         )
-        print("inside temperature is set")
 
         # gather geometric data from the components dataframe
         self.n_floors = self.components["n_floors"].values[0]
         self.volume = self.components["volume"].values[0]
         self.ground_contact_area = self.components["ground_contact_area"].values[0]
+        self.n_people = self.components["n_people"].values[0]
+        self.people_id = self.components["people_id"].values[0]
 
         # from here on we are creating the dataframes for the different surfaces
         self.transparent_surfaces = self.parse_transparent_surfaces(
@@ -145,11 +147,14 @@ class Building:
                 [temp_data] * len(outside_temperature),
                 index=self.outside_temperature.index,
             )
+
         elif isinstance(temp_data, list):
             temp_data = pd.Series(temp_data, index=outside_temperature.index)
+
         elif isinstance(temp_data, pd.Series):
             if not temp_data.index.equals(outside_temperature.index):
                 temp_data = pd.Series(temp_data.values, index=outside_temperature.index)
+
         else:
             raise TypeError("soil_temp must be an int, float, list, or pandas Series")
         return temp_data
@@ -408,70 +413,70 @@ class Building:
 
     # here we start adding people to the building.
 
-    def add_people(self, n_people):
+    def add_people(self, n_people: int = None):
         """add people in the building based on the Person.py class.
         To calculate domestic hot water call the method 'domestic_hot_water'"""
-        for i in range(n_people):
-            person_id = f"{self.building_id}_{i}"
+        if n_people == None:
+            n_people = self.n_people
+
+        if self.n_people == 0:  # if there are no people do not add any
+            return
+
+        for ids in self.people_id:
+            person_id = ids
             self.people.append(
                 Person(building_id=self.building_id, person_id=person_id)
             )
 
-    def append_water_usage(self, person_instance):
+    def append_water_usage(self, profiles_folder):
         """add a person to the building based on the Person.py class.
         To calculate domestic hot water call the method 'domestic_hot_water'
         This is in case the user wants to add a person that has already been created
         and pre-calculated the hot water demand
         """
-        # TODO: we actually need to implement this now properly. We can add_people and then append the water usage
-        # to each of these people. We need to make sure that the naming convention for the people added and the
-        # dhw profiles we append are the same. We also need to make sure we know how many people there are in each building:
+        if self.people == []:
+            return
+        for person in self.people:
+            path = os.path.join(profiles_folder, person.person_id + ".csv")
+            person.set_dhw_profile(path, self.outside_temperature.index)
 
-        self.people.append(person_instance)
+    def people_dhw_energy(self):
+        """calculate the domestic hot water demand in kWh for each person in the building
+        The results are stored in the instance of the Person class
+        """
+        if self.people == []:
+            return
+        for person in self.people:
+            person.dhw_energy()
 
-    def dhw_volume(self):
+    def building_dhw_volume(self):
         """calculate the domestic hot water demand in liters
         to calculate the energy needed call the method dhw_demand
         This function returns the total volume of hot water used in the building
         If you want to check the volume used by each person, you can check Building.people[n].dhw_year
         """
         if not self.people:
-            warnings.warn("No people in the building.")
+            if self.verbose:
+                warnings.warn("No people in the building.")
             return
-        self.water_usage = sum([person.dhw_profile() for person in self.people])
-        return self.water_usage
+        self.building_water_usage = sum([person.dhw_year for person in self.people])
+        return self.building_water_usage
 
-    def dhw_energy(self, cold_water_temp: float = 8, hot_water_temp: dict = None):
-        """calculate the energy needed for the domestic hot water demand in kWh
-        cold_water_temp: float, optional. Default is 8 °C
-        hot_water_temp: dict, optional. Default is None. If None, the default values are used
-        default values are: {"shower": 38, "bath": 40, "cooking": 35, "handwash": 37}"""
-        if hot_water_temp is None:
-            hot_water_temp = {
-                "shower": 40,
-                "bath": 40,
-                "cooking": 35,
-                "handwash": 35,
-            }  # °C
-            # TODO double check these number we have a paper for this!!!!
-            # TODO: we can add a function that varies the cold water temperature based on the hour of the year
-            # TODO: we can add a function that varies the hot water temperature based on the hour of the year (some cosin or sin function)
-        if self.water_usage.empty:
-            warnings.warn(
-                "No hot water demand. Make sure to run Building.dhw_volume() first"
-            )
+    def building_dhw_energy(self):
+        """calculate the domestic hot water demand in kWh
+        to calculate the volume needed call the method dhw_volume
+        This function returns the total energy used by the building
+        If you want to check the energy used by each person, you can check Building.people[n].dhw_year
+        """
+        if not self.people:
+            if self.verbose:
+                warnings.warn("No people in the building.")
             return
-        hot_water_temp_series = pd.Series(hot_water_temp)
-        # E = m * c_p * DT. 4.182 is the specific heat of water (c_p) in kJ/kg°C
-        # 3600 is to convert kJ to kWh
-        self.dhw_energy_demand = (
-            self.water_usage
-            * 4.182
-            * (hot_water_temp_series - cold_water_temp)
-            / 3600  #
+
+        self.total_dhw_energy = sum(
+            [person.dhw_energy_demand for person in self.people]
         )
-
-        return self.dhw_energy_demand
+        return self.total_dhw_energy
 
     def get_useful_demand(self):
         return self.hourly_useful_demand
@@ -599,7 +604,7 @@ if __name__ == "__main__":
     # building_input.to_parquet("building_input.parquet")
 
     # load up the data about the building stock in Grihesheim Mitte
-    building_input = pd.read_parquet("building_input.parquet")
+    building_input = pd.read_parquet("buildingstock/buildingstock.parquet")
     building_values = building_input[building_input["building_usage"] == "sfh"][
         building_input["fid"] == 30
     ]
@@ -618,11 +623,15 @@ if __name__ == "__main__":
     # cleaning the data a little. The dwd uses -99.9 to indicate missing data
     # first replace the -99.9 with np.nan
     df_soil_temp.replace(-99.9, np.nan, inplace=True)
-    print(df_soil_temp["V_TE0052"].isna().sum())
+    print(
+        f"total number of NaN values in soil temperature before fix: {df_soil_temp['V_TE0052'].isna().sum()}"
+    )
 
     # now interpolate the missing values
     df_soil_temp["V_TE0052"] = df_soil_temp["V_TE0052"].interpolate()
-    print(df_soil_temp["V_TE0052"].isna().sum())
+    print(
+        f"total number of NaN values in soil temperature after fix: {df_soil_temp['V_TE0052'].isna().sum()}"
+    )
 
     # creating a dataframe with the inside temperatures to be used throughout the year
     # it is set to be 20 °c from 8am to 10pm and 17°C at any other time.
@@ -669,7 +678,42 @@ if __name__ == "__main__":
         ],
         axis=1,
     )
-    df_results.to_csv("sht_test_results.csv")
+
+    ## testing for the people functions
+    test_sfh.add_people()
+
+    # check if names are actually somewhat correct
+    print(
+        f" there are {len(test_sfh.people)} person(s) in the building. There should be: {test_sfh.n_people}"
+    )
+
+    # check the if the ids are correct
+
+    i = 0
+    for person in test_sfh.people:
+        from_class = person.person_id
+        manual_name = test_sfh.building_id.values[0] + f"_{i}"
+        print(f"person id: {from_class}. It should be {manual_name}")
+        print(f" is name correct: {from_class == manual_name}")
+        i += 1
+
+    # append the water usage to each person
+    test_sfh.append_water_usage("dhw_profiles")
+    print("water usage appended correctly")
+
+    # calculate the dhw energy expenditure for each person
+    test_sfh.people_dhw_energy()
+    print("dhw energy calculated correctly")
+
+    # calculate the total dhw volume used in the building
+    dhw_volume = test_sfh.building_dhw_volume()
+    print(f"total dhw volume used in the building: {dhw_volume.sum().sum()}")
+
+    # calculate the total dhw energy used in the building
+    dhw_energy = test_sfh.building_dhw_energy()
+    print(f"total dhw energy used in the building: {dhw_energy.sum().sum()}")
+
+    # df_results.to_csv("sht_test_results.csv")
 
     # # on/off toggle some tests and debugging options
     # losses_outputs = 0

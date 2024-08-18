@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import icecream as ic
+import warnings
 
 
 class Person:
@@ -28,6 +29,7 @@ class Person:
         self.freeday_occupancy_pdf = self.occupancy_distribution(workday=False)
         self.occupancy_year = self.defined_time_occupancy()
         self.dhw_year = None
+        self.dhw_energy_demand = pd.DataFrame()
 
     def assign_wakeup_category(self, workday=True):
         """Assign wakeup category based on the given probabilities."""
@@ -214,14 +216,52 @@ class Person:
         self.dhw_year = dhw_df
         return dhw_df
 
-    def set_dhw_profile(self, dhw_profile_path):
+    def dhw_energy(self, cold_water_temp: float = 8, hot_water_temp: dict = None):
+        """calculate the energy needed for the domestic hot water demand in kWh
+        cold_water_temp: float, optional. Default is 8 °C
+        hot_water_temp: dict, optional. Default is None. If None, the default values are used
+        default values are: {"shower": 38, "bath": 40, "cooking": 35, "handwash": 37}"""
+        if hot_water_temp is None:
+            # values come from http://dx.doi.org/10.1016/j.apenergy.2016.02.107
+            hot_water_temp = {
+                "shower": 40,
+                "bath": 40,
+                "cooking": 35,
+                "handwash": 35,
+            }  # °C
+            # TODO: we can add a function that varies the cold water temperature based on the hour of the year
+            # TODO: we can add a function that varies the hot water temperature based on the hour of the year (some cosin or sin function)
+        if self.dhw_year.empty:
+            warnings.warn(
+                "No hot water demand. Make sure to run Building.dhw_volume() first"
+            )
+            return
+        hot_water_temp_df = pd.DataFrame(
+            {
+                key: [value] * len(self.dhw_year)
+                for key, value in hot_water_temp.items()
+            },
+            index=self.dhw_year.index,
+        )
+        # E = m * c_p * DT. 4.182 is the specific heat of water (c_p) in kJ/kg°C
+        # 3600 is to convert kJ to kWh
+        self.dhw_energy_demand = (
+            self.dhw_year * 4.182 * (hot_water_temp_df - cold_water_temp) / 3600  #
+        )
+
+        return self.dhw_energy_demand
+
+    def set_dhw_profile(self, dhw_profile_path, index=None):
         """utility to add pre-calculated dhw_profile to the person object. The dhw volume must be in liters
         and 8760 hours long or 8761 hours long if the year is a leap year.
 
         :param dhw_profile: pd.DataFrame with columns ['shower', 'bath', 'cooking', 'handwash']
         """
+        if index is None:
+            index = self.dhw_year.index
+
         required_columns = ["shower", "bath", "cooking", "handwash"]
-        dhw_df = pd.read_csv(dhw_profile_path)
+        dhw_df = pd.read_csv(dhw_profile_path, index_col=0, parse_dates=True)
         # Check length of dhw_profile
         if len(dhw_df) not in [8760, 8761]:
             raise ValueError("dhw_profile must be 8760 or 8761 hours long.")
@@ -240,6 +280,13 @@ class Person:
             )
         return self.dhw_year
 
+    def get_dhw_energy_demand(self):
+        if self.dhw_energy_demand.empty:
+            raise ValueError(
+                "DHW energy demand not calculated. Calculate DHW energy demand first by using Person.dhw_energy() method."
+            )
+        return self.dhw_energy_demand
+
 
 # Example usage
 if __name__ == "__main__":
@@ -253,7 +300,7 @@ if __name__ == "__main__":
     occupancy_probabilities = luca.occupancy_distribution()
     # generate the occupancy for the whole year
     luca_occupancy_year = luca.defined_time_occupancy()
-    # luca_dhw = luca.dhw_profile2()
+    luca_dhw = luca.dhw_profile()
     plot = False
 
     if plot == True:
