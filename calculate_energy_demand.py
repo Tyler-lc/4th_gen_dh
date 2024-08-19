@@ -3,6 +3,8 @@ import pandas as pd
 import geopandas as gpd
 from tqdm import tqdm
 import os
+from multiprocessing import Pool
+from tqdm import tqdm
 
 from building_analysis.Building import Building
 from Person.Person import Person
@@ -55,7 +57,13 @@ dhw_volumes_folder = "building_analysis/dhw_profiles"
 
 res_mask = gdf_buildingstock_results["building_usage"].isin(["sfh", "mfh", "ab", "th"])
 
+# Initialize DataFrames for storing results
+space_heating_df = pd.DataFrame()
+dhw_volume_df = pd.DataFrame()
+dhw_energy_df = pd.DataFrame()
 
+# we only have DHW for residential buildings. Hence we apply the residential mask to check
+# if all buildings actually have dhw_profiles for each person inside.
 dont_exist = []
 exist = []
 for idx, building in gdf_buildingstock_results[res_mask].iterrows():
@@ -63,17 +71,29 @@ for idx, building in gdf_buildingstock_results[res_mask].iterrows():
     for person_id in people_ids:
         file_path = os.path.join(dhw_volumes_folder, f"{person_id}.csv")
         if os.path.exists(file_path):
-            print(
-                f"File exists for person {person_id} in building {building['full_id']}."
-            )
+            # print(
+            #     f"File exists for person {person_id} in building {building['full_id']}."
+            # )
             exist.append(person_id)
         else:
-            print(
-                f"File does not exist for person {person_id} in building {building['full_id']}."
-            )
+            # print(
+            #     f"File does not exist for person {person_id} in building {building['full_id']}."
+            # )
             dont_exist.append(person_id)
 print(f"Total number of people that exist: {len(exist)}")
 print(f"Total number of people that do not exist: {len(dont_exist)}")
+
+
+dir_dhw_volumes = "building_analysis/results/dhw_volumes"
+dir_dhw_energy = "building_analysis/results/dhw_energy"
+dir_space_heating = "building_analysis/results/space_heating"
+
+directories = [dir_dhw_volumes, dir_dhw_energy, dir_space_heating]
+
+for dirs in directories:
+    if not os.path.exists(dirs):
+        os.makedirs(dirs, exist_ok=True)
+
 
 for idx, row in tqdm(gdf_buildingstock_results.iterrows()):
     building_id = row["full_id"]
@@ -94,7 +114,19 @@ for idx, row in tqdm(gdf_buildingstock_results.iterrows()):
     building.add_people()
     building.append_water_usage(dhw_volumes_folder)
     building.people_dhw_energy()
-    building.building_dhw_volume()
-    building.building_dhw_energy()
+    dhw_volume_df[building_id] = building.building_dhw_volume()
+    dhw_energy_df[building_id] = building.building_dhw_energy()
+    space_heating_df[building_id] = building.get_useful_demand()
+
+    dhw_volume_path = os.path.join(dir_dhw_volumes, f"dhw_volume_{building_id}.csv")
+    dhw_energy_df = os.path.join(dir_dhw_energy, f"dhw_energy_{building_id}.csv")
+    space_heating_path = os.path.join(
+        dir_space_heating, f"space_heating_{building_id}.csv"
+    )
+
+    dhw_volume_df.to_csv(dhw_volume_path)
+    dhw_energy_df.to_csv(dhw_energy_df)
+    space_heating_df.to_csv(space_heating_path)
+
 
 # TODO we need to save the results somehow now.
