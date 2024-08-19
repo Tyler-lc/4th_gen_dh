@@ -5,7 +5,7 @@ import warnings
 
 
 class Person:
-    def __init__(self, building_id, person_id):
+    def __init__(self, building_id, person_id, start_year="01/01/2019"):
         """This class generates a person with a specific age and building id.
         In this class we generate DHW and Occupancy profile. In this case occupancy is defined as the probability of
         being at home and awake. We do consider sleeping time as occupancy = 0.
@@ -27,6 +27,7 @@ class Person:
         )
         self.workday_occupancy_pdf = self.occupancy_distribution(workday=True)
         self.freeday_occupancy_pdf = self.occupancy_distribution(workday=False)
+        self.start_year = start_year
         self.occupancy_year = self.defined_time_occupancy()
         self.dhw_year = None
         self.dhw_energy_demand = pd.DataFrame()
@@ -119,11 +120,13 @@ class Person:
         days=365,
         min_hours_daily=6,
         max_hours_daily=16,
-        start_year="01/01/2021",
+        start_year=None,
     ):
         """Generates occupancy profile for each day over a specified number of days.
         Returns a DataFrame with timestamps and occupancy profiles.
         """
+        if start_year == None:
+            start_year = self.start_year
         if wd_occupancy_distr is None:
             wd_occupancy_distr = self.workday_occupancy_pdf
         if fd_occupancy_distr is None:

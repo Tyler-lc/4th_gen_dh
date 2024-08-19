@@ -50,6 +50,7 @@ class Building:
         self.building_water_usage = pd.DataFrame()
         self.total_dhw_energy = pd.DataFrame()
         self.verbose = verbose
+        self.year_start = year_start
 
         # Ensure the outside_temperature has a DatetimeIndex and is a Dataframe
         # if not a dataframe then create one with DateTimeIndex
@@ -430,8 +431,13 @@ class Building:
 
         for ids in self.people_id:
             person_id = ids
+            start_year = f"01/01/{self.year_start}"
             self.people.append(
-                Person(building_id=self.building_id, person_id=person_id)
+                Person(
+                    building_id=self.building_id,
+                    person_id=person_id,
+                    start_year=start_year,
+                )
             )
 
     def append_water_usage(self, profiles_folder):
