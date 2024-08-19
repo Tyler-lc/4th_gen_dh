@@ -87,6 +87,12 @@ class Building:
             self.inside_temp, self.outside_temperature
         )
 
+        # set the index for the building_water_usage and total_dhw_energy
+        self.building_water_usage.index = weather_index
+        self.total_dhw_energy.index = weather_index
+        self.building_water_usage["dhw_volume"] = 0
+        self.total_dhw_energy["dhw_energy"] = 0
+
         # gather geometric data from the components dataframe
         self.n_floors = self.components["n_floors"].values[0]
         self.volume = self.components["volume"].values[0]
@@ -458,7 +464,7 @@ class Building:
         if not self.people:
             if self.verbose:
                 warnings.warn("No people in the building.")
-            return
+            return self.building_water_usage
         self.building_water_usage = sum([person.dhw_year for person in self.people])
         return self.building_water_usage
 
@@ -471,7 +477,7 @@ class Building:
         if not self.people:
             if self.verbose:
                 warnings.warn("No people in the building.")
-            return
+            return self.total_dhw_energy
 
         self.total_dhw_energy = sum(
             [person.dhw_energy_demand for person in self.people]
@@ -712,6 +718,31 @@ if __name__ == "__main__":
     # calculate the total dhw energy used in the building
     dhw_energy = test_sfh.building_dhw_energy()
     print(f"total dhw energy used in the building: {dhw_energy.sum().sum()}")
+
+    ## now i want to test a non residential building
+    non_res_building = building_input.loc[0, :].to_frame().T
+    non_res_id = non_res_building["full_id"]
+    non_res_type = non_res_building["building_usage"].values[0] + str(
+        non_res_building["age_code"].values[0]
+    )
+
+    building_non_res = Building(
+        non_res_id,
+        non_res_type,
+        non_res_building,
+        temperature,
+        irradiation,
+        df_soil_temp["V_TE0052"],
+        inside_temp["inside_temp"],
+        verbose=True,
+    )
+
+    building_non_res.thermal_balance()
+    building_non_res.add_people()
+    building_non_res.append_water_usage("dhw_profiles")
+    dhw_volume_non_res = building_non_res.building_dhw_volume()
+    dhw_energy_non_res = building_non_res.building_dhw_energy()
+    non_res_space_heating = building_non_res.get_useful_demand()
 
     # df_results.to_csv("sht_test_results.csv")
 
