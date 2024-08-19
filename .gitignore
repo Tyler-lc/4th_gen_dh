@@ -15,3 +15,4 @@ building_analysis/dhw_profiles
 building_analysis.log
 tests/speed_tests
 building_analysis/test_dhw_w98916075.csv
+building_analysis/results
