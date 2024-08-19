@@ -62,9 +62,11 @@ def process_building(
 
 
 def update_area_results(area_results, dhw_volume, dhw_energy, space_heating):
-    area_results["dhw_volume"] += dhw_volume
-    area_results["dhw_energy"] += dhw_energy
-    area_results["space_heating"] += space_heating
+    area_results["dhw_volume"] = area_results["dhw_volume"] + dhw_volume["dhw_volume"]
+    area_results["dhw_energy"] = area_results["dhw_energy"] + dhw_energy["dhw_energy"]
+    area_results["space_heating"] = (
+        area_results["space_heating"] + space_heating["net useful hourly demand [kWh]"]
+    )
 
 
 if __name__ == "__main__":
@@ -130,7 +132,7 @@ if __name__ == "__main__":
                 dir_dhw_energy,
                 dir_space_heating,
             )
-            for idx, row in gdf_buildingstock_results.iterrows()
+            for idx, row in tqdm(gdf_buildingstock_results.iterrows())
         ]
 
         # Use tqdm to track the progress of starmap
@@ -140,16 +142,35 @@ if __name__ == "__main__":
                 total=len(gdf_buildingstock_results),
             )
         )
-
+    i = 0
+    tot = len(results)
+    n_nan = 0
     for dhw_volume, dhw_energy, space_heating in results:
-        # Convert results to pandas Series with the same index as area_results
-        dhw_volume_series = pd.Series(dhw_volume, index=area_results.index)
-        dhw_energy_series = pd.Series(dhw_energy, index=area_results.index)
-        space_heating_series = pd.Series(space_heating, index=area_results.index)
-
-        update_area_results(
-            area_results, dhw_volume_series, dhw_energy_series, space_heating_series
+        i += 1
+        dhw_volume_df = pd.DataFrame(dhw_volume.sum(axis=1), columns=["dhw_volume"])
+        dhw_volume_df.index = area_results.index
+        dhw_energy_df = pd.DataFrame(dhw_energy.sum(axis=1), columns=["dhw_energy"])
+        dhw_energy_df.index = area_results.index
+        space_heating_df = pd.DataFrame(
+            space_heating.sum(axis=1), columns=["space_heating"]
         )
+        space_heating.index = area_results.index
+
+        n_nan += dhw_volume_df.isna().sum().values[0]
+
+        area_results["dhw_volume"] = (
+            area_results["dhw_volume"] + dhw_volume_df["dhw_volume"]
+        )
+        area_results["dhw_energy"] = (
+            area_results["dhw_energy"] + dhw_energy_df["dhw_energy"]
+        )
+        area_results["space_heating"] = (
+            area_results["space_heating"] + space_heating_df["space_heating"]
+        )
+
+        if i % 50 == 0:
+            print(f"Processing completed for {i} out of {tot}.")
+    print(f"Number of NaN values in dhw_volume: {n_nan}")
 
     area_results.to_csv("building_analysis/results/area_results.csv")
     print(f"Processing completed for {len(results)} buildings.")
