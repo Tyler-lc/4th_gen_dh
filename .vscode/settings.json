@@ -1,3 +1,13 @@
 {
-  "jupyter.interactiveWindow.textEditor.executeSelection": true
+  "jupyter.interactiveWindow.textEditor.executeSelection": true,
+  "json.schemas": [],
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/__pycache__": true
+  },
+  "python.analysis.exclude": [
+    "**/building_analysis/dhw_profiles/**",
+    "**/building_analysis/results_unrenovated_non_residential/**",
+    "**/building_analysis/results_unrenovated_residential/**"
+  ]
 }
