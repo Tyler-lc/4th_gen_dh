@@ -556,6 +556,12 @@ class Building:
     def get_total_volume(self):
         return self.volume
 
+    def get_dhw_sum_volume(self):
+        return self.building_dhw_volume().sum().sum()
+
+    def get_dhw_sum_energy(self):
+        return self.building_dhw_energy().sum().sum()
+
 
 if __name__ == "__main__":
     import os
