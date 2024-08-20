@@ -373,7 +373,11 @@ def iterator_generate_buildings(
 
 
 def add_insulation(
-    mm_insulation: float, thermal_conductivity: float, original_u_value: float
+    mm_insulation: float,
+    thermal_conductivity: float,
+    original_u_value: float,
+    rs_out: float = 0.04,
+    rs_in: float = 0.13,
 ):
     """
     --VVVV--o--VVVV--
@@ -384,13 +388,32 @@ def add_insulation(
     we assume that the insulation is added to the outside of the building and uniformly. All buildings' elements will have the same insulation thickness and type.
     the orig R of the element is calculated using the U-value. being the u-value = 1/Rtot -> Rtot = 1/u-value.
     We will just add the R of the insulation to the original R of the element and the re-calculate the u-value.
-
+    We also need to remove the Thermal resistance of the surfaces (internal and external) first
     :param mm_insulation: the thickness of the insulation in mm
     :param thermal_conductivity: the thermal conductivity of the insulation material
     :param original_u_value: the original u-value of the building element
+    :param rs_out: the thermal resistance of the outside surface of the building element
+    :param rs_in: the thermal resistnace of the inside surface of the building element
     """
+    if not all(
+        isinstance(x, (int, float))
+        for x in [mm_insulation, thermal_conductivity, original_u_value, rs_out, rs_in]
+    ):
+        raise TypeError("All input values must be integers or floats")
+
+    if mm_insulation < 0:
+        raise ValueError("Insulation thickness cannot be negative")
+    if thermal_conductivity < 0:
+        raise ValueError("Thermal conductivity cannot be negative")
+    if original_u_value < 0:
+        raise ValueError("U-value cannot be negative")
+    if rs_out < 0:
+        raise ValueError("Outside surface thermal resistance cannot be negative")
+    if rs_in < 0:
+        raise ValueError("Inside surface thermal resistance cannot be negative")
+
     m_insulation = mm_insulation / 1000  # in m
-    Rins = mm_insulation / thermal_conductivity  # in m2 K / W
+    Rins = m_insulation / thermal_conductivity  # in m2 K / W
     R_orig = 1 / original_u_value
     R_tot = R_orig + Rins
     new_u_value = 1 / R_tot
@@ -444,25 +467,9 @@ if __name__ == "__main__":
     results_list = []
 
     # test the add_insulation function
-    mm_insulation = 100.0
+    mm_insulation = int(100)
     thermal_conductivity = 0.02  # W/mK like phenolyc foam
-    original_u_value = 1.5  # W/m2K
+    original_u_value = 2.427  # W/m2K
 
     new_u_value = add_insulation(mm_insulation, thermal_conductivity, original_u_value)
-    print("Original U-value:", original_u_value)
-    print("New U-value after adding insulation:", new_u_value)
-
-    # test the add_insulation function with different inputs
-    mm_insulation_values = [50.0, 200.0, 500.0]
-    thermal_conductivity_values = [0.03, 0.10, 0.20]  # W/mK
-    original_u_value_values = [1.0, 2.5, 4.0]  # W/m2K
-
-    for mm_insulation, thermal_conductivity, original_u_value in zip(
-        mm_insulation_values, thermal_conductivity_values, original_u_value_values
-    ):
-        new_u_value = add_insulation(
-            mm_insulation, thermal_conductivity, original_u_value
-        )
-        print("Original U-value:", original_u_value)
-        print("New U-value after adding insulation:", new_u_value)
-        print()
+    print(f"new u_value is: {new_u_value}")
