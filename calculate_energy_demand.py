@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from building_analysis.Building import Building
 from Person.Person import Person
+from utils.misc import get_mask
 
 # first we load the buildingstock data that we generated in the create_buildingstock.py script
 buildingstock_path = "building_analysis/buildingstock/buildingstock.parquet"
@@ -51,8 +52,9 @@ time_index = pd.date_range(start="2019-01-01", periods=8760, freq="h")
 inside_temp = pd.DataFrame(index=time_index)
 inside_temp["inside_temp"] = 20
 mask_heating = inside_temp.index.hour.isin(range(8, 22))
-
 inside_temp.loc[np.logical_not(mask_heating), "inside_temp"] = 17
+
+# setting up the folder where the dhw_profiles are stored
 dhw_volumes_folder = "building_analysis/dhw_profiles"
 
 res_mask = gdf_buildingstock_results["building_usage"].isin(["sfh", "mfh", "ab", "th"])
@@ -83,10 +85,15 @@ for idx, building in gdf_buildingstock_results[res_mask].iterrows():
 print(f"Total number of people that exist: {len(exist)}")
 print(f"Total number of people that do not exist: {len(dont_exist)}")
 
+sim = "unrenovated"
+size = "whole_buildingstock"
 
-dir_dhw_volumes = "building_analysis/results/dhw_volumes"
-dir_dhw_energy = "building_analysis/results/dhw_energy"
-dir_space_heating = "building_analysis/results/space_heating"
+
+mask = get_mask(size, res_mask)
+
+dir_dhw_volumes = f"building_analysis/results/{sim}_{size}/dhw_volumes"
+dir_dhw_energy = f"building_analysis/results/{sim}_{size}/dhw_energy"
+dir_space_heating = f"building_analysis/results/{sim}_{size}/space_heating"
 
 directories = [dir_dhw_volumes, dir_dhw_energy, dir_space_heating]
 
@@ -95,7 +102,14 @@ for dirs in directories:
         os.makedirs(dirs, exist_ok=True)
 
 
-for idx, row in tqdm(gdf_buildingstock_results.iterrows()):
+area_results = pd.DataFrame(
+    0,
+    index=inside_temp.index,
+    columns=["dhw_volume", "dhw_energy", "space_heating"],
+)
+
+for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows()):
+
     building_id = row["full_id"]
     building_type = row["building_usage"] + str(row["age_code"])
     components = row.to_frame().T  # we need to pass the row as a dataframe
@@ -114,19 +128,52 @@ for idx, row in tqdm(gdf_buildingstock_results.iterrows()):
     building.add_people()
     building.append_water_usage(dhw_volumes_folder)
     building.people_dhw_energy()
-    dhw_volume_df[building_id] = building.building_dhw_volume()
-    dhw_energy_df[building_id] = building.building_dhw_energy()
-    space_heating_df[building_id] = building.get_useful_demand()
+    dhw_volume_df = building.building_dhw_volume()
+    dhw_energy_df = building.building_dhw_energy()
+    space_heating_df = building.get_useful_demand()
 
     dhw_volume_path = os.path.join(dir_dhw_volumes, f"dhw_volume_{building_id}.csv")
-    dhw_energy_df = os.path.join(dir_dhw_energy, f"dhw_energy_{building_id}.csv")
+    dhw_energy_df_path = os.path.join(dir_dhw_energy, f"dhw_energy_{building_id}.csv")
     space_heating_path = os.path.join(
         dir_space_heating, f"space_heating_{building_id}.csv"
     )
 
     dhw_volume_df.to_csv(dhw_volume_path)
-    dhw_energy_df.to_csv(dhw_energy_df)
+    dhw_energy_df.to_csv(dhw_energy_df_path)
     space_heating_df.to_csv(space_heating_path)
 
+    # adding the path of the results to the gdf_buildingstock_results for easier retrieval later on
+    gdf_buildingstock_results.loc[idx, "dhw_volume_path"] = dhw_volume_path
+    gdf_buildingstock_results.loc[idx, "dhw_energy_path"] = dhw_energy_df_path
+    gdf_buildingstock_results.loc[idx, "space_heating_path"] = space_heating_path
 
+    # adding the yearly results to the gdf_buildingstock_results for each building
+    gdf_buildingstock_results.loc[idx, "yearly_dhw_volume"] = (
+        building.get_dhw_sum_volume()
+    )
+    gdf_buildingstock_results.loc[idx, "yearly_dhw_energy"] = (
+        building.get_dhw_sum_energy()
+    )
+    gdf_buildingstock_results.loc[idx, "yearly_space_heating"] = (
+        building.get_sum_useful_demand()
+    )
+
+    # creating a csv with the overall results of the area
+    # we make sure that the indexes of all DFs are the same
+    # otherwise the code breaks
+    dhw_volume_df.index = area_results.index
+    dhw_energy_df.index = area_results.index
+    space_heating_df.index = area_results.index
+
+    # now we save the results in the area_results dataframe
+    area_results["dhw_volume"] += dhw_volume_df.sum(axis=1)
+    area_results["dhw_energy"] += dhw_energy_df.sum(axis=1)
+    area_results["space_heating"] += space_heating_df.sum(axis=1)
+
+
+path_save_results = (
+    f"building_analysis/results/{sim}_{size}/buildingstock_results.parquet"
+)
+gdf_buildingstock_results.to_parquet(path_save_results)
+print(f"Results saved to {path_save_results}")
 # TODO we need to save the results somehow now.
