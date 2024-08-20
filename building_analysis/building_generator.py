@@ -372,6 +372,31 @@ def iterator_generate_buildings(
     return results_df
 
 
+def add_insulation(
+    mm_insulation: float, thermal_conductivity: float, original_u_value: float
+):
+    """
+    --VVVV--o--VVVV--
+    orig R added R
+
+    Rtot = orig R + added R
+
+    we assume that the insulation is added to the outside of the building and uniformly. All buildings' elements will have the same insulation thickness and type.
+    the orig R of the element is calculated using the U-value. being the u-value = 1/Rtot -> Rtot = 1/u-value.
+    We will just add the R of the insulation to the original R of the element and the re-calculate the u-value.
+
+    :param mm_insulation: the thickness of the insulation in mm
+    :param thermal_conductivity: the thermal conductivity of the insulation material
+    :param original_u_value: the original u-value of the building element
+    """
+    m_insulation = mm_insulation / 1000  # in m
+    Rins = mm_insulation / thermal_conductivity  # in m2 K / W
+    R_orig = 1 / original_u_value
+    R_tot = R_orig + Rins
+    new_u_value = 1 / R_tot
+    return new_u_value
+
+
 if __name__ == "__main__":
     import os
     import sys
@@ -418,50 +443,26 @@ if __name__ == "__main__":
     # Initialize an empty list to store the results
     results_list = []
 
-    # for idx, row in tqdm(building_data.iterrows(), total=building_data.shape[0]):
-    #     building_usage = row["building_usage"]
-    #     age_code = row["age_code"]
-    #     building_id = row["full_id"]
-    #     full_id = row["full_id"]
-    #     fid = row["fid"]
-    #     osm_id = row["osm_id"]
-    #     plot_area = row["plot_area"]
-    #     roof_area = row["roof_surface"]
-    #     wall_area = row["wall_surface"]
-    #     volume = row["volume"]
-    #     n_neighbors = row["neighbors_count"]
-    #     building_height = row["height"]
-    #     geometry = row["geometry"]
-    #     ceiling_height = row["ceiling_height"]
-    #     angles_shared_borders = row["angles_shared_borders_standard"]
-    #     cardinal_directions = row["cardinal_dir_shared_borders"]
+    # test the add_insulation function
+    mm_insulation = 100.0
+    thermal_conductivity = 0.02  # W/mK like phenolyc foam
+    original_u_value = 1.5  # W/m2K
 
-    #     # if isinstance(geometry, bytes):
-    #     #     geometry = wkb.loads(geometry)
-    #     # Call the generate_building function for each row
-    #     result = generate_building(
-    #         building_usage,
-    #         age_code,
-    #         building_id,
-    #         fid,
-    #         osm_id,
-    #         plot_area,
-    #         roof_area,
-    #         wall_area,
-    #         volume,
-    #         building_height,
-    #         ceiling_height,
-    #         angles_shared_borders,
-    #         cardinal_directions,
-    #         u_value_path,
-    #         geometry,
-    #     )
-    #     results_list.append(result)
+    new_u_value = add_insulation(mm_insulation, thermal_conductivity, original_u_value)
+    print("Original U-value:", original_u_value)
+    print("New U-value after adding insulation:", new_u_value)
 
-    # # Convert the results list to a DataFrame
-    # results_df = pd.concat(results_list, ignore_index=True)
+    # test the add_insulation function with different inputs
+    mm_insulation_values = [50.0, 200.0, 500.0]
+    thermal_conductivity_values = [0.03, 0.10, 0.20]  # W/mK
+    original_u_value_values = [1.0, 2.5, 4.0]  # W/m2K
 
-    # # Convert the DataFrame to a GeoDataFrame
-    # building_data_gdf = gpd.GeoDataFrame(results_df, geometry="geometry")
-    # mask_res = building_data_gdf["building_usage"].isin(["mfh", "sfh", "th", "ab"])
-    # print(building_data_gdf[mask_res].head())
+    for mm_insulation, thermal_conductivity, original_u_value in zip(
+        mm_insulation_values, thermal_conductivity_values, original_u_value_values
+    ):
+        new_u_value = add_insulation(
+            mm_insulation, thermal_conductivity, original_u_value
+        )
+        print("Original U-value:", original_u_value)
+        print("New U-value after adding insulation:", new_u_value)
+        print()
