@@ -119,3 +119,20 @@ def select_random_hour(day: pd.DataFrame):
     import numpy as np
 
     return np.random.choice(day.index)
+
+
+import numpy as np
+
+# Assuming res_mask is already defined
+# res_mask = gdf_buildingstock_results["building_usage"].isin(["sfh", "mfh", "ab", "th"])
+
+
+def get_mask(size, res_mask):
+    if size == "whole_buildingstock":
+        return np.ones(len(res_mask), dtype=bool)
+    elif size == "residential":
+        return res_mask
+    elif size == "non_residential":
+        return np.logical_not(res_mask)
+    else:
+        raise ValueError("Invalid size parameter")
