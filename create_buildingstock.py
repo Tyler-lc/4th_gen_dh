@@ -38,7 +38,9 @@ geometric_data = process_data(
 # First we need to set the path where the u-values for all the archetypes are stored. This should be a csv
 # then we use the iterator_generate_buildings function to generate the buildings.
 u_values_path = "building_analysis/building_generator_data/archetype_u_values.csv"
-buildingstock = iterator_generate_buildings(geometric_data, u_values_path)
+buildingstock = iterator_generate_buildings(
+    geometric_data, u_values_path, convert_wkb=True, randomization_factor=0.01
+)
 
 # once we have generated the buildingstock we can add people to the building, since this requires us to know the total
 # GFA of the area we analyze. So we need to first generate  the buildingstock. Now we can append information about people
