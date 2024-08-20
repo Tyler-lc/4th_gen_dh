@@ -16,3 +16,6 @@ building_analysis.log
 tests/speed_tests
 building_analysis/test_dhw_w98916075.csv
 building_analysis/results
+building_analysis/results
+.vscode/
+.vscode/settings.json
