@@ -61,14 +61,6 @@ def process_building(
     return dhw_volume, dhw_energy, space_heating
 
 
-def update_area_results(area_results, dhw_volume, dhw_energy, space_heating):
-    area_results["dhw_volume"] = area_results["dhw_volume"] + dhw_volume["dhw_volume"]
-    area_results["dhw_energy"] = area_results["dhw_energy"] + dhw_energy["dhw_energy"]
-    area_results["space_heating"] = (
-        area_results["space_heating"] + space_heating["net useful hourly demand [kWh]"]
-    )
-
-
 if __name__ == "__main__":
     # Load the buildingstock data
     buildingstock_path = "building_analysis/buildingstock/buildingstock.parquet"
@@ -98,17 +90,22 @@ if __name__ == "__main__":
     inside_temp = pd.DataFrame(index=time_index)
     inside_temp["inside_temp"] = 20
     mask_heating = inside_temp.index.hour.isin(range(8, 22))
-    inside_temp.loc[~mask_heating, "inside_temp"] = 17
+    inside_temp.loc[~mask_heating, "inside_temp"] = 16
 
     # Directories for saving results
-    dir_dhw_volumes = "building_analysis/results/dhw_volumes"
-    dir_dhw_energy = "building_analysis/results/dhw_energy"
-    dir_space_heating = "building_analysis/results/space_heating"
+    dir_dhw_volumes = "building_analysis/results_unrenovated_residential/dhw_volumes"
+    dir_dhw_energy = "building_analysis/results_unrenovated_residential/dhw_energy"
+    dir_space_heating = (
+        "building_analysis/results_unrenovated_residential/space_heating"
+    )
 
     area_results = pd.DataFrame(
         0,
         index=inside_temp.index,
         columns=["dhw_volume", "dhw_energy", "space_heating"],
+    )
+    res_mask = gdf_buildingstock_results["building_usage"].isin(
+        ["sfh", "mfh", "ab", "th"]
     )
 
     directories = [dir_dhw_volumes, dir_dhw_energy, dir_space_heating]
@@ -132,7 +129,7 @@ if __name__ == "__main__":
                 dir_dhw_energy,
                 dir_space_heating,
             )
-            for idx, row in tqdm(gdf_buildingstock_results.iterrows())
+            for idx, row in tqdm(gdf_buildingstock_results[res_mask].iterrows())
         ]
 
         # Use tqdm to track the progress of starmap
@@ -172,6 +169,11 @@ if __name__ == "__main__":
             print(f"Processing completed for {i} out of {tot}.")
     print(f"Number of NaN values in dhw_volume: {n_nan}")
 
-    area_results.to_csv("building_analysis/results/area_results.csv")
+    area_results.to_csv(
+        "building_analysis/results_unrenovated_residential/area_results.csv"
+    )
     print(f"Processing completed for {len(results)} buildings.")
     print(f"Processing completed for {len(results)} buildings.")
+
+
+# TODO: save the get_sum_useful_demand in the building_stock dataframe, that should be simple
