@@ -3,6 +3,7 @@ import pandas as pd
 import geopandas as gpd
 from tqdm import tqdm
 import os
+import sys
 from multiprocessing import Pool
 from tqdm import tqdm
 
@@ -84,6 +85,8 @@ for idx, building in gdf_buildingstock_results[res_mask].iterrows():
             dont_exist.append(person_id)
 print(f"Total number of people that exist: {len(exist)}")
 print(f"Total number of people that do not exist: {len(dont_exist)}")
+if len(dont_exist) > 0:
+    sys.exit("There are people that do not have a dhw profile. Please check the data.")
 
 sim = "unrenovated"
 size = "whole_buildingstock"
@@ -108,7 +111,7 @@ area_results = pd.DataFrame(
     columns=["dhw_volume", "dhw_energy", "space_heating"],
 )
 
-for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows()):
+for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows(), total=mask.sum()):
 
     building_id = row["full_id"]
     building_type = row["building_usage"] + str(row["age_code"])
@@ -157,6 +160,8 @@ for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows()):
     gdf_buildingstock_results.loc[idx, "yearly_space_heating"] = (
         building.get_sum_useful_demand()
     )
+
+    gdf_buildingstock_results.loc[idx, "specific_ued"] = building.get_specific_ued()
 
     # creating a csv with the overall results of the area
     # we make sure that the indexes of all DFs are the same
