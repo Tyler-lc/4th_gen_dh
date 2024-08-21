@@ -489,8 +489,7 @@ def apply_renovations(
 ):
     """
     A utility to apply insulation and new windows to the buildings that need renovations.
-    After running the need_insulation function it would be possible to write
-    e.g. mask = gdf[gdf["needs_insulation"]
+    It updates also the column called "insulation_thickness"
     :param gdf: the GeoDataFrame containing the buildings that need renovations
     :param thresholds: a dictionary containing the threshold values for each building type above which we need to renovate. should not include buffer
     :param insulation_thickness: the thickness of the insulation in mm
@@ -613,6 +612,6 @@ if __name__ == "__main__":
     gdf_buildingstock_results = gpd.read_parquet(path_load_results)
 
     gdf_buildingstock_results["needs_renovations"] = need_insulation(
-        gdf_buildingstock_results, 20
+        gdf_buildingstock_results, buffer=20
     )
     gdf_renovated = apply_renovations(gdf_buildingstock_results, 10, 0.02)
