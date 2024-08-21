@@ -127,7 +127,13 @@ import numpy as np
 # res_mask = gdf_buildingstock_results["building_usage"].isin(["sfh", "mfh", "ab", "th"])
 
 
-def get_mask(size, res_mask):
+def get_mask(size: str, res_mask: str):
+    """Small utility to automatically generate the mask in one line. This is useful when you want to
+    select the whole buildingstock, only the residential buildings or only the non-residential buildings.
+    :param size: str: "whole_buildingstock", "residential" or "non_residential
+    :param res_mask: a list of the acronyms used to identify the residential buildings
+    """
+
     if size == "whole_buildingstock":
         return np.ones(len(res_mask), dtype=bool)
     elif size == "residential":
