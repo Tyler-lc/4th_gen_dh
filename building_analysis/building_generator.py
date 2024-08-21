@@ -40,6 +40,7 @@ def generate_building(
     volume: float,  # volume of the building
     building_height: float,  # height of the building
     ceiling_height: float,  # height of the ceiling
+    roof_slope: float,  # slope of the roof in degrees
     angles_shared_borders: List[float],  # angles of the shared borders
     cardinal_directions_shared_borders: List[
         str
@@ -52,25 +53,27 @@ def generate_building(
 ) -> gpd.GeoDataFrame:  # TODO: we need to define the return type. Could be a gpd
     """
     This function generates a building based on the provided parameters and u-value template.
-
-    :param building_usage: Usage of the building (e.g., mfh, sfh, th, ab)
-    :param age_code: Age code of the building
-    :param building_id: ID of the building
-    :param plot_area: Plot Area of the building
-    :param roof_area: Area of the roof of the building
-    :param wall_area: Area of the walls of the building
-    :param volume: Volume of the building
-    :param n_neighbors: Number of neighboring buildings
-    :param building_height: Height of the building
-    :param ceiling_height: Height of the ceiling
-    :param angles_shared_borders: Angles of the shared borders to determine free sides
-    :param cardinal_directions_shared_borders: Cardinal directions of the shared borders to determine free sides
-    :param u_value_path: Path to the CSV containing u-values for different building types
-    :param geometry: Geometry of the building
-    :param random_factor: Random factor for u-values (default: 0.15)
-    :param convert_wkb: Convert the geometry from WKB to Shapely (default: True)
-    :param verbose: Print warnings if data is missing (default: False)
-    :return: A GeoDataFrame containing the updated values for the building
+    Args:
+        building_usage: Usage of the building (e.g., mfh, sfh, th, ab)
+        age_code: Age code of the building
+        building_id: ID of the building
+        plot_area: Plot Area of the building
+        roof_area: Area of the roof of the building
+        wall_area: Area of the walls of the building
+        volume: Volume of the building
+        n_neighbors: Number of neighboring buildings
+        building_height: Height of the building
+        ceiling_height: Height of the ceiling
+        roof_slope: Slope of the roof in degrees
+        angles_shared_borders: Angles of the shared borders to determine free sides
+        cardinal_directions_shared_borders: Cardinal directions of the shared borders to determine free sides
+        u_value_path: Path to the CSV containing u-values for different building types
+        geometry: Geometry of the building
+        random_factor: Random factor for u-values (default: 0.15)
+        convert_wkb: Convert the geometry from WKB to Shapely (default: True)
+        verbose: Print warnings if data is missing (default: False)
+    Returns
+        gpd.GeoDataFrame: A GeoDataFrame containing the updated values for the building
     """
 
     building_usage = building_usage.lower()
@@ -153,6 +156,7 @@ def generate_building(
         "age_code": age_code,
         "roof_area": roof_area,
         "roof_u_value": roof_u_value,
+        "roof_slope": roof_slope,
         "walls_area": wall_area,
         "walls_u_value": wall_u_value,
         "ground_contact_area": plot_area,
@@ -346,6 +350,7 @@ def iterator_generate_buildings(
         osm_id = row["osm_id"]
         plot_area = row["plot_area"]
         roof_area = row["roof_surface"]
+        roof_slope = row["roof_slope"]
         wall_area = row["wall_surface"]
         volume = row["volume"]
         n_neighbors = row["neighbors_count"]
@@ -370,6 +375,7 @@ def iterator_generate_buildings(
             volume,
             building_height,
             ceiling_height,
+            roof_slope,
             angles_shared_borders,
             cardinal_directions,
             u_value_path,
