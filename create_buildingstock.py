@@ -119,3 +119,12 @@ for col in different_cols:
             print("")
             break
     print(f"all data in {col} are the same")
+
+
+# we would also like to check the data "integrity" now. Meaning we want to check whether there are 0s
+# or nan in the data.
+
+# we can check for nan values in the data
+
+nan_values = buildingstock.isna().sum()
+print(nan_values)
