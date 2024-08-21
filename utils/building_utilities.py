@@ -488,7 +488,7 @@ if __name__ == "__main__":
     parent_dir = os.path.dirname(current_dir)
     sys.path.append(parent_dir)
 
-    path_parquet = "../Building/building_generator_data/frankfurt_v3.parquet"
+    path_parquet = "../building_analysis/building_generator_data/frankfurt_v3.parquet"
     abs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), path_parquet))
 
     # Retrieve the buildings data from the parquet file
@@ -523,7 +523,7 @@ if __name__ == "__main__":
 
     # Age of the building assignment
 
-    path_age = "../Building/building_generator_data/buildings_age.csv"
+    path_age = "../building_analysis/building_generator_data/buildings_age.csv"
     abs_age = os.path.abspath(os.path.join(os.path.dirname(__file__), path_age))
 
     age_look_up = pd.read_csv(abs_age)
@@ -556,7 +556,7 @@ if __name__ == "__main__":
 
     building_types = df_data["building_usage"]
     building_age = df_data["age_code"]
-    path_heights = "../Building/building_generator_data/ceiling_heights.csv"
+    path_heights = "../building_analysis/building_generator_data/ceiling_heights.csv"
     abs_heights = os.path.abspath(os.path.join(os.path.dirname(__file__), path_heights))
 
     ceiling_data = pd.read_csv(abs_heights)
