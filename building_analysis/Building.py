@@ -100,6 +100,8 @@ class Building:
         self.ground_contact_area = self.components["ground_contact_area"].values[0]
         self.n_people = self.components["n_people"].values[0]
         self.people_id = self.components["people_id"].values[0]
+        self.nfa = self.components["NFA"].values[0]
+        self.gfa = self.components["GFA"].values[0]
 
         # from here on we are creating the dataframes for the different surfaces
         self.transparent_surfaces = self.parse_transparent_surfaces(
@@ -495,6 +497,10 @@ class Building:
 
     def get_sum_useful_demand(self):
         return self.hourly_useful_demand.sum().values[0]
+
+    def get_specific_ued(self):
+        self.specific_losses = self.get_sum_useful_demand() / self.nfa
+        return self.specific_losses
 
     def get_components(self):
         return self.components
