@@ -181,4 +181,6 @@ path_save_results = (
 )
 gdf_buildingstock_results.to_parquet(path_save_results)
 print(f"Results saved to {path_save_results}")
-# TODO we need to save the results somehow now.
+
+path_area_results = f"building_analysis/results/{sim}_{size}/area_results.csv"
+area_results.to_csv(path_area_results)
