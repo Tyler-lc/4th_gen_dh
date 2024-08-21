@@ -173,7 +173,7 @@ while gdf_buildingstock_results["needs_insulation"].sum() > 0:
     to_renovate = gdf_buildingstock_results["needs_insulation"].sum()
     mask = gdf_buildingstock_results["needs_insulation"]
 
-    print(f"number of buildings that need insulation: {to_renovate}")
+    print(f"number of buildings that need insulation: {to_renovate} \n")
     print(f"insulation thickness: {insulation_thickness} mm")
     for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows(), total=to_renovate):
         if row["needs_insulation"]:
