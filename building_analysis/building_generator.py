@@ -6,6 +6,7 @@ from shapely import wkb
 from typing import List, Tuple
 import json
 from tqdm import tqdm
+import copy
 
 import os
 import sys
@@ -14,6 +15,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.append(parent_dir)
 from utils.building_utilities import convert_angle_to_cardinal
+from building_analysis.Building import Building
 
 # TODO: since we have two different databases for u-values in the data (Tabula for residentia, BSO for non-res)
 # we basically need to separate these two building types. Because the residential buildings have ages from 1 to 12,
@@ -105,17 +107,12 @@ def generate_building(
     # here we will assign first the sides that are available to use:
 
     available_angles, available_cardinals = remaining_angles(angles_shared_borders)
-
     available_angles = available_angles.tolist()
 
-    # print(f"Available angles: {available_angles}, Available cardinals: {available_cardinals}")
-    # print(f"length of available angles: {len(available_angles)}, length of available cardinals: {len(available_cardinals)}")
-
+    # retrieve window areas from Tabula templates
     windows_to_walls_ratio: float = (template_df["windows_to_walls_ratio"]).values[
         0
     ]  # ratio of windows to walls
-
-    # retrieve window areas from Tabula templates
     windows_area = windows_to_walls_ratio * wall_area
 
     # retrieve window shgc from Tabula templates
@@ -125,10 +122,13 @@ def generate_building(
         available_cardinals, windows_area, window_u_value, windows_shgc
     )
     # calculate the number of floors:
-    n_floors = np.floor(building_height / ceiling_height)
+    n_floors = calculate_n_floors(building_height, ceiling_height)
 
     # calculate the GFA
     gfa = plot_area * n_floors
+
+    # calculate the NFA :TODO in the future we can assign a different ratio according to the building type
+    nfa = calculate_nfa(gfa)
 
     # door data evaluation. If no door data are available then we set the area and u-value to 0
     door_area = template_df["door_surface"].values[0]
@@ -174,11 +174,24 @@ def generate_building(
         "ceiling_height": ceiling_height,
         "n_floors": n_floors,
         "GFA": gfa,
+        "NFA": nfa,
         "geometry": geometry,
     }
     gdf = gpd.GeoDataFrame(export_data, index=[0])
 
     return gdf
+
+
+def calculate_n_floors(building_height: float, ceiling_height: float) -> int:
+    """Calculates the number of floors in a building based on the total building height and the ceiling height.
+    :param building_height: The total height of the building
+    :param ceiling_height: The height of the ceiling
+    """
+    if building_height <= ceiling_height:
+        n_floors = 1
+    else:
+        n_floors = np.floor(building_height / ceiling_height)
+    return n_floors
 
 
 def assign_people_id(gdf: gpd.GeoDataFrame, res_types: List[str]) -> pd.Series:
@@ -420,6 +433,119 @@ def add_insulation(
     return new_u_value
 
 
+def need_insulation(
+    gdf: gpd.GeoDataFrame,
+    buffer: float = 20,
+    thresholds_dict: dict = None,
+) -> pd.Series:
+    """
+    This functions determins whether a building needs to undergo renovations or not to be able to
+    properly heat at low temperature.
+    :param gdf: the GeoDataFrame containing the specific heat demand ["specific_ued"] and "building_usage"
+    :param thresholds_dict: a dictionary containing the threshold values for each building type above which we need to renovate
+    :param buffer: the buffer value to add to the threshold value
+    """
+    if thresholds_dict == None:
+        thresholds_dict = {
+            "mfh": 60,
+            "ab": 50,
+            "th": 65,
+            "sfh": 70,
+            "trade": 100,
+            "office": 100,
+            "other": 100,
+            "education": 100,
+            "health": 100,
+        }
+
+    for types in thresholds_dict.keys():
+        mask = create_mask(gdf, types)
+        gdf.loc[mask, "needs_insulation"] = (
+            gdf[mask]["specific_ued"] > thresholds_dict[types] + buffer
+        )
+    return gdf["needs_insulation"]
+
+
+def create_mask(gdf: gpd.GeoDataFrame, building_type: str):
+    """
+    This function will create a mask that will be used to filter the buildings that need insulation.
+    It will use the need_insulation function to determine if the building needs insulation.
+    """
+    mask = gdf["building_usage"] == building_type
+    return mask
+
+
+def calculate_nfa(gfa: float, building_type: str = None):
+    """we take that 85% of the Gross Floor Area is Net Floor Area
+    for now is constant across all building types"""
+    return gfa * 0.85
+
+
+def apply_renovations(
+    gdf: gpd.GeoDataFrame,
+    insulation_thickness: float,
+    thermal_conductivity: float,
+    thresholds_dict: dict = None,
+):
+    """
+    A utility to apply insulation and new windows to the buildings that need renovations.
+    After running the need_insulation function it would be possible to write
+    e.g. mask = gdf[gdf["needs_insulation"]
+    :param gdf: the GeoDataFrame containing the buildings that need renovations
+    :param thresholds: a dictionary containing the threshold values for each building type above which we need to renovate. should not include buffer
+    :param insulation_thickness: the thickness of the insulation in mm
+    :param thermal_conductivity: the thermal conductivity of the insulation material in W/mK
+    """
+    gdf = gdf.copy()
+    if thresholds_dict == None:
+        thresholds_dict = {
+            "mfh": 60,
+            "ab": 50,
+            "th": 65,
+            "sfh": 70,
+            "trade": 100,
+            "office": 100,
+            "other": 100,
+            "education": 100,
+            "health": 100,
+        }
+
+    for idx, row in gdf[gdf["needs_insulation"]].iterrows():
+
+        old_roof = row["roof_u_value"]
+        old_walls = row["walls_u_value"]
+        old_ground_contact = row["ground_contact_u_value"]
+        old_door = row["door_u_value"]
+        old_windows = row["windows"]
+        old_windows = json.loads(old_windows)
+
+        new_roof = add_insulation(insulation_thickness, thermal_conductivity, old_roof)
+        new_walls = add_insulation(
+            insulation_thickness, thermal_conductivity, old_walls
+        )
+        new_ground_contact = add_insulation(
+            insulation_thickness, thermal_conductivity, old_ground_contact
+        )
+        new_door = 0.8
+        new_windows_u_value = 0.8
+        new_windows = copy.deepcopy(old_windows)
+        for sides in new_windows:
+            new_windows[sides]["u_value"] = new_windows_u_value
+        new_windows = json.dumps(new_windows)
+
+        gdf.at[idx, "roof_u_value"] = new_roof
+        gdf.at[idx, "walls_u_value"] = new_walls
+        gdf.at[idx, "ground_contact_u_value"] = new_ground_contact
+        gdf.at[idx, "door_u_value"] = new_door
+        gdf.at[idx, "windows"] = new_windows
+        gdf.at[idx, "window_u_value"] = new_windows_u_value
+        gdf.at[idx, "space_heating_path"] = 0
+        gdf.at[idx, "yearly_space_heating"] = 0
+        gdf.at[idx, "insulation_thickness"] = insulation_thickness
+
+    return gdf
+
+
 if __name__ == "__main__":
     import os
     import sys
@@ -466,6 +592,9 @@ if __name__ == "__main__":
     # Initialize an empty list to store the results
     results_list = []
 
+    buildings_input["n_people"] = people_in_building(buildings_input, res_types, 9500)
+    buildings_input["people_id"] = assign_people_id(buildings_input, res_types)
+
     # test the add_insulation function
     mm_insulation = int(100)
     thermal_conductivity = 0.02  # W/mK like phenolyc foam
@@ -473,3 +602,17 @@ if __name__ == "__main__":
 
     new_u_value = add_insulation(mm_insulation, thermal_conductivity, original_u_value)
     print(f"new u_value is: {new_u_value}")
+
+    # testing the apply_renovation function
+    sim = "unrenovated"
+    size = "whole_buildingstock"
+
+    path_load_results = (
+        f"../building_analysis/results/{sim}_{size}/buildingstock_results.parquet"
+    )
+    gdf_buildingstock_results = gpd.read_parquet(path_load_results)
+
+    gdf_buildingstock_results["needs_renovations"] = need_insulation(
+        gdf_buildingstock_results, 20
+    )
+    gdf_renovated = apply_renovations(gdf_buildingstock_results, 10, 0.02)
