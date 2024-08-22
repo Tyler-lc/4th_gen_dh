@@ -9,5 +9,6 @@
     "**/building_analysis/dhw_profiles/**",
     "**/building_analysis/results_unrenovated_non_residential/**",
     "**/building_analysis/results_unrenovated_residential/**"
-  ]
+  ],
+  "python.analysis.typeCheckingMode": "off"
 }
