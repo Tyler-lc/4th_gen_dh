@@ -5,6 +5,7 @@ import json
 import warnings
 import os
 import sys
+from typing import Union
 
 # Get the directory of the current script. Withot this line the script can't import the Person class
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,16 +27,16 @@ class Building:
 
     def __init__(
         self,
-        building_id,
-        building_type,
-        components,
-        outside_temperature,
-        irradiation_data,
-        soil_temp=8,
-        inside_temp=20,
-        year_start=2019,
-        summer_start=6,
-        summer_end=9,
+        building_id: Union[str, int],
+        building_type: str,
+        components: pd.DataFrame,
+        outside_temperature: pd.Series,
+        irradiation_data: pd.DataFrame,
+        soil_temp: Union[int, list, pd.Series] = 8,
+        inside_temp: Union[int, list, pd.Series] = 20,
+        year_start: int = 2019,
+        summer_start: int = 6,
+        summer_end: int = 9,
         verbose: bool = False,
     ):
         self.building_id = building_id
@@ -73,9 +74,6 @@ class Building:
             self.outside_temperature = outside_temperature
             weather_index = outside_temperature.index
 
-        self.list_temperature = self.outside_temperature.iloc[
-            :, 0
-        ].values.tolist()  # not used for now?
         self.irradiation_data = pd.DataFrame(index=weather_index)
         self.irradiation_data = irradiation_data
 
