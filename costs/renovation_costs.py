@@ -3,6 +3,8 @@ import geopandas as gpd
 import numpy as np
 from tqdm import tqdm
 import warnings
+import numpy as np
+from typing import Union
 
 # we will use data from the IWU study to calculate the costs of each building's renovation
 
@@ -87,6 +89,8 @@ def energy_savings(gdf_renovated, gdf_unrenovated, rel_path: bool = False):
         )
     gdf_savings = pd.DataFrame(index=first_renovated_energy.index)
 
+    # creating a dictionary to store the energy savings of each building.
+    # have to otherwise pandas will raise a warning for a fragmented dataframe
     savings_dict = {}
 
     for (idx_ren, row_ren), (idx_unren, row_unren) in tqdm(
@@ -126,6 +130,69 @@ def energy_savings(gdf_renovated, gdf_unrenovated, rel_path: bool = False):
     return gdf_savings
 
 
+def cash_flow(i: float, n_years: int, incomes, expenses):
+    """
+    Calculate the cash flow of a renovation project.
+
+    Args:
+        i (float): The interest rate.
+        n_years (int): The number of years.
+        incomes (np.array): The income of the project.
+        expenses (np.array): The expenses of the project.
+
+    Returns:
+        np.array: The cash flow of the project.
+    """
+    cash = np.zeros(n_years)
+    expenses = np.full(n_years, expenses)
+
+    return None
+
+
+def set_energy_prices(
+    base_energy_price,
+    n_years,
+    inflation_rate: Union[float, pd.Series],
+    base_year: int = 2019,
+):
+    """
+    Update the energy price based on the inflation rate.
+    The energy prices are yearly.
+
+
+    Args:
+        base_energy_price (float): The energy price at the base_year
+        inflation_rate (float): The inflation rate. If input is a float then it is expanded to a numpy array to fill the timespan
+
+    Returns:
+        float: The updated energy price.
+    """
+
+    if isinstance(inflation_rate, float):
+        inflation = np.full(n_years, base_energy_price)
+
+    if isinstance(inflation_rate, pd.Series):
+        if len(inflation_rate) != n_years:
+            raise ValueError(
+                "The inflation rate must be the same length as the number of years"
+            )
+        inflation = inflation_rate
+
+    # Calculate the cumulative product of the inflation rates
+    cumulative_inflation = np.cumprod(1 + inflation_rate)
+
+    # Calculate the energy prices for each year
+    energy_prices = base_energy_price * cumulative_inflation
+
+    return energy_prices
+
+
+# TODO: we calculate first the energy prices over the 25 years, then we can apply these to the energy expenditures over the 25 years.
+# after this we can also calulate the cash flows for the cases of renovation and unrenovated in the case of the customers.
+
+# TODO: we still need to set up the building-level boosters by the way. In this case they won't be used on the renovated buildingstock.
+# so the useful_energy_demand should stay the esame across these two cases.
+
 if __name__ == "__main__":
     import os
     import sys
@@ -146,4 +213,6 @@ if __name__ == "__main__":
     )
     gdf_unrenovated = gpd.read_parquet(unrenovated_buildingstock_path)
 
+    renovation_costs = renovation_costs_iwu(gdf_renovated)
     savings_df = energy_savings(gdf_renovated, gdf_unrenovated, rel_path=True)
+    savings_df.to_csv("energy_savings_renovated.csv")
