@@ -1,4 +1,5 @@
 import pandas as pd
+from typing import List
 
 
 def df_index_timestamp(start_date="01/01/2021", periods=8760, frequency="1H"):
@@ -14,7 +15,7 @@ def df_index_timestamp(start_date="01/01/2021", periods=8760, frequency="1H"):
 def safe_min_ones(a, b, min_one):
     import numpy as np
 
-    """# this script takes a given array A and then generates a second array Bof the same 
+    """# this script takes a given array A and then generates a second array B of the same 
     # size. The array B will always have value 0 where A is 0. The array B will have 
     # a 50% chance of having a 1 or a 0 where A is 1. It also insures a minimum 
     # amount of 1 in array B """
