@@ -106,7 +106,7 @@ for idx, row in gdf_buildingstock_results.iterrows():
 res_mask = gdf_buildingstock_results["building_usage"].isin(["sfh", "mfh", "ab", "th"])
 sim = "renovated"
 size = "whole_buildingstock"
-mask = get_mask(size, res_mask)
+mask = get_mask(size, res_mask)  # type:ignore
 
 dir_space_heating = f"building_analysis/results/{sim}_{size}/space_heating"
 os.makedirs(dir_space_heating, exist_ok=True)
