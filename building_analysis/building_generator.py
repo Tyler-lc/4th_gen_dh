@@ -142,6 +142,7 @@ def generate_building(
     # then the roof area is the same as the plot area
     if roof_area < plot_area:
         roof_area = plot_area
+        roof_slope = 5  # we assume that in all these cases the roof is actually flat. So we set the slope to 5 degrees
 
     # if no data is entered about the door, we set the area and u-value to 0
     if np.isnan(door_area):
