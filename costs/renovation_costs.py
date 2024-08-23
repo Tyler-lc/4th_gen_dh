@@ -4,7 +4,7 @@ import numpy as np
 from tqdm import tqdm
 import warnings
 import numpy as np
-from typing import Union
+from typing import Union, List
 
 # we will use data from the IWU study to calculate the costs of each building's renovation
 
@@ -29,8 +29,8 @@ def renovation_costs_iwu(gdf: gpd.GeoDataFrame):
     )  # convert mm to cm
 
     # there is a difference in cost between a sloped roof and a flat roof
-    # we assume that anything below 15 degrees is a flat roof and anything above is a sloped roof
-    mask_slope = gdf_cost["roof_slope"] >= 15
+    # we assume that anything below 25 degrees is a flat roof and anything above is a sloped roof
+    mask_slope = gdf_cost["roof_slope"] >= 25
     gdf_cost.loc[mask_slope, "costs_roof"] = gdf_cost["roof_area"] * (
         178.48 + 3.27 * gdf_cost["insulation_thickness"] / 10
     )  # convert mm to cm
@@ -156,7 +156,7 @@ def set_energy_prices(
     base_year: int = 2019,
 ):
     """
-    Update the energy price based on the inflation rate.
+    Creates energy prices for the duration of the NPV analysis based on the inflation rate.
     The energy prices are yearly.
 
 
@@ -169,7 +169,8 @@ def set_energy_prices(
     """
 
     if isinstance(inflation_rate, float):
-        inflation = np.full(n_years, base_energy_price)
+        inflation = np.full(n_years, inflation_rate)
+        print(inflation)
 
     if isinstance(inflation_rate, pd.Series):
         if len(inflation_rate) != n_years:
@@ -179,12 +180,61 @@ def set_energy_prices(
         inflation = inflation_rate
 
     # Calculate the cumulative product of the inflation rates
-    cumulative_inflation = np.cumprod(1 + inflation_rate)
+    cumulative_inflation = np.cumprod(1 + inflation)
+    print("cumulative inflation", cumulative_inflation)
 
     # Calculate the energy prices for each year
     energy_prices = base_energy_price * cumulative_inflation
 
     return energy_prices
+
+
+def consumer_size(
+    npv_base_data, small_threshold: float, medium_threshold: float, res_types: List[str]
+):
+    """
+    Determine the size of the consumer based on the yearly energy demand. 0 for small, 1 for medium, 2 for large.
+
+    Args:
+        yearly_energy_demand (pd.Series): The yearly energy demand of the consumer.
+        small_threshold (float): The threshold for a small consumer in GJ.
+        medium_threshold (float): The threshold for a medium consumer in GJ.
+
+    Returns:
+        pd.Series: A pandas Series with the consumer size.
+    """
+    gj_to_kwh = 1 / 3600 * 1000000  # 1 GJ = 1/3600 * 1000000 kwh - conversion factor
+
+    threshold_small_consumer_kwh = small_threshold * gj_to_kwh  # convert to kwh
+    res_mask = npv_base_data["building_usage"].isin(res_types)
+    mask_small_consumer = (
+        npv_base_data["yearly_demand_unrenovated"] < threshold_small_consumer_kwh
+    )
+    medium_consumer_threshold_kwh = medium_threshold * gj_to_kwh
+    mask_medium_consumer = np.logical_and(
+        (
+            npv_base_data["yearly_demand_unrenovated"]
+            >= threshold_small_consumer_kwh
+        ),
+        (
+            npv_base_data["yearly_demand_unrenovated"]
+            < medium_consumer_threshold_kwh
+        ),
+    )
+
+    mask_large_consumer = (
+        npv_base_data["yearly_demand_unrenovated"] >= medium_consumer_threshold_kwh
+    )
+
+    consumer_size = pd.Series(index=npv_base_data.index, dtype='object')
+    consumer_size[res_mask & mask_small_consumer] = "r0"
+    consumer_size[res_mask & mask_medium_consumer] = "r1"
+    consumer_size[res_mask & mask_large_consumer] = "r2"
+    consumer_size[np.logical_not(res_mask) & mask_small_consumer] = "nr0"
+    consumer_size[np.logical_not(res_mask) & mask_medium_consumer] = "nr1"
+    consumer_size[np.logical_not(res_mask) & mask_large_consumer] = "nr2"
+    # print(consumer_size)
+    return consumer_size
 
 
 # TODO: we calculate first the energy prices over the 25 years, then we can apply these to the energy expenditures over the 25 years.
@@ -201,18 +251,107 @@ if __name__ == "__main__":
     import numpy as np
     from pathlib import Path
 
-    # import the data with the renovation measures
-    renovated_buildingstock_path = Path(
-        "../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
-    )
-    gdf_renovated = gpd.read_parquet(renovated_buildingstock_path)
+    # # import the data with the renovation measures
+    # renovated_buildingstock_path = Path(
+    #     "../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+    # )
+    # gdf_renovated = gpd.read_parquet(renovated_buildingstock_path)
 
-    # import the data with the unrenovated buildingstock
+    # # import the data with the unrenovated buildingstock
+    # unrenovated_buildingstock_path = Path(
+    #     "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+    # )
+    # gdf_unrenovated = gpd.read_parquet(unrenovated_buildingstock_path)
+
+    # renovation_costs = renovation_costs_iwu(gdf_renovated)
+    # renovation_costs.to_csv("renovation_costs.csv")
+
+    # savings_df = energy_savings(gdf_renovated, gdf_unrenovated, rel_path=True)
+    # savings_df.to_csv("energy_savings_renovated.csv")
+
+    # I already ran the code above and save the results to csv. I will now load the results and calculate the cash flows
+    renovation_costs = pd.read_csv("renovation_costs.csv")
+    savings_df = pd.read_csv("energy_savings_renovated.csv", index_col=0)
+
+    # the energy prices are in euros per kWh. But they also change according to user type
+    # and annual energy demand.
+    # so we take the energy consumption data from the buildingstock results we have already calculated
     unrenovated_buildingstock_path = Path(
         "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
     )
-    gdf_unrenovated = gpd.read_parquet(unrenovated_buildingstock_path)
+    unrenovated_buildingstock = pd.read_parquet(unrenovated_buildingstock_path)
+    renovated_buildingstock_path = Path("../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet")
+    renovated_buildingstock = pd.read_parquet(renovated_buildingstock_path)
+    #set the first column as the index. read_parquet does not have index_col function
+    # unrenovated_buildingstock.set_index(unrenovated_buildingstock.columns[0], inplace=True)
+    
+    year_consumption = pd.DataFrame(
+        [
+            unrenovated_buildingstock["full_id"],
+            unrenovated_buildingstock["yearly_space_heating"],
+            unrenovated_buildingstock["yearly_dhw_energy"],
+        ]
+    )
+    year_consumption = year_consumption.T
+    year_consumption["total_demand"] = (
+        year_consumption["yearly_space_heating"] + year_consumption["yearly_dhw_energy"]
+    )
 
-    renovation_costs = renovation_costs_iwu(gdf_renovated)
-    savings_df = energy_savings(gdf_renovated, gdf_unrenovated, rel_path=True)
-    savings_df.to_csv("energy_savings_renovated.csv")
+    small_consumer_threshold = 20  # GJ per year
+    gj_to_kwh = 1 / 3600 * 1000000  # 1 GJ = 1/3600 * 1000000 kwh - conversion factor
+    threshold_small_consumer_kwh = (
+        small_consumer_threshold * gj_to_kwh
+    )  # convert to kwh
+    mask_small_consumer = (
+        year_consumption["total_demand"] < threshold_small_consumer_kwh
+    )
+
+    medium_consumer_threshold = 200  # GJ per year
+    medium_consumer_threshold_kwh = medium_consumer_threshold * gj_to_kwh
+    mask_medium_consumer = np.logical_and(
+        (year_consumption["total_demand"] >= threshold_small_consumer_kwh),
+        (year_consumption["total_demand"] < medium_consumer_threshold_kwh),
+    )
+
+    mask_large_consumer = (
+        year_consumption["total_demand"] >= medium_consumer_threshold_kwh
+    )
+
+    print(
+        f"small consumers: {mask_small_consumer.sum()}, medium consumers: {mask_medium_consumer.sum()}, large consumers: {mask_large_consumer.sum()}"
+    )
+    ##
+    small_residential_prices = set_energy_prices(
+        base_energy_price=0.1405,  # household gas price per kwh 2023- Semester 2 https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_202/default/table?lang=en&category=nrg.nrg_price.nrg_pc
+        n_years=25,
+        inflation_rate=0.02,
+    )
+
+    starting_energy_prices = {
+        "r0": 0.1405,
+        "r1": 0.1145,
+        "r2": 0.1054,
+        "nr0": 0.1312,
+        "nr1": 0.1070,
+        "nr2": 0.0985,
+    }
+    # energy_prices_non_residential = {0: 0.1312, 1: 0.1070, 2: 0.0985} # these are the same as residential but without VAT and other recoverable taxes
+    res_types = ["mfh", "sfh", "ab", "th"]
+
+    # first we create the monetary savings for each building. We already have the energy savings.
+    # Let's assess the energy prices for each building and then we can calculate the monetary savings.
+    npv_data = pd.DataFrame()
+    npv_data["full_id"] = savings_df.columns
+    npv_data["building_usage"] = unrenovated_buildingstock["building_usage"]
+    npv_data["yearly_demand_unrenovated"] = year_consumption[
+        "total_demand"
+    ]  # this is for the unrenovated buildingstock. DHW+SH
+    npv_data["consumer_size"] = consumer_size(
+        npv_data, small_consumer_threshold, medium_consumer_threshold, res_types
+    )
+    npv_data["initial_gas_price"] = npv_data["consumer_size"].map(
+        starting_energy_prices
+    )
+    npv_data["renovation_costs"] = renovation_costs["total_cost"]
+    npv_data["yearly_demand_renovated"] = 
+    
