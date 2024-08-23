@@ -137,6 +137,12 @@ def generate_building(
     door_area = template_df["door_surface"].values[0]
     door_u_value = template_df["door_uvalue"].values[0]
 
+    # some times the roof_area might be smaller than the ground_contact_area (plot area)
+    # that is because how the slope layer in qgis was filtered. Therefore we assume that if the roof area is smaller than the plot area
+    # then the roof area is the same as the plot area
+    if roof_area < plot_area:
+        roof_area = plot_area
+
     # if no data is entered about the door, we set the area and u-value to 0
     if np.isnan(door_area):
         if verbose:
