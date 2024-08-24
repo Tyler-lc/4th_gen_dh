@@ -117,3 +117,12 @@ def fixed_oem_hp(installed_thermal_capacity: float, source_type: str) -> float:
         raise ValueError("source_type must be 'air' or 'excess_heat'")
 
     return fixed_oem
+
+
+# TODO: Variable O&M are calculated based on the thermal energy produced by the heat pump \
+# Also they need to have the inflation applied.
+# TODO: the capital costs are calculated based on the installed thermal capacity of the heat pump. Only once.
+# TODO: Fixed O&M are calculated based the thermal installed capacity and are applied every year. We need to apply inflation to them.
+
+# TODO: create a function to calculate the size of the heat pump based on the thermal energy demand of the buildings in the area.
+# TODO: We might have to set a limit and split the heat pump in two or more heat pumps.

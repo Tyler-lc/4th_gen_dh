@@ -168,7 +168,7 @@ def define_building_type(gdf: gpd.GeoDataFrame) -> pd.Series:
         "5110 Grünanlage",
     ]
     # Translated the german types in english
-    translation_dict = {  # TODO: we need to actually change these values into something we can use with BSO database
+    translation_dict = {
         "1650 Baumarkt": "trade",  # trade
         "1610 Möbelmarkt": "trade",  # trade
         "1320 Handel und Dienstl.": "trade",  # trade

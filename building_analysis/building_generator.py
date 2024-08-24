@@ -20,12 +20,6 @@ from building_analysis.Building import Building
 # TODO: since we have two different databases for u-values in the data (Tabula for residentia, BSO for non-res)
 # we basically need to separate these two building types. Because the residential buildings have ages from 1 to 12,
 # while the non residential buildings have ages from 1 to 7. So we need to separate these two types of buildings.
-# TODO: check if the u-values fetching mechanism is "hard coded" or if it can handle different age ranges
-# TODO: we need to kind fix the data with the windows, we have changed it again now. Before it was nested in a json i think
-#       now we are doing something different with the new datastructure we are using. We need to fix this.
-#       Also we now want to use the same fenestration on all for sides basically and use an average value for the irradiation
-#       So we will be using the window to wall ration to calculate the window areas. And we will just say that windows
-#       are on all sides and it wont matter really. Because now we use the average values.
 
 
 def generate_building(
@@ -50,7 +44,7 @@ def generate_building(
     random_factor: float = 0.15,  # 15% random factor for u-values
     convert_wkb: bool = True,  # convert the geometry from wkb to shapely. this allows usage in gdf
     verbose: bool = False,  # print warnings if data is missing when True
-) -> gpd.GeoDataFrame:  # TODO: we need to define the return type. Could be a gpd
+) -> gpd.GeoDataFrame:
     """
     This function generates a building based on the provided parameters and u-value template.
     Args:
