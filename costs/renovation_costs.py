@@ -148,7 +148,7 @@ def cash_flow(i: float, n_years: int, incomes, expenses, overnight_cost: float):
     return None
 
 
-def set_energy_prices(
+def apply_inflation(
     base_energy_price,
     n_years,
     inflation_rate: Union[float, pd.Series],
@@ -182,9 +182,9 @@ def set_energy_prices(
     # print("cumulative inflation", cumulative_inflation)
 
     # Calculate the energy prices for each year
-    energy_prices = base_energy_price * cumulative_inflation
+    inflated_prices = base_energy_price * cumulative_inflation
 
-    return energy_prices
+    return inflated_prices
 
 
 def consumer_size(
@@ -419,7 +419,7 @@ if __name__ == "__main__":
         f"small consumers: {mask_small_consumer.sum()}, medium consumers: {mask_medium_consumer.sum()}, large consumers: {mask_large_consumer.sum()}"
     )
     ##
-    small_residential_prices = set_energy_prices(
+    small_residential_prices = apply_inflation(
         base_energy_price=0.1405,  # household gas price per kwh 2023- Semester 2 https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_202/default/table?lang=en&category=nrg.nrg_price.nrg_pc
         n_years=25,
         inflation_rate=0.02,
@@ -462,7 +462,7 @@ if __name__ == "__main__":
     )
 
     for starting_price in starting_energy_prices:
-        energy_prices_future[starting_price] = set_energy_prices(
+        energy_prices_future[starting_price] = apply_inflation(
             base_energy_price=starting_energy_prices[starting_price],
             n_years=n_years,
             inflation_rate=0.02,
