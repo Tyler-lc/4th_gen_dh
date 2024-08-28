@@ -50,10 +50,12 @@ small_consumer_threshold = 20  # GJ per year
 gj_to_kwh = 1 / 3600 * 1000000  # 1 GJ = 1/3600 * 1000000 kwh - conversion factor
 medium_consumer_threshold = 200  # GJ per year
 medium_consumer_threshold_kwh = medium_consumer_threshold * gj_to_kwh
-
+conversion_2020_2023 = (
+    158.2 / 119.7
+)  # 2023 Q4 / 2020 Q4. Values are from EUROSTAT (2015 = 100). https://ec.europa.eu/eurostat/databrowser/view/prc_hpi_ooq__custom_12691934/default/table?lang=en
 
 ##################### Calculate the Energy Savings from the renovation measures #####################
-generate_savings = False
+generate_savings = True
 if generate_savings:
     # import the data with the renovation measures
     renovated_buildingstock_path = Path(
