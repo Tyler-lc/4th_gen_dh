@@ -10,13 +10,14 @@ import numpy_financial as npf
 # we will use data from the IWU study to calculate the costs of each building's renovation
 
 
-def renovation_costs_iwu(gdf: gpd.GeoDataFrame):
+def renovation_costs_iwu(gdf: gpd.GeoDataFrame, update_costs_factor: float):
     """
     Calculate the costs of a renovation based on the insulation thickness and the area of the building.
 
     Args:
         insulation_thickness (float): The thickness of the insulation in meters.
         area (float): The area of the building in square meters.
+        update_costs_factor (float): The factor by which the costs are multiplied to update to a different year.
 
     Returns:
         float: The cost of the renovation.
@@ -62,7 +63,7 @@ def renovation_costs_iwu(gdf: gpd.GeoDataFrame):
         + gdf_cost["cost_ground_contact"]
         + gdf_cost["cost_windows"]
         + gdf_cost["cost_door"]
-    )
+    ) * update_costs_factor
 
     return gdf_cost
 
