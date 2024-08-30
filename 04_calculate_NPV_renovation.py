@@ -10,6 +10,7 @@ from costs.renovation_costs import (
     apply_inflation,
     cash_flow,
     energy_savings,
+    calculate_npv_savings,
 )
 
 ###################################################################################
@@ -21,11 +22,6 @@ from costs.renovation_costs import (
 # these are directly used in the NPV calculation
 n_years = 30
 interest_rate = 0.03
-
-# This only affects the energy prices over the years. We assume a 2% inflation rate.
-# It should be possible also to use a list of inflation rates for each year. (not tested)
-inflation_rate = 0.02
-
 
 # We now subdvide the buildingstock by user type. We have "small, medium, large" residential buildings
 # We also have small, medium, large non-residential buildings.
@@ -50,12 +46,13 @@ small_consumer_threshold = 20  # GJ per year
 gj_to_kwh = 1 / 3600 * 1000000  # 1 GJ = 1/3600 * 1000000 kwh - conversion factor
 medium_consumer_threshold = 200  # GJ per year
 medium_consumer_threshold_kwh = medium_consumer_threshold * gj_to_kwh
+small_consumer_threshold_kwh = small_consumer_threshold * gj_to_kwh
 conversion_2020_2023 = (
     158.2 / 119.7
 )  # 2023 Q4 / 2020 Q4. Values are from EUROSTAT (2015 = 100). https://ec.europa.eu/eurostat/databrowser/view/prc_hpi_ooq__custom_12691934/default/table?lang=en
 
 ##################### Calculate the Energy Savings from the renovation measures #####################
-generate_savings = True
+generate_savings = False
 if generate_savings:
     # import the data with the renovation measures
     renovated_buildingstock_path = Path(
@@ -69,10 +66,10 @@ if generate_savings:
     )
     gdf_unrenovated = gpd.read_parquet(unrenovated_buildingstock_path)
 
-    renovation_costs = renovation_costs_iwu(gdf_renovated)
+    renovation_costs = renovation_costs_iwu(gdf_renovated, conversion_2020_2023)
     renovation_costs.to_csv("costs/renovation_costs.csv")
 
-    savings_df = energy_savings(gdf_renovated, gdf_unrenovated, rel_path=True)
+    savings_df = energy_savings(gdf_renovated, gdf_unrenovated, rel_path=False)
     savings_df.to_csv("costs/energy_savings_renovated.csv")
 
 ##################### Load results about Energy Savings (if already calculated)  #####################
@@ -141,20 +138,13 @@ npv_data["initial_gas_price"] = npv_data["consumer_size"].map(starting_energy_pr
 npv_data["renovation_costs"] = renovation_costs["total_cost"]
 npv_data["yearly_demand_renovated"] = year_consumption["renovated_total_demand"]
 
-# we create a new DataFrame to store the energy prices for each year in the NPV calculation
+# Create a new DataFrame to store the energy prices for each year in the NPV calculation
 energy_prices_future = pd.DataFrame(
-    columns=["r0", "r1", "r2", "nr0", "nr1", "nr2"], index=np.arange(n_years)
+    {key: [value] * n_years for key, value in starting_energy_prices.items()},
+    index=range(n_years),
 )
 
-# fill-in the columns of the DataFrame with the energy prices for each year for each consumper type
-for starting_price in starting_energy_prices:
-    energy_prices_future[starting_price] = apply_inflation(
-        base_energy_price=starting_energy_prices[starting_price],
-        n_years=n_years,
-        inflation_rate=inflation_rate,
-    )
-
-# now we calculate the energy expenditures for each building over the 25 years
+# Now we calculate the energy expenditures for each building over the n_years
 energy_costs_unrenovated = pd.DataFrame(
     columns=npv_data["full_id"], index=np.arange(n_years)
 )
@@ -166,17 +156,8 @@ energy_costs_renovated = calculate_expenses(
     npv_data, energy_prices_future, "renovated", n_years
 )
 
-npv_data[f"npv_unrenovated_{n_years}years_ir_{interest_rate}"] = np.nan
-npv_data[f"npv_renovated_{n_years}years_ir_{interest_rate}"] = np.nan
-for idx, row in npv_data.iterrows():
-    building_id = row["full_id"]
-    energy_costs_original = energy_costs_unrenovated[building_id]
-    npv_data.loc[idx, f"npv_unrenovated_{n_years}years_ir_{interest_rate}"] = npv(
-        0, energy_costs_original, 0, interest_rate
-    )
+npv_data = calculate_npv_savings(
+    npv_data, energy_costs_unrenovated, energy_costs_renovated, n_years, interest_rate
+)
 
-    energy_costs_new = energy_costs_renovated[building_id]
-    year_0_renovation = row["renovation_costs"]
-    npv_data.loc[idx, f"npv_renovated_{n_years}years_ir_{interest_rate}"] = npv(
-        -year_0_renovation, energy_costs_new, 0, interest_rate
-    )
+npv_data.to_csv("costs/npv_data_renovated_gas.csv")
