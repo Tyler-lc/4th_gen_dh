@@ -148,3 +148,31 @@ def calculate_lcoh(
 
     lcoh = numerator / denominator
     return lcoh
+
+
+def calculate_revenues(delivered_heat_demand, heat_prices):
+    """
+    Calculate the revenues from the heat supply. The two input must be the same length. Alternatively, the heat_demand can be a pd.Series and the heat_prices can be a float.
+    Args:
+    delivered_heat_demand: the heat demand of the customer [MWh/year]
+    heat_prices: the prices of the heat supply [EUR/MWh]
+    """
+    return delivered_heat_demand * heat_prices
+
+
+def calculate_future_values(base_values: dict, n_years: int):
+    """
+    Creates a DataFrame of yearly values (e.g., revenues or expenses) for the duration of the analysis.
+
+    Args:
+        base_values (dict): A dictionary containing the base values for each stream (e.g., revenue streams or expense categories).
+        n_years (int): The number of years to project the values.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing the projected yearly values for each stream over the specified number of years.
+    """
+    yearly_values = pd.DataFrame(
+        {key: [value] * n_years for key, value in base_values.items()},
+        index=range(n_years),
+    )
+    return yearly_values

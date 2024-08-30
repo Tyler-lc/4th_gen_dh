@@ -188,6 +188,25 @@ def apply_inflation(
     return inflated_prices
 
 
+def calculate_energy_prices_future(starting_energy_prices, n_years):
+    """
+    Creates energy prices for the duration of the NPV analysis based on the inflation rate.
+    The energy prices are yearly.
+
+
+    Args:
+        base_energy_price (float): The energy price at the base_year
+        inflation_rate (float): The inflation rate. If input is a float then it is expanded to a numpy array to fill the timespan
+
+    Returns:
+    """
+    energy_prices_future = pd.DataFrame(
+        {key: [value] * n_years for key, value in starting_energy_prices.items()},
+        index=range(n_years),
+    )
+    return energy_prices_future
+
+
 def consumer_size(
     npv_base_data, small_threshold: float, medium_threshold: float, res_types: List[str]
 ):
@@ -207,16 +226,16 @@ def consumer_size(
     threshold_small_consumer_kwh = small_threshold * gj_to_kwh  # convert to kwh
     res_mask = npv_base_data["building_usage"].isin(res_types)
     mask_small_consumer = (
-        npv_base_data["yearly_demand_unrenovated"] < threshold_small_consumer_kwh
+        npv_base_data["yearly_demand_delivered"] < threshold_small_consumer_kwh
     )
     medium_consumer_threshold_kwh = medium_threshold * gj_to_kwh
     mask_medium_consumer = np.logical_and(
-        (npv_base_data["yearly_demand_unrenovated"] >= threshold_small_consumer_kwh),
-        (npv_base_data["yearly_demand_unrenovated"] < medium_consumer_threshold_kwh),
+        (npv_base_data["yearly_demand_delivered"] >= threshold_small_consumer_kwh),
+        (npv_base_data["yearly_demand_delivered"] < medium_consumer_threshold_kwh),
     )
 
     mask_large_consumer = (
-        npv_base_data["yearly_demand_unrenovated"] >= medium_consumer_threshold_kwh
+        npv_base_data["yearly_demand_delivered"] >= medium_consumer_threshold_kwh
     )
 
     consumer_size = pd.Series(index=npv_base_data.index, dtype="object")
@@ -233,7 +252,7 @@ def consumer_size(
 def calculate_expenses(
     npv_data: pd.DataFrame,
     future_energy_prices: pd.DataFrame,
-    building_state: str,
+    column_demand: str,
     n_years: int = 25,
     system_efficiency: float = 0.9,
 ):
@@ -243,7 +262,7 @@ def calculate_expenses(
     Args:
         npv_data (pd.DataFrame): The DataFrame with the building data.
         future_energy_prices (pd.DataFrame): The DataFrame with the future energy prices.
-        building_state (str): The state of the building. Either "unrenovated" or "renovated".
+        column_demand (str): The name of the column with the demand of the building.
         system_efficiency (float): The efficiency of the energy system.
 
     Returns:
@@ -261,7 +280,7 @@ def calculate_expenses(
         building_id = row["full_id"]
         consumer_size = row["consumer_size"]
         energy_prices = future_energy_prices[consumer_size] / system_efficiency
-        yearly_demand = row[f"yearly_demand_{building_state}"]
+        yearly_demand = row[column_demand]
 
         # Set the yearly energy expenses for each year (from 1 to 24)
         energy_costs[building_id] = energy_prices.values * yearly_demand
@@ -287,16 +306,17 @@ def npv(year_0, expenses, incomes, i):
         float: The Net Present Value of the project.
     """
 
-    # Calculate the cash flow
-    cash_flow = incomes - expenses
+    # Convert expenses and incomes to numpy arrays and ensure they are 1D
+    expenses_array = expenses.values.flatten()
+    incomes_array = incomes.values.flatten()
+
+    cash_flow = incomes_array - expenses_array
 
     cash_flow = np.insert(cash_flow, 0, year_0)
 
-    npv = npf.npv(i, cash_flow)
+    npv_value = npf.npv(i, cash_flow)
 
-    # calculate the NPV:
-
-    return npv
+    return npv_value
 
 
 def manual_npv(year_0, expenses, incomes, i):
@@ -323,6 +343,59 @@ def manual_npv(year_0, expenses, incomes, i):
     npv = sum(cash_flow[t] / (1 + i) ** t for t in range(len(cash_flow)))
 
     return npv
+
+
+def calculate_npv_savings(
+    npv_data,
+    energy_expenses_unrenovated,
+    energy_expenses_renovated,
+    n_years,
+    interest_rate,
+):
+    """
+    Calculate the Net Present Value (NPV) savings for renovated and unrenovated buildings.
+
+    This function computes the NPV for both unrenovated and renovated scenarios for each building,
+    and then calculates the NPV savings as the difference between the two.
+
+    Args:
+        npv_data (pd.DataFrame): DataFrame containing building data and renovation costs.
+        energy_expenses_unrenovated (pd.DataFrame): Energy expenses for unrenovated buildings over time.
+        energy_expenses_renovated (pd.DataFrame): Energy expenses for renovated buildings over time.
+        n_years (int): Number of years for the NPV calculation.
+        interest_rate (float): Annual interest rate for NPV calculations.
+
+    Returns:
+        pd.DataFrame: Updated npv_data DataFrame with additional columns for unrenovated NPV,
+                      renovated NPV, and NPV savings for each building.
+    """
+    npv_data[f"npv_savings_{n_years}years_ir_{interest_rate}"] = np.nan
+
+    for idx, row in npv_data.iterrows():
+        building_id = row["full_id"]
+
+        # Unrenovated NPV
+        energy_costs_original = energy_expenses_unrenovated[building_id]
+        npv_unrenovated = npv(0, energy_costs_original, 0, interest_rate)
+        npv_data.loc[idx, f"npv_unrenovated_{n_years}years_ir_{interest_rate}"] = (
+            npv_unrenovated
+        )
+
+        # Renovated NPV
+        energy_costs_new = energy_expenses_renovated[building_id]
+        year_0_renovation = row["renovation_costs"]
+        npv_renovated = npv(-year_0_renovation, energy_costs_new, 0, interest_rate)
+        npv_data.loc[idx, f"npv_renovated_{n_years}years_ir_{interest_rate}"] = (
+            npv_renovated
+        )
+
+        # NPV of savings
+        npv_savings = npv_renovated - npv_unrenovated
+        npv_data.loc[idx, f"npv_savings_{n_years}years_ir_{interest_rate}"] = (
+            npv_savings
+        )
+
+    return npv_data
 
 
 # TODO: we calculate first the energy prices over the 25 years, then we can apply these to the energy expenditures over the 25 years.
@@ -482,17 +555,12 @@ if __name__ == "__main__":
     )
 
     interest_rate = 0.03
-    npv_data[f"npv_unrenovated_{n_years}years_ir_{interest_rate}"] = np.nan
-    npv_data[f"npv_renovated_{n_years}years_ir_{interest_rate}"] = np.nan
-    for idx, row in npv_data.iterrows():
-        building_id = row["full_id"]
-        energy_costs_original = energy_costs_unrenovated[building_id]
-        npv_data.loc[idx, f"npv_unrenovated_{n_years}years_ir_{interest_rate}"] = npv(
-            0, energy_costs_original, 0, interest_rate
-        )
+    npv_data = calculate_npv_savings(
+        npv_data,
+        energy_costs_unrenovated,
+        energy_costs_renovated,
+        n_years,
+        interest_rate,
+    )
 
-        energy_costs_new = energy_costs_renovated[building_id]
-        year_0_renovation = row["renovation_costs"]
-        npv_data.loc[idx, f"npv_renovated_{n_years}years_ir_{interest_rate}"] = npv(
-            -year_0_renovation, energy_costs_new, 0, interest_rate
-        )
+    npv_data.to_csv("costs/npv_data_renovated_gas.csv")
