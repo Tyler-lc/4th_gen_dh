@@ -208,7 +208,11 @@ def calculate_energy_prices_future(starting_energy_prices, n_years):
 
 
 def consumer_size(
-    npv_base_data, small_threshold: float, medium_threshold: float, res_types: List[str]
+    npv_base_data,
+    small_threshold: float,
+    medium_threshold: float,
+    res_types: List[str],
+    delivered_energy_column: str,
 ):
     """
     Determine the size of the consumer based on the yearly energy demand. 0 for small, 1 for medium, 2 for large.
@@ -226,16 +230,16 @@ def consumer_size(
     threshold_small_consumer_kwh = small_threshold * gj_to_kwh  # convert to kwh
     res_mask = npv_base_data["building_usage"].isin(res_types)
     mask_small_consumer = (
-        npv_base_data["yearly_demand_delivered"] < threshold_small_consumer_kwh
+        npv_base_data[delivered_energy_column] < threshold_small_consumer_kwh
     )
     medium_consumer_threshold_kwh = medium_threshold * gj_to_kwh
     mask_medium_consumer = np.logical_and(
-        (npv_base_data["yearly_demand_delivered"] >= threshold_small_consumer_kwh),
-        (npv_base_data["yearly_demand_delivered"] < medium_consumer_threshold_kwh),
+        (npv_base_data[delivered_energy_column] >= threshold_small_consumer_kwh),
+        (npv_base_data[delivered_energy_column] < medium_consumer_threshold_kwh),
     )
 
     mask_large_consumer = (
-        npv_base_data["yearly_demand_delivered"] >= medium_consumer_threshold_kwh
+        npv_base_data[delivered_energy_column] >= medium_consumer_threshold_kwh
     )
 
     consumer_size = pd.Series(index=npv_base_data.index, dtype="object")
@@ -255,6 +259,7 @@ def calculate_expenses(
     column_demand: str,
     n_years: int = 25,
     system_efficiency: float = 0.9,
+    building_state: str = "",
 ):
     """
     Calculate the energy costs for each building over the 25 years.
@@ -275,10 +280,19 @@ def calculate_expenses(
     # Set the first row to the renovation costs
     # energy_costs.loc[0] = npv_data["renovation_costs"]
 
+    if building_state == "unrenovated":
+        consumer_column = f"consumer_size_{building_state}"
+    elif building_state == "renovated":
+        consumer_column = f"consumer_size_{building_state}"
+    elif building_state == "":
+        consumer_column = "consumer_size"
+
     # Iterate over the rows to calculate and set the yearly energy expenses
     for idx, row in npv_data.iterrows():
         building_id = row["full_id"]
-        consumer_size = row["consumer_size"]
+
+        consumer_size = row[consumer_column]
+
         energy_prices = future_energy_prices[consumer_size] / system_efficiency
         yearly_demand = row[column_demand]
 
