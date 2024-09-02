@@ -231,6 +231,15 @@ gdf_buildingstock_results.to_parquet(
     "building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
 )
 
+area_results_urenovated_path = (
+    "building_analysis/results/unrenovated_whole_buildingstock/area_results.csv"
+)
+area_results_unrenovated = pd.read_csv(area_results_urenovated_path, index_col=0)
+area_results_unrenovated.index = pd.to_datetime(area_results_unrenovated.index)
+
+area_results["dhw_energy"] = area_results_unrenovated["dhw_energy"]
+area_results["dhw_volume"] = area_results_unrenovated["dhw_volume"]
+
 area_results.to_csv(
     "building_analysis/results/renovated_whole_buildingstock/area_results_renovated.csv"
 )

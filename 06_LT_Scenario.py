@@ -20,6 +20,11 @@ from costs.renovation_costs import (
 )
 
 #############################################################################################
+# Renovated building stock scenario. In this case we are assuming that the building stock is
+# renovated.
+# We start from GAS usage and we compare the NPV of the customers when they switch to DH and
+# when they do not switch to DH.
+#############################################################################################
 # in this file we are calculating the LCOH for the heat pumps we will use.
 # The LCOH will be used to calculate the NPV for everybody. This means that we will calculate
 # the NPV for the DH operator, as well as the NPV for the customers and see if there has been
