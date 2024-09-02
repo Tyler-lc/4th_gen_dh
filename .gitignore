@@ -1,4 +1,5 @@
 *.pyc
+*.json
 Person/__pycache__/Person.cpython-311.pyc
 building_analysis/stundenwerte_EB_01420_19790101_20231231_hist/Metadaten_Fehldaten_01420_19790101_20231231.html
 building_analysis/stundenwerte_EB_01420_19790101_20231231_hist/Metadaten_Fehldaten_01420_19790101_20231231.txt
@@ -17,3 +18,9 @@ tests/speed_tests
 building_analysis/test_dhw_w98916075.csv
 building_analysis/results
 building_analysis/results
+grid_calculation/streets_25832.gpkg
+grid_calculation/streets_only_25832.gpkg
+grid_calculation/streets_only_clean_25832.gpkg
+grid_calculation/streets_only_clean_length_25832.gpkg
+grid_calculation/supply_point.gpkg
+grid_calculation/test.osm
