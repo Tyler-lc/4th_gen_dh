@@ -26,25 +26,28 @@ from costs.renovation_costs import (
 # In this scenario we compare the NPV of the customer when they do not renovate and use gas
 # against the case when they renovate and use DH which uses a air Heat Pump.
 #############################################################################################
+supply_temperature = 100
+approach_temperature = 5
+
 interest_rate_dh = 0.05
 
-margin = 0
+margin = 0.166867
 taxation = 0.07
 reduction_factor = 1
 
 safety_factor = 1.2
-n_heat_pumps = 2
+n_heat_pumps = 3
 
 
 initial_electricity_cost = (
-    0.2017  # EUROSTAT 2023- semester 2 for consumption between 2000 MWH and 19999 MWH
+    0.1776  # EUROSTAT 2023- semester 2 for consumption between above 19999 MWH
 )
 n_years_hp = 25  # for LCOH calculation
 ir_hp = 0.05  # interest rate for the heat pump
 heat_pump_lifetime = 25  # setting years until replacement
 
 dhg_lifetime = 25  # years
-investment_costs_dhg = 16.25  # from thermos with LT option
+investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
 ir_dhg = 0.05
 
 
@@ -68,10 +71,10 @@ res_types = ["mfh", "sfh", "ab", "th"]
 
 ## We need to import both the unrenovated and renovated buildingstock
 
-path_renovated_area = Path(
-    "building_analysis/results/renovated_whole_buildingstock/area_results_renovated.csv"
+path_unrenovated_area = Path(
+    "building_analysis/results/unrenovated_whole_buildingstock/area_results.csv"
 )
-areas_demand = pd.read_csv(path_renovated_area, index_col=0)
+areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
 areas_demand.index = pd.to_datetime(areas_demand.index)
 
 areas_demand["total_useful_demand"] = (
@@ -81,22 +84,24 @@ areas_demand["total_useful_demand"] = (
 efficiency_he = (
     0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
 )
-areas_demand["delivered_energy"] = areas_demand["total_useful_demand"] / efficiency_he
+areas_demand["delivered_energy_dh"] = (
+    areas_demand["total_useful_demand"] / efficiency_he
+)
 
 estimated_grid_losses = 0.1  # estimated grid losses are 10% of the delivered energy
 
-areas_demand["final_energy"] = areas_demand["delivered_energy"] * (
+areas_demand["final_energy_dh"] = areas_demand["delivered_energy_dh"] * (
     1 + estimated_grid_losses
 )
 
-estimated_capacity = areas_demand["final_energy"].max()
+estimated_capacity = areas_demand["final_energy_dh"].max()
 
 
 # the estimated capacity is around 60 MW. For this reason we decide to use 3 heat pumps of 20 MW each.
 # we assume that the load is equally distributed among the 3 heat pumps.
 
 heat_pump_load = (
-    areas_demand["final_energy"] / n_heat_pumps / 1000
+    areas_demand["final_energy_dh"] / n_heat_pumps / 1000
 )  # MWh this is the load for each heat pump
 capacity_single_hp = estimated_capacity / n_heat_pumps * safety_factor / 1000  # MW
 
@@ -116,12 +121,14 @@ outside_temp = pd.read_csv(path_outside_air, usecols=["T2m"])
 outside_temp.index = areas_demand.index
 
 # set up the outlet and inlet of the heat pump to calculate the COP
-supply_temp = pd.DataFrame(50, index=outside_temp.index, columns=["supply_temp"])
+supply_temp = pd.DataFrame(
+    supply_temperature, index=outside_temp.index, columns=["supply_temp"]
+)
 
-cop_hourly = carnot_cop(supply_temp, outside_temp, 5)
+cop_hourly = carnot_cop(supply_temp, outside_temp, approach_temperature)
 
 P_el = (
-    areas_demand["final_energy"] / cop_hourly
+    areas_demand["final_energy_dh"] / cop_hourly
 )  # this is the Electric power input for ALL heat pumps
 
 DK_to_DE = (
@@ -132,7 +139,7 @@ update2022_2023 = (
 )  # this is the ratio of the installation costs of a heat pump in 2022 to 2023
 installation_cost_HP = (
     capital_costs_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
-)  # million euros/MW_thermal installed
+)  # million euros/MW_thermal installed per heat pump
 total_installation_costs = (
     installation_cost_HP * n_heat_pumps * capacity_single_hp
 )  # Million euros
@@ -141,7 +148,7 @@ single_var_oem_hp = (
     var_oem_hp(capacity_single_hp, "air", heat_pump_load.sum())
     * DK_to_DE
     * update2022_2023
-)  # Euros
+)  # Euros/MWh_thermal produced
 
 single_fix_oem = (
     fixed_oem_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
@@ -174,7 +181,7 @@ total_electricity_cost = (
 )  # Million euros
 total_var_oem_hp = single_var_oem_hp * n_heat_pumps
 total_fixed_oem_hp = single_fix_oem * n_heat_pumps * capacity_single_hp
-yearly_heat_supplied = areas_demand["delivered_energy"].sum() / 1000  # MW
+yearly_heat_supplied = areas_demand["delivered_energy_dh"].sum() / 1000  # MW
 heat_supplied_df = pd.DataFrame(  ## In this case we are using the heat supplied in the Grid, not the delivered heat
     {"Heat Supplied (MW)": [yearly_heat_supplied] * n_years_hp}
 )
@@ -286,12 +293,6 @@ operator_selling_price = {
 
 
 # import the data with the renovated buildingstock
-renovated_buildingstock_path = Path(
-    "building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
-)
-
-renovated_buildingstock = gpd.read_parquet(renovated_buildingstock_path)
-
 # and now let's import the unrenovated buildingstock
 
 unrenovated_buildingstock_path = Path(
@@ -302,9 +303,9 @@ unrenovated_buildingstock = gpd.read_parquet(unrenovated_buildingstock_path)
 
 year_consumption = pd.DataFrame(
     {
-        "full_id": renovated_buildingstock["full_id"],
-        "yearly_DHW_energy_demand": renovated_buildingstock["yearly_dhw_energy"],
-        "renovated_yearly_space_heating": renovated_buildingstock[
+        "full_id": unrenovated_buildingstock["full_id"],
+        "yearly_DHW_energy_demand": unrenovated_buildingstock["yearly_dhw_energy"],
+        "unrenovated_yearly_space_heating": unrenovated_buildingstock[
             "yearly_space_heating"
         ],
         "unrenovated_yearly_space_heating": unrenovated_buildingstock[
@@ -313,10 +314,6 @@ year_consumption = pd.DataFrame(
     }
 )
 
-year_consumption["renovated_total_demand"] = (
-    year_consumption["renovated_yearly_space_heating"]
-    + year_consumption["yearly_DHW_energy_demand"]
-)
 
 year_consumption["unrenovated_total_demand"] = (
     year_consumption["unrenovated_yearly_space_heating"]
@@ -326,32 +323,18 @@ year_consumption["unrenovated_total_demand"] = (
 # first we create the monetary savings for each building. We already have the energy savings.
 # Let's assess the energy prices for each building and then we can calculate the monetary savings.
 npv_data = pd.DataFrame()
-npv_data["full_id"] = renovated_buildingstock["full_id"]
-npv_data["building_usage"] = renovated_buildingstock["building_usage"]
-npv_data["yearly_demand_useful_renovated"] = year_consumption[
-    "renovated_total_demand"
-]  # this is for the renovated buildingstock. DHW+SH
-
-npv_data["yearly_demand_delivered_renovated"] = (
-    year_consumption["renovated_total_demand"] / efficiency_he
-)
+npv_data["full_id"] = unrenovated_buildingstock["full_id"]
+npv_data["building_usage"] = unrenovated_buildingstock["building_usage"]
 npv_data["yearly_demand_useful_unrenovated"] = year_consumption[
     "unrenovated_total_demand"
 ]  # this is for the unrenovated buildingstock. DHW+SH
+
 
 efficiency_boiler = 0.9
 npv_data["yearly_demand_delivered_unrenovated"] = (
     year_consumption["unrenovated_total_demand"] / efficiency_boiler
 )
 
-
-npv_data["consumer_size_renovated"] = consumer_size(
-    npv_data,
-    small_consumer_threshold,
-    medium_consumer_threshold,
-    res_types,
-    "yearly_demand_delivered_renovated",
-)
 
 npv_data["consumer_size_unrenovated"] = consumer_size(
     npv_data,
@@ -378,10 +361,10 @@ dh_prices_future = calculate_future_values(hp_energy_prices, n_years_hp)
 energy_expenditure_dh = calculate_expenses(
     npv_data,
     dh_prices_future,
-    "yearly_demand_delivered_renovated",
+    "yearly_demand_delivered_unrenovated",
     years_buildingstock,
     system_efficiency=1,
-    building_state="renovated",
+    building_state="unrenovated",
 )
 
 # npv_data[f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}_gas"] = np.nan
@@ -389,38 +372,29 @@ energy_expenditure_dh = calculate_expenses(
 income_buildings = pd.DataFrame(np.zeros(years_buildingstock))
 
 ### Calculate the costs of renovation for each building
-convert2020_2023 = 188.40 / 133.90
-
-renovation_costs = renovation_costs_iwu(renovated_buildingstock, convert2020_2023)
 
 # TODO: Where there was no renovation now we have a NaN. We have to change these into the right data
 # because the price of the heating has changed. So they actually have a different NPV. We have to do that in the
 # renovation_costs["total_cost"]. There we get NaN data.
-renovation_costs["total_cost"] = renovation_costs["total_cost"].fillna(0)
 
 
 for idx, row in tqdm(npv_data.iterrows(), total=len(npv_data)):
     building_id = row["full_id"]
 
-    # Unrenovated NPV
+    # Gas NPV for buildings
     energy_costs_original = energy_expenditure_gas[building_id]
     npv_gas = npv(0, energy_costs_original, income_buildings, building_interest_rate)
     npv_data.loc[
         idx,
-        f"npv_unrenovated_{years_buildingstock}years_ir_{building_interest_rate}_gas",
+        f"npv_Gas_{years_buildingstock}years_ir_{building_interest_rate}",
     ] = npv_gas
 
-    # Renovated NPV
+    # DH NPV for buildings
     energy_costs_new = energy_expenditure_dh[building_id]
-    building_id_mask = renovation_costs["full_id"] == building_id
-    renovation_cost = renovation_costs[building_id_mask]["total_cost"].values[0]
-
-    npv_dh = npv(
-        -renovation_cost, energy_costs_new, income_buildings, building_interest_rate
-    )
+    npv_dh = npv(0, energy_costs_new, income_buildings, building_interest_rate)
     npv_data.loc[
         idx,
-        f"npv_renovated_{years_buildingstock}years_ir_{building_interest_rate}_dh",
+        f"npv_DH_{years_buildingstock}years_ir_{building_interest_rate}",
     ] = npv_dh
 
     # NPV of savings
@@ -480,7 +454,9 @@ plt.show()
 
 
 # Merge NFA data with npv_data
-merged_data = npv_data.merge(renovated_buildingstock[["full_id", "NFA"]], on="full_id")
+merged_data = npv_data.merge(
+    unrenovated_buildingstock[["full_id", "NFA"]], on="full_id"
+)
 
 # Calculate energy savings (assuming original demand - new demand)
 # merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
@@ -534,11 +510,11 @@ total_yearly_costs_hps = (
 )  # in Euros per year
 
 # we have different pricing schemes according to the type and size of customer.
-npv_data["operator_selling_price"] = npv_data["consumer_size_renovated"].map(
+npv_data["operator_selling_price"] = npv_data["consumer_size_unrenovated"].map(
     operator_selling_price
 )
 revenues = calculate_revenues(
-    npv_data["yearly_demand_delivered_renovated"], npv_data["operator_selling_price"]
+    npv_data["yearly_demand_delivered_unrenovated"], npv_data["operator_selling_price"]
 )
 total_revenues = revenues.sum()  # in Mio €/year
 
