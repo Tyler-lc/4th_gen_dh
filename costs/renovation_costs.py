@@ -22,38 +22,48 @@ def renovation_costs_iwu(gdf: gpd.GeoDataFrame, update_costs_factor: float):
     Returns:
         float: The cost of the renovation.
     """
-
+    # we need to make sure that the insulation thickness is in meters
     gdf_cost = gdf.copy(deep=True)
+    gdf_cost.fillna(0, inplace=True)
+    renovation_mask = gdf_cost["insulation_thickness"] > 0
 
     # calculate the costs of renovating the walls
-    gdf_cost["costs_walls"] = gdf_cost["walls_area"] * (
+    gdf_cost.loc[renovation_mask, "costs_walls"] = gdf_cost["walls_area"] * (
         112.18 + 3.25 * gdf_cost["insulation_thickness"] / 10
     )  # convert mm to cm
 
     # there is a difference in cost between a sloped roof and a flat roof
     # we assume that anything below 25 degrees is a flat roof and anything above is a sloped roof
     mask_slope = gdf_cost["roof_slope"] >= 25
-    gdf_cost.loc[mask_slope, "costs_roof"] = gdf_cost["roof_area"] * (
+    gdf_cost.loc[renovation_mask & mask_slope, "costs_roof"] = gdf_cost["roof_area"] * (
         178.48 + 3.27 * gdf_cost["insulation_thickness"] / 10
     )  # convert mm to cm
-    gdf_cost.loc[~mask_slope, "costs_roof"] = gdf_cost["roof_area"] * (
+    gdf_cost.loc[renovation_mask & ~mask_slope, "costs_roof"] = gdf_cost[
+        "roof_area"
+    ] * (
         123.29 + 4.87 * gdf_cost["insulation_thickness"] / 10
     )  # convert mm to cm
 
     # calculating the cost of insulating the ground contact floor
-    gdf_cost["cost_ground_contact"] = gdf_cost["ground_contact_area"] * (
+    gdf_cost.loc[renovation_mask, "cost_ground_contact"] = gdf_cost[
+        "ground_contact_area"
+    ] * (
         10.27 + 1.86 * gdf_cost["insulation_thickness"] / 10
     )  # convert mm to cm
 
     # we assume that all windows are 2 sqm each. The cost of the window varies depending on its size.
     # meaning it is not a linear relationship like the other costs
     sqm_window_cost = (658.86 * 2 ** (-0.257) * 1.116) / 2
-    gdf_cost["cost_windows"] = gdf_cost["windows_area"] * sqm_window_cost
+    gdf_cost.loc[renovation_mask, "cost_windows"] = (
+        gdf_cost["windows_area"] * sqm_window_cost
+    )
 
     # cost of updating the door:
     sfh_mask = gdf_cost["building_usage"] == "sfh"
-    gdf_cost.loc[sfh_mask, "cost_door"] = 1612.41 * gdf_cost["door_area"]
-    gdf_cost.loc[np.logical_not(sfh_mask), "cost_door"] = (
+    gdf_cost.loc[renovation_mask & sfh_mask, "cost_door"] = (
+        1612.41 * gdf_cost["door_area"]
+    )
+    gdf_cost.loc[renovation_mask & np.logical_not(sfh_mask), "cost_door"] = (
         1374.99 * gdf_cost["door_area"]
     )
 
@@ -329,8 +339,39 @@ def npv(year_0, expenses, incomes, i):
     cash_flow = np.insert(cash_flow, 0, year_0)
 
     npv_value = npf.npv(i, cash_flow)
-
     return npv_value
+
+
+def npv_2(year_0, expenses, incomes, i):
+    """
+    Calculate the Net Present Value of a project.
+    The cash flow is calculated as cash_flow = incomes - expenses.
+    NB. If you insert negative expenses they become positive.
+    NB.2 If on year 0 you only have expenses, you have to set it negative yourself, before you pass it to the method.
+
+
+    Args:
+        year_0 (float): The initial investment.
+        expenses (np.array): The expenses of the project.
+        incomes (np.array): The incomes of the project.
+        i (float): The interest rate.
+
+    Returns:
+        float: The Net Present Value of the project.
+    """
+
+    # Convert expenses and incomes to numpy arrays and ensure they are 1D
+    expenses_array = expenses.values.flatten()
+    incomes_array = incomes.values.flatten()
+
+    cash_flow = incomes_array - expenses_array
+
+    cash_flow = np.insert(cash_flow, 0, year_0)
+    print(len(cash_flow))
+
+    npv_value = npf.npv(i, cash_flow)
+    df = pd.DataFrame({"cash_flow": cash_flow})
+    return npv_value, df
 
 
 def manual_npv(year_0, expenses, incomes, i):
