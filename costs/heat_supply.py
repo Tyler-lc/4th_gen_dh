@@ -74,8 +74,8 @@ def capital_costs_hp(installed_thermal_capacity: float, source_type: str) -> flo
 def var_oem_hp(
     installed_thermal_capacity: float,
     source_type: str,
-    thermal_energy_produced: pd.Series,
-) -> pd.Series:
+    yearly_thermal_energy_produced: float,
+) -> float:
     """
     Calculate the variable operation and maintenance (O&M) costs of a heat pump based on the heat source type and the amount of Energy produced in the time frame.
     The cost is in Million EUR/year (assuming we a whole year of thermal_ernergy_produced)
@@ -85,8 +85,6 @@ def var_oem_hp(
     thermal_energy_produced: the thermal energy produced by the heat pump [MWh/year]
     """
 
-    var_oem_year = pd.Series(index=thermal_energy_produced.index)
-
     if source_type == "air":
         var_oem = (-0.461 * np.log(installed_thermal_capacity)) + 2.852
 
@@ -95,8 +93,7 @@ def var_oem_hp(
     else:
         raise ValueError("source_type must be 'air' or 'excess_heat'")
 
-    var_oem_year = var_oem * thermal_energy_produced
-    return var_oem_year.sum() / 1000000
+    return var_oem * yearly_thermal_energy_produced
 
 
 def fixed_oem_hp(installed_thermal_capacity: float, source_type: str) -> float:
@@ -116,7 +113,7 @@ def fixed_oem_hp(installed_thermal_capacity: float, source_type: str) -> float:
     else:
         raise ValueError("source_type must be 'air' or 'excess_heat'")
 
-    return fixed_oem / 1000000
+    return fixed_oem
 
 
 def calculate_lcoh(
@@ -127,7 +124,12 @@ def calculate_lcoh(
     heat_output_series,
     discount_rate,
 ):
-
+    if (
+        len(fixed_om_series) != len(variable_om_series)
+        or len(fixed_om_series) != len(electricity_costs_series)
+        or len(fixed_om_series) != len(heat_output_series)
+    ):
+        raise ValueError("All input series must have the same length")
     years = fixed_om_series.index
     denominator = 0
     numerator = 0
@@ -147,6 +149,7 @@ def calculate_lcoh(
     numerator += investment_costs
 
     lcoh = numerator / denominator
+
     return lcoh
 
 
