@@ -9,19 +9,24 @@ import momepy
 import pyproj
 from shapely.ops import transform
 from shapely.geometry import Point, LineString, Polygon
+import folium
 
 
-from grid_utils import buildings_to_centroids
+from grid_utils import buildings_to_centroids, buildings_capacity
 
 ####### Define supply nodes
 n_supply_list = [
-    {"id": 2, "coords": [50.096, 8.593], "cap": 60},
+    {"id": 2, "coords": [50.096, 8.593], "cap": 100},
     # {"id": 6, "coords": [38.75246, -9.23775], "cap": 35},
 ]
 
 ### define sinks in the area
 buildingstock_path = "../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
 buildingstock = gpd.read_parquet(buildingstock_path)
+
+buildingstock = buildings_capacity(buildingstock)
+buildingstock["capacity"] = buildingstock["capacity"] / 1000
+
 n_demand_list = buildings_to_centroids(
     buildingstock, crs_origin="EPSG:25832", crs_target="EPSG:4326"
 )
@@ -299,20 +304,15 @@ plt.legend()
 plt.show()
 
 
-
-
-
-
-
 ###############################################################################
 ########################### OPTIMIZE NETWORK ##################################
 ###############################################################################
-water_den = 1000 # kg/m3
+water_den = 1000  # kg/m3
 factor_street_terrain = 0.10
 factor_street_overland = 0.4
-heat_capacity = 4.18 # kJ/kg/K
-flow_temp = 90 # C
-return_temp = 50 # C
+heat_capacity = 4.18  # kJ/kg/K
+flow_temp = 90  # C
+return_temp = 50  # C
 surface_losses_json = [
     {"dn": 0.02, "overland_losses": 0.115994719393908},
     {"dn": 0.025, "overland_losses": 0.138092834981244},
@@ -338,8 +338,8 @@ surface_losses_json = [
     {"dn": 1.0, "overland_losses": 0.662751592458654},
 ]
 
-ground_temp = 8 # C
-ambient_temp = 10 # C
+ground_temp = 8  # C
+ambient_temp = 10  # C
 
 ###########COSTS DIGGING STREET#################
 fc_dig_st = 350
@@ -349,7 +349,6 @@ vc_dig_st = 700
 ###########COSTS DIGGING TERRAIN#################
 fc_dig_tr = 200
 vc_dig_tr = 500
-
 
 
 ###########COSTS PIPES###########################
@@ -370,60 +369,65 @@ invest_pumps = 10000
 ################ Surface Losses #################
 surface_losses_df = pd.DataFrame(surface_losses_json)
 
-road_nw_solution = road_simplified.copy()
 
+road_nw_solution = road_simplified_undirected.copy()
+
+################################################################################
+# CONVERT GRAPH TO DICT FOR PYOMO INPUT AND ONLY RETRIEVE DATA NEEDED ###########
+
+road_nw_data = nx.to_dict_of_dicts(road_simplified_undirected)
+road_nw_data_points = [(x, y) for x in road_nw_data for y in road_nw_data[x]]
+
+road_nw_data_edges = []
+for k, v in road_nw_data.items():
+    for k1, v1 in v.items():
+        road_nw_data_edges.append(
+            [
+                v1[0]["length"],
+                v1[0]["surface_type"],
+                v1[0]["restriction"],
+                v1[0]["surface_pipe"],
+                v1[0]["existing_grid_element"],
+                v1[0]["inner_diameter_existing_grid_element"],
+                v1[0]["costs_existing_grid_element"],
+            ]
+        )
+        road_nw_data_names = list(v1.keys())
+
+road_nw_data = dict(zip(road_nw_data_points, road_nw_data_edges))
+
+
+# In our case we are not splittin the code in two parts. We are directly
+# feeding the results of the Network Creation to the optimization module.
+# In the original code we had to feed the Nodes and Edges into the optimisation
+# function. So now we need to extract the nodes and edges from the road_nw_solution
+# because that is what the original code expects.
+nodes, edges = ox.graph_to_gdfs(road_nw_solution)
+
+# If you need edge data as well, you can use:
+edges_with_data = list(road_nw_solution.edges(data=True))
+# road_simplified_undirected
 
 ################################################################################
 ###########ADD EDGE ATTRIBUTES THAT SHOULD BE PART OF GRAPH ALREADY#############
 
 
 ################################################################################
-# CONVERT GRAPH TO DICT FOR PYOMO INPUT AND ONLY RETRIEVE DATA NEEDED ###########
-
-road_nw_data = nx.to_dict_of_lists(road_nw)
-road_nw_data_points = [(x, y) for x in road_nw_data for y in road_nw_data[x]]
-
-
-################################################################################
 #########INVERT ALL KEYS TO BE SURE EACH EDGE EXISTS IN BOTH DIRECTIONS#########
 
-# First, let's print a sample of the current structure
-print("Current structure of road_nw_data:")
-for node, targets in list(road_nw_data.items())[:5]:  # Print first 5 items
-    print(f"Node {node}: {targets[:5]}...")  # Print first 5 targets for each node
-print("...")
-
-# Now, let's ensure bidirectional connections
-for source, targets in list(road_nw_data.items()):
-    for target in targets:
-        if target not in road_nw_data:
-            road_nw_data[target] = []
-        if source not in road_nw_data[target]:
-            road_nw_data[target].append(source)
-
-# Print a sample of the updated structure
-print("\nUpdated structure of road_nw_data:")
-for node, targets in list(road_nw_data.items())[:5]:  # Print first 5 items
-    print(f"Node {node}: {targets[:5]}...")  # Print first 5 targets for each node
-print("...")
-
-# Optional: Convert to list of edges if needed
-road_nw_data_edges = [(source, target) for source, targets in road_nw_data.items() for target in targets]
-print(f"\nTotal number of edges: {len(road_nw_data_edges)}")
-
+for i, j in road_nw_data.keys():
+    road_nw_data[(j, i)] = road_nw_data[(i, j)]
 
 ################################################################################
 #########DEFINITION OF SOURCES AND SINKS FOR PYOMO##############################
 
 # Create n_supply_dict directly from n_supply_list
 n_supply_dict = {
-    v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]}
-    for v in n_supply_list
+    v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_supply_list
 }
 
 n_demand_dict = {
-    v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]}
-    for v in n_demand_list
+    v["id"]: {"coords": tuple(v["coords"]), "cap": v["cap"]} for v in n_demand_list
 }
 
 N = list(nodes.index)
@@ -442,6 +446,8 @@ demand_data_py = pd.DataFrame.from_dict(n_demand_dict, orient="index")
 ###### DOES NOT MATCH SUM OF CAPACITIES SOURCES (APPLIES FOR CASES THE GIS HAS NOT
 ###### ITERATED WITH THE TEO YET ##################################################
 
+# if the supply capacity is higher than the demand, we take the capacity of the supply
+# and redistribute it over the different supply nodes. (equally)
 new_cap = []
 if supply_data_py.cap.sum() > demand_data_py.cap.sum():
     for i in supply_data_py.cap:
@@ -450,6 +456,9 @@ if supply_data_py.cap.sum() > demand_data_py.cap.sum():
         share = z / supply_data_py.cap.sum()
         z = z - (diff * share)
         new_cap.append(z)
+
+# if the demand capacity is higher than the supply, we take the demand capacity of each
+# demand node and decrease it proportionally. So we decrease the total demand to match the supply
 elif supply_data_py.cap.sum() < demand_data_py.cap.sum():
     for i in demand_data_py.cap:
         z = i
@@ -459,7 +468,7 @@ elif supply_data_py.cap.sum() < demand_data_py.cap.sum():
         new_cap.append(z)
 else:
     print("Supply capacity == demand capacity")
-    
+
 ##################WRITE CORRECT VALUES TO DFS#################
 
 if supply_data_py.cap.sum() > demand_data_py.cap.sum():
@@ -468,8 +477,8 @@ elif supply_data_py.cap.sum() < demand_data_py.cap.sum():
     demand_data_py.cap = new_cap
 else:
     print("No adapted exchange capacities")
-    
-    
+
+
 ##################CONCAT DFS WITH ADAPTED EX CAPACITIES########
 
 data_py = pd.concat([supply_data_py, demand_data_py], axis=0)
@@ -477,11 +486,11 @@ list_of_nodes = pd.DataFrame(N)
 
 
 supply_data_py = list_of_nodes.merge(
-        supply_data_py["cap"],
-        left_on=list_of_nodes[0],
-        right_on=supply_data_py.index,
-        how="left",
-    ).drop("key_0", axis=1)
+    supply_data_py["cap"],
+    left_on=list_of_nodes[0],
+    right_on=supply_data_py.index,
+    how="left",
+).drop("key_0", axis=1)
 demand_data_py = list_of_nodes.merge(
     demand_data_py["cap"],
     left_on=list_of_nodes[0],
@@ -540,6 +549,7 @@ road_nw_data = road_nw_data.to_dict("index")
 
 from pyomo.environ import *
 from pyomo.opt import *
+
 opt = solvers.SolverFactory("gurobi_direct")
 model = ConcreteModel()
 
@@ -565,6 +575,7 @@ model.edge_restriction = Param(
     model.edge_set,
     initialize={key: value[2] for (key, value) in road_nw_data.items()},
 )
+
 model.edge_existing_grid = Param(
     model.edge_set,
     initialize={key: value[4] for (key, value) in road_nw_data.items()},
@@ -573,6 +584,7 @@ model.edge_existing_grid = Param(
 ###################################################################
 ######################PARAMETERS NODES#############################
 
+#####con_dem and con_sup are connection demand and connection supply
 model.node_demand = Param(model.node_set, initialize=data_py["con_dem"].to_dict())
 model.node_supply = Param(model.node_set, initialize=data_py["con_sup"].to_dict())
 
@@ -580,9 +592,10 @@ model.node_supply = Param(model.node_set, initialize=data_py["con_sup"].to_dict(
 ######################VARIABLES####################################
 
 model.flow = Var(model.edge_set, within=model.flow_var_set)
+# model.flow = Var(model.edge_set, within=np.arange(0, 10000, 1))
 model.bool = Var(model.edge_set, domain=Binary)
 
-###########RECODE FLOW VAR INTO BOOL VAR###########################
+########### RECODE FLOW VAR INTO BOOL VAR ###########################
 
 Domain_points = [0.0, 0.0, 0.001, 1000.0]
 Range_points = [0.0, 0.0, 1.0, 1.0]
@@ -604,6 +617,7 @@ model.con = Piecewise(
 
 ###########CONNECTIVITY CONSTRAINT#################################
 
+
 def flow_rule(model, n):
     InFlow = sum(model.flow[i, j] for (i, j) in model.edge_set if j == n)
     OutFlow = sum(model.flow[i, j] for (i, j) in model.edge_set if i == n)
@@ -611,6 +625,7 @@ def flow_rule(model, n):
     input = InFlow + model.node_supply[n]
     output = OutFlow + model.node_demand[n]
     return input == output
+
 
 model.flow_constraint = Constraint(N, rule=flow_rule)
 
@@ -651,10 +666,9 @@ for i in model.edge_set:
 #'timelimit'] = 60 * 12  ###max solver solution time, if exceeded the solver stops and takes the best found solution at that point
 
 ## Error handling
-results = opt.solve(model, tee=False)
+results = opt.solve(model, tee=True)
 if results.solver.termination_condition == TerminationCondition.infeasible:
-    raise ModuleRuntimeException(code=2.5, msg="Routing is infeasible!")
-
+    raise RuntimeError("Routing is infeasible!")
 # model.result.expr()
 
 ###########GET RESULTS############################################
@@ -663,7 +677,7 @@ result_data = model.bool.get_values()
 
 result_graph = {k: v for k, v in result_data.items() if v > 0.1}
 
-for (i, j) in list(result_graph):
+for i, j in list(result_graph):
     result_graph[(j, i)] = result_graph[(i, j)]
 
 ############GET THE PIPE DIAMETER FOR EVERY EDGE OF EXISTING GRID####
@@ -728,9 +742,7 @@ if len(ex_cap) == 0:
     ###################################################################
     ######################SETS#########################################
 
-    model_nw.node_set = Set(
-        initialize=list({k[0] for k, v in result_graph.items()})
-    )
+    model_nw.node_set = Set(initialize=list({k[0] for k, v in result_graph.items()}))
     model_nw.edge_set = Set(initialize=result_graph.keys())
 
     ###################################################################
@@ -959,10 +971,7 @@ else:
 
         ## Error handling
         result_nw = opt.solve(model_nw, tee=False)
-        if (
-            result_nw.solver.termination_condition
-            == TerminationCondition.infeasible
-        ):
+        if result_nw.solver.termination_condition == TerminationCondition.infeasible:
             raise ModuleRuntimeException(
                 code=2.7,
                 msg="Thermal capacity optimization with TEO is infeasible!",
@@ -981,13 +990,9 @@ else:
         result_data = {}
 
         for i in keys_list:
-            result_data[i] = (result_data_flow[i] or 0) + (
-                result_data_cap_add[i] or 0
-            )
+            result_data[i] = (result_data_flow[i] or 0) + (result_data_cap_add[i] or 0)
 
-        result_data_all_TS.append(
-            pd.DataFrame.from_dict(result_data, orient="index")
-        )
+        result_data_all_TS.append(pd.DataFrame.from_dict(result_data, orient="index"))
 
         del model_nw
 
@@ -1024,7 +1029,7 @@ if subgraphs > 1:
     ###################################################################
     #############FIND EDGES WITH NO FLOW ON IT#########################
 
-    for (i, j) in result_data.keys():
+    for i, j in result_data.keys():
         if (result_data[(i, j)] + result_data[(j, i)]) == 0:
             result_data[(i, j)] = 99999
         else:
@@ -1102,9 +1107,7 @@ if subgraphs > 1:
         for k1, v1 in v.items():
             all_tuples.append([tuple([k, k1]), v1])
 
-    all_edges_dict = dict(
-        zip([n[0] for n in all_tuples], [n[1] for n in all_tuples])
-    )
+    all_edges_dict = dict(zip([n[0] for n in all_tuples], [n[1] for n in all_tuples]))
     all_edges_dict = {k: v for k, v in all_edges_dict.items() if v != 0}
     all_edges_dict.update(
         {k: v for k, v in result_data.items() if v != 0 and v != 99999}
@@ -1288,9 +1291,7 @@ result_df["Diameter"] = round(result_df["Diameter"], 3)
 loss_list = []
 for i in range(0, len(result_df)):
     if result_df["Surface_pipe"][i] == 1:
-        index_dia = (
-            surface_losses_df["dn"].sub(result_df["Diameter"][i]).abs().idxmin()
-        )
+        index_dia = surface_losses_df["dn"].sub(result_df["Diameter"][i]).abs().idxmin()
         loss_list.append(
             surface_losses_df["overland_losses"][index_dia]
             * abs((((flow_temp + return_temp) / 2) - ambient_temp))
@@ -1570,4 +1571,3 @@ network_solution = road_nw_solution
 selected_agents = (
     N_supply + N_demand
 )  # output to MM: list of sources and sinks exist in the solution
-
