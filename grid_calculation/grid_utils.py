@@ -9,6 +9,7 @@ import numpy as np
 import haversine as hs
 from shapely.ops import transform
 import pyproj
+from tqdm import tqdm
 
 
 def load_street_layout(file_path: str) -> gpd.GeoDataFrame:
@@ -37,11 +38,25 @@ def buildings_to_centroids(
             {
                 "id": row["osm_id"],
                 "coords": [row.centroid.y, row.centroid.x],
-                "cap": row["yearly_space_heating"],
+                "cap": row["capacity"],
             }
         )
 
     return building_data
+
+
+def buildings_capacity(
+    gdf: gpd.GeoDataFrame, rel_path: bool = True
+) -> gpd.GeoDataFrame:
+    for idx, row in tqdm(gdf.iterrows(), total=len(gdf)):
+        space_heating_path = row["space_heating_path"]
+        if rel_path:
+            space_heating_path = f"../{space_heating_path}"
+
+        space_heating = pd.read_csv(space_heating_path, index_col=0)
+        capacity = space_heating.max().values[0]
+        gdf.loc[idx, "capacity"] = capacity
+    return gdf
 
 
 def load_supply_point(file_path: str) -> gpd.GeoDataFrame:
