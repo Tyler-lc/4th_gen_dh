@@ -168,7 +168,7 @@ heat_supplied_dhg = pd.DataFrame(  ## In this case we are using the heat supplie
 )
 
 
-investment_costs_dhg = 24203656.03 / 1000000  # from thermos
+investment_costs_dhg = 24203656.03 / 1000000  # from thermos HT scenario
 ir_dhg = 0.03
 LCOD_dhg = calculate_lcoh(
     investment_costs_dhg,  # comes from THERMOS
