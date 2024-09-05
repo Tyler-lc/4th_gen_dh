@@ -64,6 +64,8 @@ res_types = ["mfh", "sfh", "ab", "th"]
 ######################## Import data about area's demand  #########################
 ###################################################################################
 ###################################################################################
+# have indicator for the area for building new buildings in the area rather than renovating
+# destatis should data about property value and consatruction costs.
 
 
 ## We need to import both the unrenovated and renovated buildingstock
@@ -553,3 +555,67 @@ from costs.renovation_costs import npv_2
 
 npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, interest_rate_dh)
 print(f"NPV of the District Heating Operator: {npv_dh}")
+
+
+npv_data["NFA"] = renovated_buildingstock["NFA"]
+# Calculate NPV per net floor area
+npv_data["npv_per_nfa"] = (
+    npv_data[f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"]
+    / npv_data["NFA"]
+)
+
+# Calculate average NPV per NFA by building type
+avg_npv_per_nfa = (
+    npv_data.groupby("building_usage")["npv_per_nfa"]
+    .mean()
+    .sort_values(ascending=False)
+)
+
+# Plot average NPV per NFA by building type
+plt.figure(figsize=(12, 6))
+avg_npv_per_nfa.plot(kind="bar")
+plt.title("Average NPV per Net Floor Area by Building Type")
+plt.xlabel("Building Type")
+plt.ylabel("Average NPV per Net Floor Area (€/m²)")
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Plot histogram of NPV per NFA distribution by building type
+plt.figure(figsize=(15, 10))
+building_types = npv_data["building_usage"].unique()
+num_types = len(building_types)
+rows = (num_types + 1) // 2  # Calculate number of rows needed
+
+for i, building_type in enumerate(building_types, 1):
+    plt.subplot(rows, 2, i)
+    data = npv_data[npv_data["building_usage"] == building_type]["npv_per_nfa"]
+    sns.histplot(data, kde=True)
+    plt.title(f"NPV per NFA Distribution - {building_type}")
+    plt.xlabel("NPV per Net Floor Area (€/m²)")
+    plt.ylabel("Frequency")
+
+plt.tight_layout()
+plt.show()
+
+# Create scatter plots
+plt.figure(figsize=(20, 15))
+building_types = npv_data["building_usage"].unique()
+num_types = len(building_types)
+rows = (num_types + 1) // 2  # Calculate number of rows needed
+
+for i, building_type in enumerate(building_types, 1):
+    plt.subplot(rows, 2, i)
+    data = npv_data[npv_data["building_usage"] == building_type]
+
+    sns.scatterplot(data=data, x="NFA", y="npv_per_nfa")
+
+    plt.title(f"NPV per NFA vs NFA - {building_type}")
+    plt.xlabel("Net Floor Area (m²)")
+    plt.ylabel("NPV per Net Floor Area (€/m²)")
+
+    # Add a trend line
+    sns.regplot(data=data, x="NFA", y="npv_per_nfa", scatter=False, color="red")
+
+plt.tight_layout()
+plt.show()
