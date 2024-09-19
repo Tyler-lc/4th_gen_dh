@@ -5,18 +5,18 @@ import haversine as hs
 import numpy as np
 import pandas as pd
 import osmnx as ox
-import momepy
 import pyproj
 from shapely.ops import transform
 from shapely.geometry import Point, LineString, Polygon
 import folium
+from folium.plugins import MarkerCluster
 
 
 from grid_utils import buildings_to_centroids, buildings_capacity
 
 ####### Define supply nodes
 n_supply_list = [
-    {"id": 2, "coords": [50.096, 8.593], "cap": 100},
+    {"id": 2, "coords": [50.096, 8.593], "cap": 100000},
     # {"id": 6, "coords": [38.75246, -9.23775], "cap": 35},
 ]
 
@@ -25,7 +25,7 @@ buildingstock_path = "../building_analysis/results/renovated_whole_buildingstock
 buildingstock = gpd.read_parquet(buildingstock_path)
 
 buildingstock = buildings_capacity(buildingstock)
-buildingstock["capacity"] = buildingstock["capacity"] / 1000
+buildingstock["capacity"] = buildingstock["capacity"]
 
 n_demand_list = buildings_to_centroids(
     buildingstock, crs_origin="EPSG:25832", crs_target="EPSG:4326"
@@ -597,7 +597,7 @@ model.bool = Var(model.edge_set, domain=Binary)
 
 ########### RECODE FLOW VAR INTO BOOL VAR ###########################
 
-Domain_points = [0.0, 0.0, 0.001, 1000.0]
+Domain_points = [0.0, 0.0, 0.001, len(model.flow_var_set) + 1]
 Range_points = [0.0, 0.0, 1.0, 1.0]
 
 # here, we are creating a piecewise function to determine the value of "bool" variable
@@ -727,6 +727,8 @@ road_nw_ex_grid["MW"] = road_nw_ex_grid["MW"].replace(0, 99999)
 ###Pyomo model flows V1 WITHOUT TEO#############
 ################################################
 
+# we do not have existing capacity. So i set ex_cap as an empty list
+ex_cap = []
 if len(ex_cap) == 0:
 
     ###########DATA PREPARATION############################################
@@ -821,9 +823,7 @@ if len(ex_cap) == 0:
     ## Error handling
     result_nw = opt.solve(model_nw, tee=False)
     if result_nw.solver.termination_condition == TerminationCondition.infeasible:
-        raise ModuleRuntimeException(
-            code=2.6, msg="Thermal capacity optimization without TEO is infeasible!"
-        )
+        raise RuntimeError("Routing is infeasible!")
 
     ###################################################################
     ######################GET RESULTS##################################
@@ -1013,7 +1013,34 @@ graph_test_data = {k: v for k, v in graph_test_data.items() if v != 0}
 
 graph_test = nx.Graph()
 graph_test.add_edges_from(graph_test_data.keys())
-nx.draw(graph_test)
+# nx.draw(graph_test)
+
+# Set up the plot
+plt.figure(figsize=(12, 8))  # Adjust the figure size as needed
+
+# Use spring layout for node positioning
+pos = nx.spring_layout(graph_test)
+
+# Draw nodes
+nx.draw_networkx_nodes(graph_test, pos, node_size=50, node_color="lightblue")
+
+# Draw edges
+nx.draw_networkx_edges(graph_test, pos, edge_color="gray", alpha=0.5)
+
+# Draw labels
+# nx.draw_networkx_labels(graph_test, pos, font_size=8, font_family='sans-serif')
+
+# Remove axis
+plt.axis("off")
+
+# Add a title
+plt.title("Network Graph Visualization", fontsize=16)
+
+# Adjust the layout
+plt.tight_layout()
+
+# Show the plot
+plt.show()
 
 ###########GET NUMBER OF SUBGRAPHS IN GRAPH########################
 
@@ -1150,7 +1177,7 @@ result_df.columns = [
     "Costs_ex_grid",
     "Capacity_limit",
 ]
-result_df.loc[result_df["Capacity_limit"] == 99999, "Capacity_limit"] = "None"
+result_df.loc[result_df["Capacity_limit"] == 99999, "Capacity_limit"] = np.nan
 del graph_df
 
 ###############################################################################
@@ -1472,7 +1499,7 @@ edges_to_map = nodes_solution[nodes_solution["osmid"].isin(N_demand)].reset_inde
 for i in range(0, len(edges_to_map)):
     sinks_cluster.add_child(
         folium.Marker(
-            location=[edges_to_map.loc[i, "lat"], edges_to_map.loc[i, "lon"]],
+            location=[edges_to_map.loc[i, "y"], edges_to_map.loc[i, "x"]],
             icon=folium.Icon(color="blue", icon="tint"),
             popup="Sink",
         )
@@ -1571,3 +1598,55 @@ network_solution = road_nw_solution
 selected_agents = (
     N_supply + N_demand
 )  # output to MM: list of sources and sinks exist in the solution
+# Create a new map centered on the first demand point
+
+
+m = folium.Map(
+    location=[
+        list(n_demand_dict.values())[0]["coords"][0],
+        list(n_demand_dict.values())[0]["coords"][1],
+    ],
+    zoom_start=11,
+    control_scale=True,
+)
+
+# Add the network to the map with power information
+folium.GeoJson(
+    edges_solution.to_json(),
+    name="Network",
+    style_function=lambda x: {"color": "red", "weight": 5},
+    tooltip=folium.GeoJsonTooltip(fields=["MW"], aliases=["Power (MW):"]),
+).add_to(m)
+
+# Add markers for supply points with capacity information
+for node_id, node_data in n_supply_dict.items():
+    folium.Marker(
+        location=node_data["coords"],
+        popup=folium.Popup(
+            f"Supply Node {node_id}<br>Capacity: {node_data['cap']} MW", max_width=300
+        ),
+        tooltip=f"Supply Node {node_id}",
+        icon=folium.Icon(color="green", icon="info-sign"),
+    ).add_to(m)
+
+# Add markers for demand points with capacity information
+for node_id, node_data in n_demand_dict.items():
+    folium.Marker(
+        location=node_data["coords"],
+        popup=folium.Popup(
+            f"Demand Node {node_id}<br>Capacity: {node_data['cap']} MW", max_width=300
+        ),
+        tooltip=f"Demand Node {node_id}",
+        icon=folium.Icon(color="red", icon="info-sign"),
+    ).add_to(m)
+
+# Add layer control
+folium.LayerControl().add_to(m)
+
+# Display the map
+m
+
+from IPython.display import IFrame
+
+# Save the map
+m.save("map.html")
