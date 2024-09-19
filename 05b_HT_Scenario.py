@@ -31,8 +31,10 @@ approach_temperature = 5
 
 interest_rate_dh = 0.05
 
-margin = 0.166867
+# margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
+margin = 0
 taxation = 0.07
+# reduction_factor = 0.938372  # NPV DH operator is 0
 reduction_factor = 1
 
 safety_factor = 1.2
@@ -210,33 +212,33 @@ heat_supplied_dhg = pd.DataFrame(  ## In this case we are using the heat supplie
 )
 
 
-LCOD_dhg = calculate_lcoh(
-    investment_costs_dhg,  # comes from THERMOS
+LCOH_dhg = calculate_lcoh(
+    investment_costs_dhg * 1000000,  # comes from THERMOS
     dhg_other_costs_df,
     dhg_other_costs_df,
     dhg_other_costs_df,
-    heat_supplied_dhg,
+    heat_supplied_dhg * 1000,
     ir_dhg,
 )
 
-LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
-print(f"LCOH_dhg_eurokwh: {LCOH_dhg_eurokwh}")
+# LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
+print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 
 
 price_heat_eurokwh_residential = (
-    (LCOH_HP + LCOD_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
+    (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
 )
 print(
     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
 )
 price_heat_eurokwh_non_residential = (
-    (LCOH_HP + LCOD_dhg) * (1 + margin) * reduction_factor
+    (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
 )
 print(
     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
 )
 price_heat_eurokwh_non_residential_VAT = (
-    (LCOH_HP + LCOD_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
+    (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
 )
 
 
@@ -335,6 +337,9 @@ npv_data["yearly_demand_delivered_unrenovated"] = (
     year_consumption["unrenovated_total_demand"] / efficiency_boiler
 )
 
+npv_data["yearly_demand_delivered_unrenovated_DH"] = (
+    year_consumption["unrenovated_total_demand"] / efficiency_he
+)
 
 npv_data["consumer_size_unrenovated"] = consumer_size(
     npv_data,
@@ -425,32 +430,39 @@ avg_savings = (
 
 # Plot average savings by building type
 plt.figure(figsize=(12, 6))
-avg_savings.plot(kind="bar")
-plt.title("Average NPV Savings by Building Type")
-plt.xlabel("Building Type")
-plt.ylabel("Average NPV Savings (€)")
+bar = avg_savings.plot(kind="bar")
+
+bar.set_title("Average NPV Savings by Building Type - HT DH Scenario", fontsize=16)
+bar.set_xlabel("Building Type", fontsize=14)
+bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
+bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.show()
+plt.savefig("HighTemperature_AverageSavings.png")
+plt.close()
 
+n_columns = 3
 # Plot histogram of savings distribution by building type
-plt.figure(figsize=(15, 10))
+plt.figure(figsize=(20, 15))
 building_types = npv_data["building_usage"].unique()
 num_types = len(building_types)
-rows = (num_types + 1) // 2  # Calculate number of rows needed
+rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
 for i, building_type in enumerate(building_types, 1):
-    plt.subplot(rows, 2, i)
+    plt.subplot(rows, n_columns, i)
     data = npv_data[npv_data["building_usage"] == building_type][
         f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
     ]
-    sns.histplot(data, kde=True)
-    plt.title(f"Savings Distribution - {building_type}")
-    plt.xlabel("NPV Savings (€2023)")
-    plt.ylabel("Frequency")
+    scatter = sns.histplot(data, kde=True)
+    scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
+    scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+    scatter.set_ylabel("Frequency", fontsize=12)
+    scatter.tick_params(labelsize=12)
 
 plt.tight_layout()
-plt.show()
+# plt.show()
+plt.savefig("HighTemperature_SavingsDistribution.png")
+plt.close()
 
 
 # Merge NFA data with npv_data
@@ -465,27 +477,36 @@ merged_data = npv_data.merge(
 plt.figure(figsize=(20, 15))
 building_types = merged_data["building_usage"].unique()
 num_types = len(building_types)
-rows = (num_types + 1) // 2  # Calculate number of rows needed
+rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
 for i, building_type in enumerate(building_types, 1):
-    plt.subplot(rows, 2, i)
+    plt.subplot(rows, n_columns, i)
     data = merged_data[merged_data["building_usage"] == building_type]
 
-    sns.scatterplot(
+    plot = sns.scatterplot(
         data=data,
         x="NFA",
         y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
     )
 
-    plt.title(f"Energy Savings vs NFA - {building_type}")
-    plt.xlabel("Net Floor Area (m²)")
-    plt.ylabel("NPV Savings (€2023)")
+    plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
+    plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
+    plot.tick_params(labelsize=12)
 
     # Add a trend line
-    # sns.regplot(data=data, x='NFA', y='energy_savings', scatter=False, color='red')
+    sns.regplot(
+        data=data,
+        x="NFA",
+        y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+        scatter=False,
+        color="red",
+    )
 
 plt.tight_layout()
-plt.show()
+# plt.show()
+plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
+plt.close()
 
 
 ###################################################################################
@@ -514,8 +535,13 @@ npv_data["operator_selling_price"] = npv_data["consumer_size_unrenovated"].map(
     operator_selling_price
 )
 revenues = calculate_revenues(
-    npv_data["yearly_demand_delivered_unrenovated"], npv_data["operator_selling_price"]
+    npv_data["yearly_demand_delivered_unrenovated_DH"],
+    npv_data["operator_selling_price"],
 )
+# revenues = calculate_revenues(
+#     npv_data["yearly_demand_delivered_unrenovated_DH"],
+#     (LCOH_HP + LCOH_dhg),
+# )
 total_revenues = revenues.sum()  # in Mio €/year
 
 
