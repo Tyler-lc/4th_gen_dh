@@ -24,3 +24,5 @@ grid_calculation/streets_only_clean_25832.gpkg
 grid_calculation/streets_only_clean_length_25832.gpkg
 grid_calculation/supply_point.gpkg
 grid_calculation/test.osm
+*.png
+*.html
