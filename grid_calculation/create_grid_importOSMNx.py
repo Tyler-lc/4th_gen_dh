@@ -21,7 +21,7 @@ n_supply_list = [
 ]
 
 ### define sinks in the area
-buildingstock_path = "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+buildingstock_path = "../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
 buildingstock = gpd.read_parquet(buildingstock_path)
 
 buildingstock = buildings_capacity(buildingstock)
@@ -1323,7 +1323,7 @@ for i in range(0, len(result_df)):
             surface_losses_df["overland_losses"][index_dia]
             * abs((((flow_temp + return_temp) / 2) - ambient_temp))
         )
-    else:  # if pipe is buried, than it uses the formulation from THERMOS
+    else:
         loss_list.append(
             (
                 abs((flow_temp + return_temp) / 2 - ground_temp)
@@ -1483,30 +1483,14 @@ nodes_to_map = nodes_solution[nodes_solution["osmid"].isin(N_supply)].reset_inde
 )
 
 sources_cluster = MarkerCluster(name="Sources").add_to(m)
-
-for idx, row in nodes_to_map.iterrows():
-    # Use the y (latitude) and x (longitude) columns
+for i in range(0, len(nodes_to_map)):
     sources_cluster.add_child(
         folium.Marker(
-            location=[row["y"], row["x"]],  # [latitude, longitude]
+            location=[nodes_to_map.loc[i, "lat"], nodes_to_map.loc[i, "lon"]],
             icon=folium.Icon(color="red", icon="tint"),
-            popup=f"Source: {idx}",  # You can customize this popup as needed
+            popup="Source",
         )
     )
-
-# Alternatively, if you prefer to use the geometry column:
-# for idx, row in nodes_to_map.iterrows():
-#     point = row['geometry']
-#     sources_cluster.add_child(
-#         folium.Marker(
-#             location=[point.y, point.x],  # [latitude, longitude]
-#             icon=folium.Icon(color="red", icon="tint"),
-#             popup=f"Source: {idx}"
-#         )
-#     )
-
-# print(nodes_to_map.columns)
-
 
 sinks_cluster = MarkerCluster(name="Sinks").add_to(m)
 edges_to_map = nodes_solution[nodes_solution["osmid"].isin(N_demand)].reset_index(
