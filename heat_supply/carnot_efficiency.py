@@ -8,6 +8,7 @@ def carnot_cop(
     T_cold: pd.Series,
     approach_temperature: float,
     carnot_efficiency: float = 0.524,
+    COP_max: float = 4,
 ) -> pd.Series:
     """
     Calculate the COP of a heat pump using the Carnot formula.
@@ -29,7 +30,7 @@ def carnot_cop(
     COP["COP_hourly"] = COP["hot"] / (COP["hot"] - COP["cold"]) * carnot_efficiency
 
     # Limit the COP to a maximum value of 4
-    COP = COP.clip(upper=4)
+    COP = COP.clip(upper=COP_max)
 
     return COP["COP_hourly"]
 
