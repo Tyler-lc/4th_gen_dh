@@ -24,7 +24,7 @@ n_supply_list = [
 buildingstock_path = "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
 buildingstock = gpd.read_parquet(buildingstock_path)
 
-buildingstock = buildings_capacity(buildingstock)
+buildingstock = buildings_capacity(buildingstock, "space_heating_path")
 buildingstock["capacity"] = buildingstock["capacity"]
 
 n_demand_list = buildings_to_centroids(
