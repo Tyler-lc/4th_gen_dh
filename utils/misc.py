@@ -143,3 +143,36 @@ def get_mask(size: str, res_mask: str):
         return np.logical_not(res_mask)
     else:
         raise ValueError("Invalid size parameter")
+
+
+def get_electricity_cost(consumption: float) -> float:
+    """this function takes the total annual consumption of electricity and returns
+    the cost of the electricity based on said consumption in Germany.
+    Data is based on EUROSTAT 2023- semester 2. Info @ https://ec.europa.eu/eurostat/databrowser/product/page/nrg_pc_205
+    :param consumption: float, annual consumption in MWh
+    :return: float, cost of the electricity in Euro/kWh
+    """
+    initial_electricity_cost = {
+        "IA": 0.3279,  # these are the electricity costs based on consumption
+        "IB": 0.2480,
+        "IC": 0.2175,
+        "ID": 0.2017,
+        "IE": 0.1776,
+        "IF": 0.172,
+        "IG": 0.1527,
+    }
+    if consumption < 20:
+        size = "IA"
+    elif consumption >= 20 and consumption <= 499:
+        size = "IB"
+    elif consumption >= 500 and consumption <= 1999:
+        size = "IC"
+    elif consumption >= 2000 and consumption <= 19999:
+        size = "ID"
+    elif consumption >= 20000 and consumption <= 69999:
+        size = "IE"
+    elif consumption >= 70000 and consumption <= 149999:
+        size = "IF"
+    else:
+        size = "IG"
+    return initial_electricity_cost[size]
