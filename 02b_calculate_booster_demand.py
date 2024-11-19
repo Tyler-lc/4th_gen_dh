@@ -39,8 +39,9 @@ path_load_results = "building_analysis/results/unrenovated_whole_buildingstock/b
 gdf_buildingstock_results = gpd.read_parquet(path_load_results)
 
 
-# Now we know that the DHW doesn't change across scenarios. Also we don't want to recalculate buildings that
-# are alraedy efficient enough. So we will copy from the "unrenovated scenario" the data we need.
+# Now we know that the DHW doesn't change across scenarios. Also we do not need to recalculate the
+# space heating demand because in this case it remains the same.
+# So we will copy from the "unrenovated scenario" the data we need.
 
 # Define paths where unrenovated data is stored
 unrenovated_dhw_energy_path = (
@@ -177,7 +178,9 @@ for idx, row in tqdm(
 
     ### let's sum the dhw and SH demands together to assess total
     ### HP size needed.
-    total_demand = space_heating.values + dhw_energy.values
+    total_demand = space_heating["net useful hourly demand [kWh]"] + dhw_energy.sum(
+        axis=1
+    )
     max_demand = total_demand.max()
     hp_size = float(max_demand * safety_factor)
     gdf_buildingstock_results.loc[idx, "heat_pump_size [kW]"] = hp_size
@@ -186,9 +189,7 @@ for idx, row in tqdm(
     ### luckily we have the COP function calculator, so we can use that.
     ### we need to iterate over the space heating data and calculate the COP for each hour
     COP_hourly = carnot_cop(t_supply_series, t_grid_series, approach_temperature=5)
-    el_demand = (
-        space_heating["net useful hourly demand [kWh]"].values / COP_hourly.values
-    )
+    el_demand = total_demand / COP_hourly.values
     el_demand_series = pd.Series(el_demand)
     el_demand_series.index = index
 
@@ -199,9 +200,7 @@ for idx, row in tqdm(
     # The rest will be provided by the electricity of the booster.
     # because of how EMBERS module works, we need to calculate the maximum
     # value of this demand. This will be then the "demand" in embers.
-    dh_grid_demand = space_heating["net useful hourly demand [kWh]"] * (
-        1 - 1 / COP_hourly.values
-    )
+    dh_grid_demand = total_demand * (1 - 1 / COP_hourly.values)
     gdf_buildingstock_results.loc[idx, "peak_demand_on_dh_grid [kW]"] = float(
         dh_grid_demand.max()
     )
