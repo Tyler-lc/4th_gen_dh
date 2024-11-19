@@ -34,7 +34,7 @@ from costs.renovation_costs import (
 # 5. People do not have to renovate
 
 #############################################################################################
-supply_temperature = 50  # °C
+supply_temperature_grid = 50  # °C
 approach_temperature = 5  # °C
 
 interest_rate_dh = 0.05
@@ -82,18 +82,20 @@ res_types = ["mfh", "sfh", "ab", "th"]
 ## We need to import both the unrenovated and renovated buildingstock
 
 path_unrenovated_area = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/area_results.csv"
+    "building_analysis/results/booster_whole_buildingstock/area_results/area_results_booster_whole_buildingstock.csv"
 )
 areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
 areas_demand.index = pd.to_datetime(areas_demand.index)
 
-areas_demand["total_useful_demand"] = (
-    areas_demand["dhw_energy"] + areas_demand["space_heating"]
+areas_demand["total_useful_demand thermal demand [kWh]"] = (
+    areas_demand["area space heating demand [kWh]"]
+    + areas_demand["area dhw energy demand [kWh]"]
 )
 
 efficiency_he = (
     0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
 )
+
 areas_demand["delivered_energy_dh"] = (
     areas_demand["total_useful_demand"] / efficiency_he
 )
@@ -132,7 +134,7 @@ outside_temp.index = areas_demand.index
 
 # set up the outlet and inlet of the heat pump to calculate the COP
 supply_temp = pd.DataFrame(
-    supply_temperature, index=outside_temp.index, columns=["supply_temp"]
+    supply_temperature_grid, index=outside_temp.index, columns=["supply_temp"]
 )
 
 cop_hourly = carnot_cop(supply_temp, outside_temp, approach_temperature)
