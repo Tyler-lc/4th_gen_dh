@@ -26,6 +26,8 @@ from costs.renovation_costs import (
 # In this scenario we compare the NPV of the customer when they do not renovate and use gas
 # against the case when they renovate and use DH which uses a air Heat Pump.
 #############################################################################################
+supply_temperature = 55
+approach_temperature = 5
 interest_rate_dh = 0.05
 
 margin = 0
@@ -46,8 +48,12 @@ n_years_hp = 25  # for LCOH calculation
 ir_hp = 0.05  # interest rate for the heat pump
 heat_pump_lifetime = 25  # setting years until replacement
 
+path_embers = f"grid_calculation/renovated_result_df.parquet"
+ember_results = pd.read_parquet(path_embers)
+investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
+
 dhg_lifetime = 25  # years
-investment_costs_dhg = 16.25  # from thermos with LT option
+# investment_costs_dhg = 16.25  # from thermos with LT option
 ir_dhg = 0.05
 
 
@@ -88,20 +94,24 @@ efficiency_he = (
 )
 areas_demand["delivered_energy"] = areas_demand["total_useful_demand"] / efficiency_he
 
-estimated_grid_losses = 0.1  # estimated grid losses are 10% of the delivered energy
+#### We can now import the losses from the grid EMBER's module calculation
+total_power_losses = ember_results["Losses [W]"].sum()
+total_energy_losses = total_power_losses * 8760 / 1000  # kWh/year
 
-areas_demand["final_energy"] = areas_demand["delivered_energy"] * (
-    1 + estimated_grid_losses
+### calculate hourly losses on the grid:
+areas_demand["hourly grid losses [kWh]"] = ember_results["Losses [W]"].sum() / 1000
+areas_demand["hourly heat generated in Large HP [kWh]"] = (
+    areas_demand["hourly grid losses [kWh]"] + areas_demand["delivered_energy"]
 )
 
-estimated_capacity = areas_demand["final_energy"].max()
+estimated_capacity = areas_demand["hourly heat generated in Large HP [kWh]"].max()
 
 
 # the estimated capacity is around 60 MW. For this reason we decide to use 3 heat pumps of 20 MW each.
 # we assume that the load is equally distributed among the 3 heat pumps.
 
 heat_pump_load = (
-    areas_demand["final_energy"] / n_heat_pumps / 1000
+    areas_demand["hourly heat generated in Large HP [kWh]"] / n_heat_pumps / 1000
 )  # MWh this is the load for each heat pump
 capacity_single_hp = estimated_capacity / n_heat_pumps * safety_factor / 1000  # MW
 
@@ -121,12 +131,14 @@ outside_temp = pd.read_csv(path_outside_air, usecols=["T2m"])
 outside_temp.index = areas_demand.index
 
 # set up the outlet and inlet of the heat pump to calculate the COP
-supply_temp = pd.DataFrame(50, index=outside_temp.index, columns=["supply_temp"])
+supply_temp = pd.DataFrame(
+    supply_temperature, index=outside_temp.index, columns=["supply_temp"]
+)
 
-cop_hourly = carnot_cop(supply_temp, outside_temp, 5)
+cop_hourly = carnot_cop(supply_temp, outside_temp, approach_temperature)
 
 P_el = (
-    areas_demand["final_energy"] / cop_hourly
+    areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
 )  # this is the Electric power input for ALL heat pumps
 
 DK_to_DE = (
@@ -154,7 +166,7 @@ single_fix_oem = (
 
 
 print(
-    f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
+    f"Data in Million Euros. Large HPs Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
 )
 
 
@@ -208,33 +220,33 @@ heat_supplied_dhg = pd.DataFrame(  ## In this case we are using the heat supplie
 )
 
 
-LCOD_dhg = calculate_lcoh(
-    investment_costs_dhg,  # comes from THERMOS
+LCOH_dhg = calculate_lcoh(
+    investment_costs_dhg * 1000000,  # comes from THERMOS
     dhg_other_costs_df,
     dhg_other_costs_df,
     dhg_other_costs_df,
-    heat_supplied_dhg,
+    heat_supplied_dhg * 1000,
     ir_dhg,
 )
 
-LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
-print(f"LCOH_dhg_eurokwh: {LCOH_dhg_eurokwh}")
+# LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
+print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 
 
 price_heat_eurokwh_residential = (
-    (LCOH_HP + LCOD_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
+    (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
 )
 print(
     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
 )
 price_heat_eurokwh_non_residential = (
-    (LCOH_HP + LCOD_dhg) * (1 + margin) * reduction_factor
+    (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
 )
 print(
     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
 )
 price_heat_eurokwh_non_residential_VAT = (
-    (LCOH_HP + LCOD_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
+    (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
 )
 
 

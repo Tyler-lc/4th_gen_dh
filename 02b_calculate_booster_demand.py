@@ -31,7 +31,7 @@ t_supply = 85  # °C
 
 ### and we also set the inlet temperature to the booster heat pump. Which in this case
 ### is the temperature coming from the district heating network
-t_grid = 50  # °C
+t_grid = 55  # °C
 
 
 # first we load the energy demand data that we generated in the calculate_energy_demand.py script

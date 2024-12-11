@@ -26,7 +26,7 @@ from costs.renovation_costs import (
 # In this scenario we compare the NPV of the customer when they do not renovate and use gas
 # against the case when they renovate and use DH which uses a air Heat Pump.
 #############################################################################################
-supply_temperature = 100
+supply_temperature = 90
 approach_temperature = 5
 
 interest_rate_dh = 0.05
@@ -48,8 +48,13 @@ n_years_hp = 25  # for LCOH calculation
 ir_hp = 0.05  # interest rate for the heat pump
 heat_pump_lifetime = 25  # setting years until replacement
 
+
+path_embers = f"grid_calculation/unrenovated_result_df.parquet"
+ember_results = pd.read_parquet(path_embers)
+investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
+
 dhg_lifetime = 25  # years
-investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
+# investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
 ir_dhg = 0.05
 
 
@@ -86,24 +91,30 @@ areas_demand["total_useful_demand"] = (
 efficiency_he = (
     0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
 )
-areas_demand["delivered_energy_dh"] = (
-    areas_demand["total_useful_demand"] / efficiency_he
+areas_demand["delivered_energy"] = areas_demand["total_useful_demand"] / efficiency_he
+
+#### we can import the losses from the EMBERS' module calculation
+total_power_losses = ember_results["Losses [W]"].sum()
+total_energy_losses = total_power_losses * 8760 / 1000  # kWh/year
+
+### calculate hourly losses on the grid:
+areas_demand["hourly grid losses [kWh]"] = ember_results["Losses [W]"].sum() / 1000
+areas_demand["hourly heat generated in Large HP [kWh]"] = (
+    areas_demand["hourly grid losses [kWh]"] + areas_demand["delivered_energy"]
 )
 
-estimated_grid_losses = 0.1  # estimated grid losses are 10% of the delivered energy
+# areas_demand["final_energy_dh"] = areas_demand["delivered_energy_dh"] * (
+#     1 + estimated_grid_losses
+# )
 
-areas_demand["final_energy_dh"] = areas_demand["delivered_energy_dh"] * (
-    1 + estimated_grid_losses
-)
-
-estimated_capacity = areas_demand["final_energy_dh"].max()
+estimated_capacity = areas_demand["hourly heat generated in Large HP [kWh]"].max()
 
 
 # the estimated capacity is around 60 MW. For this reason we decide to use 3 heat pumps of 20 MW each.
 # we assume that the load is equally distributed among the 3 heat pumps.
 
 heat_pump_load = (
-    areas_demand["final_energy_dh"] / n_heat_pumps / 1000
+    areas_demand["hourly heat generated in Large HP [kWh]"] / n_heat_pumps / 1000
 )  # MWh this is the load for each heat pump
 capacity_single_hp = estimated_capacity / n_heat_pumps * safety_factor / 1000  # MW
 
@@ -130,7 +141,7 @@ supply_temp = pd.DataFrame(
 cop_hourly = carnot_cop(supply_temp, outside_temp, approach_temperature)
 
 P_el = (
-    areas_demand["final_energy_dh"] / cop_hourly
+    areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
 )  # this is the Electric power input for ALL heat pumps
 
 DK_to_DE = (
@@ -183,7 +194,7 @@ total_electricity_cost = (
 )  # Million euros
 total_var_oem_hp = single_var_oem_hp * n_heat_pumps
 total_fixed_oem_hp = single_fix_oem * n_heat_pumps * capacity_single_hp
-yearly_heat_supplied = areas_demand["delivered_energy_dh"].sum() / 1000  # MW
+yearly_heat_supplied = areas_demand["delivered_energy"].sum() / 1000  # MW
 heat_supplied_df = pd.DataFrame(  ## In this case we are using the heat supplied in the Grid, not the delivered heat
     {"Heat Supplied (MW)": [yearly_heat_supplied] * n_years_hp}
 )

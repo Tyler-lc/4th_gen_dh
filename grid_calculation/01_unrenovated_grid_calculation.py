@@ -322,7 +322,7 @@ factor_street_terrain = 0.10
 factor_street_overland = 0.4
 heat_capacity = 4.18  # kJ/kg/K
 flow_temp = 90  # C
-return_temp = 50  # C
+return_temp = 65  # C
 surface_losses_json = [
     {"dn": 0.02, "overland_losses": 0.115994719393908},
     {"dn": 0.025, "overland_losses": 0.138092834981244},
