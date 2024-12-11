@@ -24,6 +24,7 @@ from costs.renovation_costs import (
 # The LCOH will be used to calculate the NPV for everybody. This means that we will calculate
 # the NPV for the DH operator, as well as the NPV for the customers and see if there has been
 # and improvement in the NPV performance.
+#### DEPRECATED FILE
 #############################################################################################
 
 ###################################################################################
