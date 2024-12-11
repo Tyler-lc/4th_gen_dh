@@ -193,6 +193,11 @@ for idx, row in tqdm(
     el_demand_series = pd.Series(el_demand)
     el_demand_series.index = index
 
+    ### we need to store the total demand on the grid and the total demand in electricity
+    gdf_buildingstock_results.loc[idx, "total_demand_electricity [kWh]"] = (
+        el_demand.sum()
+    )
+
     # original COP eq is COP = Qh / (Qh - Qc)
     # solving for Qc ->
     # Qh*COP - Qc*COP = Qh ->   Qc = Qh - Qh/COP -> Qc = Qh * (1- 1/COP)
@@ -210,6 +215,9 @@ for idx, row in tqdm(
     temp_df["el_demand [kWh]"] = el_demand
     temp_df["thermal_output [kWh]"] = space_heating
     temp_df["demand_on_dh_grid [kWh]"] = dh_grid_demand
+    gdf_buildingstock_results.loc[idx, "total_demand_on_grid [kWh]"] = (
+        dh_grid_demand.sum()
+    )
 
     temp_df.to_csv(f"{booster_space_heating_path}/{building_id}_{sim}.csv")
 
@@ -227,6 +235,7 @@ for idx, row in tqdm(
     booster_el_demand_df[building_id] = el_demand
     area_dhw_volume[building_id] = dhw_volume.sum(axis=1)
     area_dhw_energy[building_id] = dhw_energy.sum(axis=1)
+
 
 # now we can save the results to a file
 gdf_buildingstock_results.to_parquet(
