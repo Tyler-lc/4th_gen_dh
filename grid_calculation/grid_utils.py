@@ -48,15 +48,17 @@ def buildings_to_centroids(
 def buildings_capacity(
     gdf: gpd.GeoDataFrame, column_name: str, rel_path: bool = True
 ) -> gpd.GeoDataFrame:
+    temp = pd.Series(index=gdf.index, dtype=float)
     for idx, row in tqdm(gdf.iterrows(), total=len(gdf)):
-        space_heating_path = row[column_name]
+        path_to_data = row[column_name]
         if rel_path:
-            space_heating_path = f"../{space_heating_path}"
+            path_to_data = f"../{path_to_data}"
 
-        space_heating = pd.read_csv(space_heating_path, index_col=0)
+        space_heating = pd.read_csv(path_to_data, index_col=0)
         capacity = space_heating.max().values[0]
-        gdf.loc[idx, "capacity"] = capacity
-    return gdf
+        temp.loc[idx] = capacity
+        # gdf.loc[idx, f"{column_name}_capacity"] = capacity
+    return temp
 
 
 def load_supply_point(file_path: str) -> gpd.GeoDataFrame:
