@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
 from tqdm import tqdm
-
+import os
 from pathlib import Path
 import sys
+from typing import Union
 
 from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
 from heat_supply.carnot_efficiency import carnot_cop
@@ -21,77 +22,63 @@ from costs.renovation_costs import (
     npv,
     renovation_costs_iwu,
 )
-
-#############################################################################################
-# In this scenario we compare the NPV of the customer when they do not renovate and use gas
-# against the case when they renovate and use DH which uses a air Heat Pump.
-#############################################################################################
-supply_temperature = 90
-approach_temperature = 5
+from utils.misc import get_electricity_cost
 
 
-def analyze_ht_scenario(
-    hp_investment_cost_factor=1.0,  # multiplier for heat pump investment costs
-    max_cop=None,  # if None, uses carnot efficiency, otherwise caps COP at this value
-    interest_rate=0.05,  # default interest rate
-    electricity_price_factor=1.0,  # multiplier for electricity prices
-    gas_price_factor=1.0,  # multiplier for gas prices
+def sensitivity_analysis(
+    simulation_type: str,
+    supply_temperature: Union[float, int] = 90,
+    approach_temperature: Union[float, int] = 5,
+    margin: float = 0,
+    taxation: float = 0.07,
+    reduction_factor: float = 1,
+    oversizing_factor: float = 1.2,
+    n_heat_pumps: int = 3,
+    inv_cost_multiplier: Union[float, int] = 1,
+    electricity_cost_multiplier: float = 1,
+    gas_cost_multiplier: Union[float, int] = 1,
+    max_COP: Union[float, int] = 4,
+    carnot_efficiency: Union[float, int] = 0.524,
+    ir: float = 0.05,
 ):
     """
-    Analyze high temperature scenario for district heating.
-
+    This is a helper function to run the sensitivity analysis for the HT and LT scenario
     Parameters:
-    -----------
-    hp_investment_cost_factor : float
-        Multiplier for heat pump investment costs
-    max_cop : float or None
-        Maximum COP value. If None, uses carnot efficiency
-    interest_rate : float
-        Interest rate for calculations
-    electricity_price_factor : float
-        Multiplier for electricity prices
-    gas_price_factor : float
-        Multiplier for gas prices
+    - simulation_type: can be "renovated" or "unrenovated"
+    - supply_temperature: the supply temperature to the buildings
+    - approach_temperature: the approach temperature of the heat exchanger (grid to heat pump)
+    - margin: the margin to be applied to the price of the heat supplied to the customers
+    - taxation: taxation rate applied to the heat supplied to the residential customers
+    - reduction_factor: the reduction factor to be applied to the price of the heat supplied to the customers
+    - safety_factor: the oversizing factor for the large scale heat pumps
+    - n_heat_pumps: the number of large scale heat pumps installed
+    - electricity_cost_multiplier: the multiplier for the electricity cost
+    - max_COP: the maximum COP for the heat pumps
+    - ir: the interest rate for the whole simulation
 
-    Returns:
-    --------
-    dict
-        Contains NPV for grid operator, NPV for customers, LCOH grid, LCOH HP
     """
+    if simulation_type not in ["renovated", "unrenovated", "booster"]:
+        raise ValueError(
+            "simulation_type must be 'renovated', 'unrenovated' or 'booster'"
+        )
+    #############################################################################################
+    # In this scenario we compare the NPV of the customer when they do not renovate and use gas
+    # against the case when they renovate and use DH which uses a air Heat Pump.
+    #############################################################################################
 
-    # Copy all the existing code here, but make these modifications:
-
-        
-    # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
-    margin = 0
-    taxation = 0.07
-    # reduction_factor = 0.938372  # NPV DH operator is 0
-    reduction_factor = 1
-
-    safety_factor = 1.2
-    n_heat_pumps = 3
-
-
-    initial_electricity_cost = (
-        0.1776  # EUROSTAT 2023- semester 2 for consumption between above 19999 MWH
-    )
     n_years_hp = 25  # for LCOH calculation
-    ir_hp = 0.05  # interest rate for the heat pump
     heat_pump_lifetime = 25  # setting years until replacement
 
-
-    path_embers = f"grid_calculation/unrenovated_result_df.parquet"
+    path_embers = f"grid_calculation/{simulation_type}_result_df.parquet"
     ember_results = pd.read_parquet(path_embers)
     investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
     dhg_lifetime = 25  # years
     # investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
-    ir_dhg = 0.05
-
+    ir = 0.05
 
     years_buildingstock = 25
-    building_interest_rate = 0.05
-
+    ir = 0.05
 
     ### Let's find out what is the size of the customer now for GAS
     small_consumer_threshold = 20  # GJ per year
@@ -99,30 +86,28 @@ def analyze_ht_scenario(
     medium_consumer_threshold = 200  # GJ per year
     res_types = ["mfh", "sfh", "ab", "th"]
 
-
     ###################################################################################
     ###################################################################################
     ######################## Import data about area's demand  #########################
     ###################################################################################
     ###################################################################################
 
-
     ## We need to import both the unrenovated and renovated buildingstock
 
-    path_unrenovated_area = Path(
-        "building_analysis/results/unrenovated_whole_buildingstock/area_results.csv"
+    path_area_data = Path(
+        f"building_analysis/results/{simulation_type}_whole_buildingstock/area_results_{simulation_type}.csv"
     )
-    areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
+    areas_demand = pd.read_csv(path_area_data, index_col=0)
     areas_demand.index = pd.to_datetime(areas_demand.index)
 
     areas_demand["total_useful_demand"] = (
         areas_demand["dhw_energy"] + areas_demand["space_heating"]
     )
 
-    efficiency_he = (
-        0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
+    efficiency_he = 0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
+    areas_demand["delivered_energy"] = (
+        areas_demand["total_useful_demand"] / efficiency_he
     )
-    areas_demand["delivered_energy"] = areas_demand["total_useful_demand"] / efficiency_he
 
     #### we can import the losses from the EMBERS' module calculation
     total_power_losses = ember_results["Losses [W]"].sum()
@@ -140,14 +125,15 @@ def analyze_ht_scenario(
 
     estimated_capacity = areas_demand["hourly heat generated in Large HP [kWh]"].max()
 
-
     # the estimated capacity is around 60 MW. For this reason we decide to use 3 heat pumps of 20 MW each.
     # we assume that the load is equally distributed among the 3 heat pumps.
 
     heat_pump_load = (
         areas_demand["hourly heat generated in Large HP [kWh]"] / n_heat_pumps / 1000
     )  # MWh this is the load for each heat pump
-    capacity_single_hp = estimated_capacity / n_heat_pumps * safety_factor / 1000  # MW
+    capacity_single_hp = (
+        estimated_capacity / n_heat_pumps * oversizing_factor / 1000
+    )  # MW
 
     # let's calculate the efficiency of the heat pumps at a hourly level.
     # we assume that the heat pumps are air source heat pumps.
@@ -169,7 +155,13 @@ def analyze_ht_scenario(
         supply_temperature, index=outside_temp.index, columns=["supply_temp"]
     )
 
-    cop_hourly = carnot_cop(supply_temp, outside_temp, approach_temperature)
+    cop_hourly = carnot_cop(
+        T_hot=supply_temp,
+        T_cold=outside_temp,
+        approach_temperature=approach_temperature,
+        carnot_efficiency=carnot_efficiency,
+        COP_max=max_COP,
+    )
 
     P_el = (
         areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
@@ -182,7 +174,10 @@ def analyze_ht_scenario(
         126.6 / 111.2
     )  # this is the ratio of the installation costs of a heat pump in 2022 to 2023
     installation_cost_HP = (
-        capital_costs_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
+        capital_costs_hp(capacity_single_hp, "air")
+        * DK_to_DE
+        * update2022_2023
+        * inv_cost_multiplier
     )  # million euros/MW_thermal installed per heat pump
     total_installation_costs = (
         installation_cost_HP * n_heat_pumps * capacity_single_hp
@@ -198,12 +193,17 @@ def analyze_ht_scenario(
         fixed_oem_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
     )  # Million Euros/MW_thermal installed
 
-
     print(
         f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
     )
 
-
+    initial_electricity_cost = (
+        get_electricity_cost(
+            P_el.sum() / 1000,
+            "non_residential",  # total consumption (Booster + central HP in MWh)
+        )
+        * electricity_cost_multiplier
+    )  # €/kWh
     ###################################################################################
     ###################################################################################
     ############################ Heat Pump LCOE Data  #################################
@@ -230,12 +230,15 @@ def analyze_ht_scenario(
         {"Heat Supplied (MW)": [yearly_heat_supplied] * n_years_hp}
     )
 
-    fixed_oem_hp_df = calculate_future_values({"Fixed O&M": total_fixed_oem_hp}, n_years_hp)
+    fixed_oem_hp_df = calculate_future_values(
+        {"Fixed O&M": total_fixed_oem_hp}, n_years_hp
+    )
 
-    var_oem_hp_df = calculate_future_values({"Variable O&M": total_var_oem_hp}, n_years_hp)
+    var_oem_hp_df = calculate_future_values(
+        {"Variable O&M": total_var_oem_hp}, n_years_hp
+    )
 
     total_electricity_cost_df = pd.DataFrame(total_electricity_cost)
-
 
     LCOH_HP = calculate_lcoh(
         total_installation_costs * 1000000,  # convert to euros
@@ -243,7 +246,7 @@ def analyze_ht_scenario(
         var_oem_hp_df,
         total_electricity_cost_df * 1000000,  # convert to euros
         heat_supplied_df * 1000,  # # convert to kWh
-        ir_hp,
+        ir,
     )  # in this case we are getting Euros per kWh produced.
     print(f"LCOH of the Heat Pumps: {LCOH_HP}")
 
@@ -253,19 +256,17 @@ def analyze_ht_scenario(
         {"Heat Supplied (MW)": [yearly_heat_supplied] * dhg_lifetime}
     )
 
-
     LCOH_dhg = calculate_lcoh(
         investment_costs_dhg * 1000000,  # comes from THERMOS
         dhg_other_costs_df,
         dhg_other_costs_df,
         dhg_other_costs_df,
         heat_supplied_dhg * 1000,
-        ir_dhg,
+        ir,
     )
 
     # LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
     print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
-
 
     price_heat_eurokwh_residential = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
@@ -283,7 +284,6 @@ def analyze_ht_scenario(
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
 
-
     ### We decide to set the price of the heat supplied to the customer depending on the energy demand of the customer.
     ### We will use the R2 and NR2 as the lowest (which should be price_heat_eurokwh_residential and price_heat_eurokwh_non_residential)ù
     ### All the other demand categories will have a price higher than those. The difference in prices will be based on the same ratio already
@@ -296,6 +296,9 @@ def analyze_ht_scenario(
         "nr1": 0.1070,  # non-residential medium
         "nr2": 0.0985,  # non-residential large
     }
+    for keys in gas_energy_prices.keys():
+        gas_energy_prices[keys] = gas_energy_prices[keys] * gas_cost_multiplier
+
     ratios = {
         "r0": gas_energy_prices["r2"] / gas_energy_prices["r0"],
         "r1": gas_energy_prices["r2"] / gas_energy_prices["r1"],
@@ -332,63 +335,59 @@ def analyze_ht_scenario(
     # first we calculate the NPV for the customers in the case of gas heating.
     # let's import the relevant data first. In this scenario the Buildingstock is renovated
 
-
     ## Let's define a couple of parameteres first
-
 
     # import the data with the renovated buildingstock
     # and now let's import the unrenovated buildingstock
 
-    unrenovated_buildingstock_path = Path(
-        "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+    buildingstock_path = Path(
+        f"building_analysis/results/{simulation_type}_whole_buildingstock/buildingstock_results_{simulation_type}.parquet"
     )
 
-    unrenovated_buildingstock = gpd.read_parquet(unrenovated_buildingstock_path)
+    buildingstock = gpd.read_parquet(buildingstock_path)
 
     year_consumption = pd.DataFrame(
         {
-            "full_id": unrenovated_buildingstock["full_id"],
-            "yearly_DHW_energy_demand": unrenovated_buildingstock["yearly_dhw_energy"],
-            "unrenovated_yearly_space_heating": unrenovated_buildingstock[
+            "full_id": buildingstock["full_id"],
+            "yearly_DHW_energy_demand": buildingstock["yearly_dhw_energy"],
+            f"{simulation_type}_yearly_space_heating": buildingstock[
                 "yearly_space_heating"
             ],
-            "unrenovated_yearly_space_heating": unrenovated_buildingstock[
+            f"{simulation_type}_yearly_space_heating": buildingstock[
                 "yearly_space_heating"
             ],
         }
     )
 
-
-    year_consumption["unrenovated_total_demand"] = (
-        year_consumption["unrenovated_yearly_space_heating"]
+    year_consumption[f"{simulation_type}_total_demand"] = (
+        year_consumption[f"{simulation_type}_yearly_space_heating"]
         + year_consumption["yearly_DHW_energy_demand"]
     )
 
     # first we create the monetary savings for each building. We already have the energy savings.
     # Let's assess the energy prices for each building and then we can calculate the monetary savings.
     npv_data = pd.DataFrame()
-    npv_data["full_id"] = unrenovated_buildingstock["full_id"]
-    npv_data["building_usage"] = unrenovated_buildingstock["building_usage"]
-    npv_data["yearly_demand_useful_unrenovated"] = year_consumption[
-        "unrenovated_total_demand"
+    npv_data["full_id"] = buildingstock["full_id"]
+    npv_data["building_usage"] = buildingstock["building_usage"]
+    npv_data[f"yearly_demand_useful_{simulation_type}"] = year_consumption[
+        f"{simulation_type}_total_demand"
     ]  # this is for the unrenovated buildingstock. DHW+SH
 
-
     efficiency_boiler = 0.9
-    npv_data["yearly_demand_delivered_unrenovated"] = (
-        year_consumption["unrenovated_total_demand"] / efficiency_boiler
+    npv_data[f"yearly_demand_delivered_{simulation_type}"] = (
+        year_consumption[f"{simulation_type}_total_demand"] / efficiency_boiler
     )
 
-    npv_data["yearly_demand_delivered_unrenovated_DH"] = (
-        year_consumption["unrenovated_total_demand"] / efficiency_he
+    npv_data[f"yearly_demand_delivered_{simulation_type}_DH"] = (
+        year_consumption[f"{simulation_type}_total_demand"] / efficiency_he
     )
 
-    npv_data["consumer_size_unrenovated"] = consumer_size(
+    npv_data[f"consumer_size_{simulation_type}"] = consumer_size(
         npv_data,
         small_consumer_threshold,
         medium_consumer_threshold,
         res_types,
-        "yearly_demand_delivered_unrenovated",
+        f"yearly_demand_delivered_{simulation_type}",
     )
 
     #### Let's fill a dataframe with the Gas prices for each consumer size
@@ -397,10 +396,10 @@ def analyze_ht_scenario(
     energy_expenditure_gas = calculate_expenses(
         npv_data,
         gas_prices_future,
-        "yearly_demand_delivered_unrenovated",
+        f"yearly_demand_delivered_{simulation_type}",
         years_buildingstock,
         system_efficiency=1,  # because we are calculating the gas prices on the delivered energy already
-        building_state="unrenovated",
+        building_state=simulation_type,
     )
 
     ### and how much would they pay when using heat pumps?
@@ -408,10 +407,10 @@ def analyze_ht_scenario(
     energy_expenditure_dh = calculate_expenses(
         npv_data,
         dh_prices_future,
-        "yearly_demand_delivered_unrenovated",
+        f"yearly_demand_delivered_{simulation_type}",
         years_buildingstock,
         system_efficiency=1,
-        building_state="unrenovated",
+        building_state=simulation_type,
     )
 
     # npv_data[f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}_gas"] = np.nan
@@ -424,47 +423,43 @@ def analyze_ht_scenario(
     # because the price of the heating has changed. So they actually have a different NPV. We have to do that in the
     # renovation_costs["total_cost"]. There we get NaN data.
 
-
-    for idx, row in tqdm(npv_data.iterrows(), total=len(npv_data)):
+    for idx, row in npv_data.iterrows():
         building_id = row["full_id"]
 
         # Gas NPV for buildings
         energy_costs_original = energy_expenditure_gas[building_id]
-        npv_gas = npv(0, energy_costs_original, income_buildings, building_interest_rate)
+        npv_gas = npv(0, energy_costs_original, income_buildings, ir)
         npv_data.loc[
             idx,
-            f"npv_Gas_{years_buildingstock}years_ir_{building_interest_rate}",
+            f"npv_Gas_{years_buildingstock}years_ir_{ir}",
         ] = npv_gas
 
         # DH NPV for buildings
         energy_costs_new = energy_expenditure_dh[building_id]
-        npv_dh = npv(0, energy_costs_new, income_buildings, building_interest_rate)
+        npv_dh = npv(0, energy_costs_new, income_buildings, ir)
         npv_data.loc[
             idx,
-            f"npv_DH_{years_buildingstock}years_ir_{building_interest_rate}",
+            f"npv_DH_{years_buildingstock}years_ir_{ir}",
         ] = npv_dh
 
         # NPV of savings
         npv_savings = npv_dh - npv_gas
-        npv_data.loc[
-            idx, f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
-        ] = npv_savings
+        npv_data.loc[idx, f"savings_npv_{years_buildingstock}years_ir_{ir}"] = (
+            npv_savings
+        )
 
     # We do not have energy savings for the buildingstock in this case. We do not need to import the
     # renovated buildingstock dataset.
 
-
     # TODO: we will use a 10% profit margin for the LCOH. The resulting number will be the price at which the heat will be sold to the customers.
     # We might use a slightly higher Interest Rate in the NPV to account a little bit for inflation though. We need more research on this.
 
-
     # TODO: no inflation applied for the LCOH. calculate in real terms €2023
-
 
     # Calculate average savings by building type
     avg_savings = (
         npv_data.groupby("building_usage")[
-            f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
+            f"savings_npv_{years_buildingstock}years_ir_{ir}"
         ]
         .mean()
         .sort_values(ascending=False)
@@ -493,7 +488,7 @@ def analyze_ht_scenario(
     for i, building_type in enumerate(building_types, 1):
         plt.subplot(rows, n_columns, i)
         data = npv_data[npv_data["building_usage"] == building_type][
-            f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
+            f"savings_npv_{years_buildingstock}years_ir_{ir}"
         ]
         scatter = sns.histplot(data, kde=True)
         scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
@@ -506,11 +501,8 @@ def analyze_ht_scenario(
     plt.savefig("HighTemperature_SavingsDistribution.png")
     plt.close()
 
-
     # Merge NFA data with npv_data
-    merged_data = npv_data.merge(
-        unrenovated_buildingstock[["full_id", "NFA"]], on="full_id"
-    )
+    merged_data = npv_data.merge(buildingstock[["full_id", "NFA"]], on="full_id")
 
     # Calculate energy savings (assuming original demand - new demand)
     # merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
@@ -528,7 +520,7 @@ def analyze_ht_scenario(
         plot = sns.scatterplot(
             data=data,
             x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
         )
 
         plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
@@ -540,7 +532,7 @@ def analyze_ht_scenario(
         sns.regplot(
             data=data,
             x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
             scatter=False,
             color="red",
         )
@@ -550,12 +542,11 @@ def analyze_ht_scenario(
     plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
     plt.close()
 
-
-        ###################################################################################
-        ###################################################################################
-        ############################### NPV DH Operator ###################################
-        ###################################################################################
-        ###################################################################################
+    ###################################################################################
+    ###################################################################################
+    ############################### NPV DH Operator ###################################
+    ###################################################################################
+    ###################################################################################
 
     # now we need to calculate the NPV for the DH Operator. The operator has spent money for the
     # installation of the grid. It spends money to upkeep the Heat Pumps and run it (electricity costs.)
@@ -569,15 +560,17 @@ def analyze_ht_scenario(
     #### We need to calculate the running costs for the heat pumps. We have this data from the LCOH calculation
 
     total_yearly_costs_hps = (
-        total_var_oem_hp + total_fixed_oem_hp + total_electricity_cost.iloc[0, 0] * 1000000
+        total_var_oem_hp
+        + total_fixed_oem_hp
+        + total_electricity_cost.iloc[0, 0] * 1000000
     )  # in Euros per year
 
     # we have different pricing schemes according to the type and size of customer.
-    npv_data["operator_selling_price"] = npv_data["consumer_size_unrenovated"].map(
-        operator_selling_price
-    )
+    npv_data["operator_selling_price"] = npv_data[
+        f"consumer_size_{simulation_type}"
+    ].map(operator_selling_price)
     revenues = calculate_revenues(
-        npv_data["yearly_demand_delivered_unrenovated_DH"],
+        npv_data[f"yearly_demand_delivered_{simulation_type}_DH"],
         npv_data["operator_selling_price"],
     )
     # revenues = calculate_revenues(
@@ -586,51 +579,76 @@ def analyze_ht_scenario(
     # )
     total_revenues = revenues.sum()  # in Mio €/year
 
-
-    future_revenues = calculate_future_values({"revenues": total_revenues}, dhg_lifetime)
+    future_revenues = calculate_future_values(
+        {"revenues": total_revenues}, dhg_lifetime
+    )
     future_expenses = calculate_future_values(
         {"costs": total_yearly_costs_hps}, dhg_lifetime
     )
     future_expenses["costs"] = future_expenses["costs"]
     from costs.renovation_costs import npv_2
 
-
-    npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, interest_rate)
+    npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
     print(f"NPV of the District Heating Operator: {npv_dh}")
 
-    # 1. Replace interest rates with the parameter
-    interest_rate_dh = interest_rate
-    ir_hp = interest_rate
-    ir_dhg = interest_rate
-    building_interest_rate = interest_rate
+    return npv_data, npv_dh, LCOH_dhg, LCOH_HP
 
-    # 2. Modify heat pump investment costs
-    installation_cost_HP = (
-        capital_costs_hp(capacity_single_hp, "air")
-        * DK_to_DE
-        * update2022_2023
-        * hp_investment_cost_factor
+
+simulation = "unrenovated"
+analysis_types = [
+    "supply_temperature",  # 0
+    "approach_temperature",  # 1
+    "electricity_price",  # 2
+    "gas_price",  # 3
+    "max_cop",  # 4
+    "ir",  # 5
+    "inv_cost_multiplier",  # 6
+]
+num_analysis = 4
+
+os.makedirs(
+    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}", exist_ok=True
+)
+os.makedirs(
+    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/plots",
+    exist_ok=True,
+)
+os.makedirs(
+    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/data",
+    exist_ok=True,
+)
+df_npv = pd.DataFrame()
+
+
+###### we will create a loop for the analysis
+# To set up the loop we want to create different values for the analysis. So we will first insert the number
+# of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
+# and then we will loop through these values.
+n_steps = 10
+max_value = 7
+min_value = 3
+step_size = (max_value - min_value) / n_steps
+values = np.linspace(min_value, max_value, n_steps)
+lcoh_dhg = []
+lcoh_hp = []
+
+for value in tqdm(values):
+    print(
+        f"\n Analysis type: {analysis_types[num_analysis]}, Processing value: {value} \n"
     )
+    df_npv, npv_dh, LCOH_dhg, LCOH_HP = sensitivity_analysis(simulation, max_COP=value)
+    df_npv.to_csv(
+        f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/data/supply_temperature_{value}C.csv"
+    )
+    lcoh_dhg.append(LCOH_dhg)
+    lcoh_hp.append(LCOH_HP)
 
-    # 3. Modify COP calculation
-    if max_cop is not None:
-        cop_hourly = cop_hourly.clip(upper=max_cop)
-
-    # 4. Modify electricity prices
-    initial_electricity_cost = initial_electricity_cost * electricity_price_factor
-
-    # 5. Modify gas prices
-    gas_energy_prices = {k: v * gas_price_factor for k, v in gas_energy_prices.items()}
-
-    # At the end of the code, return the results:
-    return {
-        "npv_operator": npv_dh,
-        "npv_customers": npv_data[
-            f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
-        ].mean(),
-        "lcoh_grid": LCOH_dhg,
-        "lcoh_hp": LCOH_HP,
-    }
-
-
-results = analyze_ht_scenario()
+plt.figure(figsize=(12, 6))
+plt.plot(values, lcoh_dhg, label="LCOH DHG")
+plt.plot(values, lcoh_hp, label="LCOH HP")
+plt.xlabel(f"{analysis_types[num_analysis]}")
+plt.ylabel("LCOH (€/kWh)")
+plt.title(f"Sensitivity Analysis - {analysis_types[num_analysis]}")
+plt.legend()
+# plt.savefig(f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/plots/supply_temperature.png")
+plt.show()
