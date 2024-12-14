@@ -177,10 +177,10 @@ for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows(), total=mask.sum(
 
 
 path_save_results = (
-    f"building_analysis/results/{sim}_{size}/buildingstock_results.parquet"
+    f"building_analysis/results/{sim}_{size}/buildingstock_results_{sim}.parquet"
 )
 gdf_buildingstock_results.to_parquet(path_save_results)
 print(f"Results saved to {path_save_results}")
 
-path_area_results = f"building_analysis/results/{sim}_{size}/area_results.csv"
+path_area_results = f"building_analysis/results/{sim}_{size}/area_results_{sim}.csv"
 area_results.to_csv(path_area_results)

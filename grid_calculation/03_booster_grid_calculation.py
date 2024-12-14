@@ -1676,6 +1676,6 @@ from IPython.display import IFrame
 
 # Save the map
 m.save("booster_map.html")
-result_df.to_parquet("booster_results.parquet")
+result_df.to_parquet("booster_result_df.parquet")
 
 print("\n map and results saved \n")

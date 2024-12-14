@@ -241,5 +241,5 @@ area_results["dhw_energy"] = area_results_unrenovated["dhw_energy"]
 area_results["dhw_volume"] = area_results_unrenovated["dhw_volume"]
 
 area_results.to_csv(
-    "building_analysis/results/renovated_whole_buildingstock/area_results_renovated.csv"
+    f"building_analysis/results/renovated_whole_buildingstock/area_results_{sim}.csv"
 )
