@@ -24,6 +24,8 @@ from costs.renovation_costs import (
 )
 from utils.misc import get_electricity_cost
 
+grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
+
 
 # TODO: the booster's COP is in the buildingstock calculation. We need to find a better way to
 # do this.
@@ -71,7 +73,7 @@ def sensitivity_analysis_booster(
     #############################################################################################
 
     ### import EMBERS data to assess grid losses and total investment costs
-    path_embers = f"grid_calculation/{simulation}_results.parquet"
+    path_embers = f"grid_calculation/sensitivity_analysis/{simulation_type}/{supply_temperature}/booster_result_df_{supply_temperature}.parquet"
     embers_data = pd.read_parquet(path_embers)
 
     # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
@@ -119,7 +121,7 @@ def sensitivity_analysis_booster(
     ## We need to import both the unrenovated and renovated buildingstock
 
     path_unrenovated_area = Path(
-        "building_analysis/results/booster_whole_buildingstock/area_results/area_results_booster_whole_buildingstock.csv"
+        f"building_analysis/results//sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/area_results_{supply_temperature}/area_results_{simulation_type}_whole_buildingstock_{supply_temperature}.csv"
     )
     areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
     areas_demand.index = pd.to_datetime(areas_demand.index)
@@ -131,7 +133,7 @@ def sensitivity_analysis_booster(
 
     # we need the buildingstock data to calculate the investment costs of the booster heat pumps
     # TODO: check whether the pathing is correct or not
-    path_booster_buildingstock = f"building_analysis/results/{simulation}_{size}/buildingstock_{simulation}_{size}_results.parquet"
+    path_booster_buildingstock = f"building_analysis/results/sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/buildingstock_{simulation_type}_whole_buildingstock_{supply_temperature}_results.parquet"
     booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
 
     efficiency_he = 0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
@@ -643,7 +645,7 @@ def sensitivity_analysis_booster(
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop
 
 
-simulation = "unrenovated"
+simulation = "booster"
 analysis_types = [
     "supply_temperature",  # 0
     "approach_temperature",  # 1
@@ -653,7 +655,7 @@ analysis_types = [
     "ir",  # 5
     "inv_cost_multiplier",  # 6
 ]
-num_analysis = 5
+num_analysis = 0
 
 os.makedirs(
     f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}", exist_ok=True
@@ -673,11 +675,11 @@ df_npv = pd.DataFrame()
 # To set up the loop we want to create different values for the analysis. So we will first insert the number
 # of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
 # and then we will loop through these values.
-n_steps = 20
-max_value = 0.01
-min_value = 0.1
+n_steps = 10
+max_value = 70
+min_value = 25
 step_size = (max_value - min_value) / n_steps
-values = np.linspace(min_value, max_value, n_steps)
+values = np.linspace(min_value, max_value, n_steps).astype(int)
 lcoh_dhg = []
 lcoh_hp = []
 max_cop = []
@@ -732,9 +734,12 @@ for value in tqdm(values):
 # Create a figure with two subplots
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
 
+from operator import add
+
 # First subplot for LCOH
 ax1.plot(values, lcoh_dhg, label="LCOH DHG")
 ax1.plot(values, lcoh_hp, label="LCOH HP")
+ax1.plot(values, list(map(add, lcoh_dhg, lcoh_hp)), label="Total LCOH")
 ax1.set_xlabel(f"{analysis_types[num_analysis]}")
 ax1.set_ylabel("LCOH (€/kWh)")
 ax1.set_title(f"Sensitivity Analysis - LCOH vs {analysis_types[num_analysis]}")
