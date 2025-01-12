@@ -54,9 +54,12 @@ for t_grid in temperatures:
     )
 
     # Define the paths where the booster data will be stored
-    booster_dhw_energy_path = f"building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{t_grid}/dhw_energy"
-    booster_dhw_volume_path = f"building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{t_grid}/dhw_volume"
-    booster_space_heating_path = f"building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{t_grid}/space_heating"
+    base_path = f"building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{t_grid}"
+    booster_dhw_energy_path = f"{base_path}/dhw_energy_{t_grid}"
+    booster_dhw_volume_path = f"{base_path}/dhw_volume_{t_grid}"
+    booster_space_heating_path = f"{base_path}/space_heating_{t_grid}"
+    booster_buildingstock_path = f"{base_path}"
+    booster_area_results_path = f"{base_path}/area_results_{t_grid}"
 
     def verify_files_match(source_path: str, dest_path: str) -> bool:
         """
@@ -135,11 +138,11 @@ for t_grid in temperatures:
 
     ### we also need to create a new file to store the heat pump electricity demand
     ### along with the folder path
-    booster_space_heating_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/space_heating_{sim}_{t_grid}"
+    # booster_space_heating_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/space_heating_{sim}_{t_grid}"
     os.makedirs(booster_space_heating_path, exist_ok=True)
 
-    booster_dhw_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/dhw_energy_{sim}_{t_grid}"
-    os.makedirs(booster_dhw_path, exist_ok=True)
+    # booster_dhw_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/dhw_energy_{sim}_{t_grid}"
+    # os.makedirs(booster_dhw_path, exist_ok=True)
 
     ### we create a temporary dataframe to store the heat pump electricity demand
     ### the thermal demand of the HP and its thermal output.
@@ -211,7 +214,9 @@ for t_grid in temperatures:
         ### now we need to calculate the COP for these heat pumps
         ### luckily we have the COP function calculator, so we can use that.
         ### we need to iterate over the space heating data and calculate the COP for each hour
-        COP_hourly = carnot_cop(t_supply_series, t_grid_series, approach_temperature=5)
+        COP_hourly = carnot_cop(
+            t_supply_series, t_grid_series, approach_temperature=5, COP_max=6
+        )
         el_demand = total_demand / COP_hourly.values
         el_demand_series = pd.Series(el_demand)
         el_demand_series.index = index
@@ -260,11 +265,12 @@ for t_grid in temperatures:
         area_dhw_energy[building_id] = dhw_energy.sum(axis=1)
 
     # now we can save the results to a file
+    os.makedirs(booster_buildingstock_path, exist_ok=True)
     gdf_buildingstock_results.to_parquet(
-        f"building_analysis/results/booster/{sim}_{size}_{t_grid}/buildingstock_{sim}_{size}_{t_grid}_results.parquet"
+        f"{booster_buildingstock_path}/buildingstock_{sim}_{size}_{t_grid}_results.parquet"
     )
 
-    area_results_booster_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/area_results_{sim}_{size}_{t_grid}.csv"
+    # area_results_booster_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/area_results_{sim}_{size}_{t_grid}.csv"
 
     area_results = pd.DataFrame(
         columns=[
@@ -282,11 +288,14 @@ for t_grid in temperatures:
     area_results["area dhw energy demand [kWh]"] = area_dhw_energy.sum(axis=1)
     area_results["area dhw volume demand [l]"] = area_dhw_volume.sum(axis=1)
 
-    folder_area_results_path = (
-        f"building_analysis/results/booster/{sim}_{size}_{t_grid}/area_results"
+    # folder_area_results_path = (
+    #     f"building_analysis/results/booster/{sim}_{size}_{t_grid}/area_results"
+    # )
+
+    os.makedirs(booster_area_results_path, exist_ok=True)
+
+    # area_results_booster_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/area_results/area_results_{sim}_{size}_{t_grid}.csv"
+
+    area_results.to_csv(
+        f"{booster_area_results_path}/area_results_{sim}_{size}_{t_grid}.csv"
     )
-    os.makedirs(folder_area_results_path, exist_ok=True)
-
-    area_results_booster_path = f"building_analysis/results/booster/{sim}_{size}_{t_grid}/area_results/area_results_{sim}_{size}_{t_grid}.csv"
-
-    area_results.to_csv(area_results_booster_path)
