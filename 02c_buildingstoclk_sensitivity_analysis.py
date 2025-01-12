@@ -54,9 +54,9 @@ for t_grid in temperatures:
     )
 
     # Define the paths where the booster data will be stored
-    booster_dhw_energy_path = f"building_analysis/results/booster/booster_whole_buildingstock_{t_grid}/dhw_energy"
-    booster_dhw_volume_path = f"building_analysis/results/booster/booster_whole_buildingstock_{t_grid}/dhw_volume"
-    booster_space_heating_path = f"building_analysis/results/booster/booster_whole_buildingstock_{t_grid}/space_heating"
+    booster_dhw_energy_path = f"building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{t_grid}/dhw_energy"
+    booster_dhw_volume_path = f"building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{t_grid}/dhw_volume"
+    booster_space_heating_path = f"building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{t_grid}/space_heating"
 
     def verify_files_match(source_path: str, dest_path: str) -> bool:
         """
