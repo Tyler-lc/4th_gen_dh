@@ -14,8 +14,8 @@ def carnot_cop(
     Calculate the COP of a heat pump using the Carnot formula.
 
     Args:
-        T_hot (pd.Series): Hot temperature.
-        T_cold (pd.Series): Cold temperature.
+        T_hot (pd.Series): Hot temperature in Celsius
+        T_cold (pd.Series): Cold temperature in Celsius
         approach_temperature (float): Approach temperature to be added.
         carnot_efficiency (float): Carnot efficiency factor. Default is 0.524.
 
