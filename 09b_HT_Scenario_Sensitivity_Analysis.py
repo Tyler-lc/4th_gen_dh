@@ -75,10 +75,8 @@ def sensitivity_analysis(
 
     dhg_lifetime = 25  # years
     # investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
-    ir = 0.05
 
     years_buildingstock = 25
-    ir = 0.05
 
     ### Let's find out what is the size of the customer now for GAS
     small_consumer_threshold = 20  # GJ per year
@@ -162,6 +160,7 @@ def sensitivity_analysis(
         carnot_efficiency=carnot_efficiency,
         COP_max=max_COP,
     )
+    max_cop = cop_hourly.max()
 
     P_el = (
         areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
@@ -248,6 +247,7 @@ def sensitivity_analysis(
         heat_supplied_df * 1000,  # # convert to kWh
         ir,
     )  # in this case we are getting Euros per kWh produced.
+    print(f"interest rate: {ir}")
     print(f"LCOH of the Heat Pumps: {LCOH_HP}")
 
     dhg_other_costs = np.zeros(dhg_lifetime)
@@ -264,7 +264,7 @@ def sensitivity_analysis(
         heat_supplied_dhg * 1000,
         ir,
     )
-
+    print(f"interest rate: {ir}")
     # LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
     print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 
@@ -591,7 +591,7 @@ def sensitivity_analysis(
     npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
     print(f"NPV of the District Heating Operator: {npv_dh}")
 
-    return npv_data, npv_dh, LCOH_dhg, LCOH_HP
+    return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop
 
 
 simulation = "unrenovated"
@@ -604,7 +604,7 @@ analysis_types = [
     "ir",  # 5
     "inv_cost_multiplier",  # 6
 ]
-num_analysis = 4
+num_analysis = 5
 
 os.makedirs(
     f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}", exist_ok=True
@@ -624,31 +624,88 @@ df_npv = pd.DataFrame()
 # To set up the loop we want to create different values for the analysis. So we will first insert the number
 # of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
 # and then we will loop through these values.
-n_steps = 10
-max_value = 7
-min_value = 3
+n_steps = 20
+max_value = 0.01
+min_value = 0.1
 step_size = (max_value - min_value) / n_steps
 values = np.linspace(min_value, max_value, n_steps)
 lcoh_dhg = []
 lcoh_hp = []
+max_cop = []
+npv_operator = []  # Add this list to collect operator NPV values
+
+# the max_COP simulation will require also to change the carnot_efficiency.
+# The max_COP we hit is anyway 3.6 with the standard carnot_efficiency value. So we do not see
+# almost any diffeerence. To change the carnot_efficiency during the max_COP simulation use this
+carnot_efficiency = 0.524  # 0.524 is the standard value.
 
 for value in tqdm(values):
     print(
         f"\n Analysis type: {analysis_types[num_analysis]}, Processing value: {value} \n"
     )
-    df_npv, npv_dh, LCOH_dhg, LCOH_HP = sensitivity_analysis(simulation, max_COP=value)
+    if num_analysis == 0:
+        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            simulation, supply_temperature=value
+        )
+    elif num_analysis == 1:
+        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            simulation, approach_temperature=value
+        )
+    elif num_analysis == 2:
+        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            simulation, electricity_cost_multiplier=value
+        )
+    elif num_analysis == 3:
+        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            simulation, gas_cost_multiplier=value
+        )
+    elif num_analysis == 4:
+        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            simulation, max_COP=value, carnot_efficiency=carnot_efficiency
+        )
+    elif num_analysis == 5:
+        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            simulation, ir=value
+        )
+    elif num_analysis == 6:
+        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            simulation, inv_cost_multiplier=value
+        )
+
     df_npv.to_csv(
         f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/data/supply_temperature_{value}C.csv"
     )
     lcoh_dhg.append(LCOH_dhg)
     lcoh_hp.append(LCOH_HP)
+    max_cop.append(cop)
+    npv_operator.append(npv_dh)  # Add the operator NPV to our list
 
-plt.figure(figsize=(12, 6))
-plt.plot(values, lcoh_dhg, label="LCOH DHG")
-plt.plot(values, lcoh_hp, label="LCOH HP")
-plt.xlabel(f"{analysis_types[num_analysis]}")
-plt.ylabel("LCOH (€/kWh)")
-plt.title(f"Sensitivity Analysis - {analysis_types[num_analysis]}")
-plt.legend()
-# plt.savefig(f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/plots/supply_temperature.png")
+# Create a figure with two subplots
+fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+
+# First subplot for LCOH
+ax1.plot(values, lcoh_dhg, label="LCOH DHG")
+ax1.plot(values, lcoh_hp, label="LCOH HP")
+ax1.set_xlabel(f"{analysis_types[num_analysis]}")
+ax1.set_ylabel("LCOH (€/kWh)")
+ax1.set_title(f"Sensitivity Analysis - LCOH vs {analysis_types[num_analysis]}")
+ax1.legend()
+
+# Second subplot for Operator NPV
+ax2.plot(values, npv_operator, label="DH Operator NPV", color="green")
+ax2.set_xlabel(f"{analysis_types[num_analysis]}")
+ax2.set_ylabel("NPV (€)")
+ax2.set_title(
+    f"Sensitivity Analysis - DH Operator NPV vs {analysis_types[num_analysis]}"
+)
+ax2.legend()
+
+# Adjust layout to prevent overlap
+plt.tight_layout()
+
+# Save the figure
+plt.savefig(
+    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/plots/sensitivity_analysis.png"
+)
+plt.close()
 plt.show()
