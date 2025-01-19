@@ -76,11 +76,10 @@ def sensitivity_analysis_booster(
     path_embers = f"grid_calculation/sensitivity_analysis/{simulation_type}/{supply_temperature}/booster_result_df_{supply_temperature}.parquet"
     embers_data = pd.read_parquet(path_embers)
 
-    # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
-    margin = 0
-    taxation = 0.07
-    # reduction_factor = 0.938372  # NPV DH operator is 0
-    reduction_factor = 1
+    # margin, taxation and reduction_factor are now arguments of the function
+    # margin = 0
+    # taxation = 0.07
+    # reduction_factor = 1
 
     n_heat_pumps = 2  # might need changing!!!!
 
@@ -432,37 +431,58 @@ def sensitivity_analysis_booster(
         # booster_buildingstock.loc[idx, "dhg_cost_booster [€]"] = booster_buildingstock.loc[
         #     idx, "total_demand_on_grid [kWh]"
         # ]
+    # lcoh = (Inv + (sum( p_el*W_booster +p_lth*Q_dhg - Cm))/(i+1)^t)/(sum(Q_booster/(i+1)^t))
 
     fixed_oem_boosters = calculate_future_values(
         {"Fixed O&M": fixed_costs_boosters}, n_years_hp
-    )
+    )  # this is the Cm in the eqution
     annual_electricity_cost_boosters = booster_buildingstock[
         "electricity_cost_booster [€]"
     ].sum()
     electricity_cost_boosters = calculate_future_values(
         {"Variable O&M": annual_electricity_cost_boosters}, n_years_hp
-    )
+    )  # this is the p_el*W_booster in the eqution
 
     electricity_demand_boosters = booster_buildingstock[
         "total_demand_electricity [kWh]"
     ].sum()
     total_heat_supplied_by_boosters = calculate_future_values(
         {"Heat Supplied (MWh)": electricity_demand_boosters}, n_years_hp
-    )
+    )  # this is Q_booster in the eqution
 
     total_heat_supplied_by_dhg = booster_buildingstock[
         "total_demand_on_grid [kWh]"
-    ].sum()
+    ].sum()  # this is Q_dhg in the eqution
     variable_oem_boosters = calculate_future_values({"Variable O&M": 0}, n_years_hp)
 
     total_investment_costs_boosters = booster_buildingstock["cost_hp_booster [€]"].sum()
 
-    lcoh_boosters_num = total_investment_costs_boosters
-    lcoh_booster_den = (
-        booster_buildingstock["yearly_space_heating"].sum()
-        + booster_buildingstock["yearly_dhw_energy"].sum()
+    numerator = (
+        total_investment_costs_boosters
+        + (
+            electricity_cost_boosters
+            + total_heat_supplied_by_dhg * (LCOH_HP + LCOH_dhg)
+            - fixed_costs_boosters
+        )
     ) / (1 + ir) ** 25
-    lcoh_booster = lcoh_boosters_num / lcoh_booster_den
+
+    # lcoh_boosters_num = total_investment_costs_boosters +
+    # lcoh_booster_den = (
+    #     booster_buildingstock["yearly_space_heating"].sum()
+    #     + booster_buildingstock["yearly_dhw_energy"].sum()
+    # ) / (1 + ir) ** 25
+    # lcoh_booster = lcoh_boosters_num / lcoh_booster_den
+    # print(f"simple formula LCOH booster: {lcoh_booster}")
+
+    # the original equation from "evaluation the cost of heat for end users":
+    # lcoh = (Inv + (sum( p_el*W_booster +p_lth*Q_dhg - Cm))/(i+1)^t)/(sum(Q_booster/(i+1)^t))
+    # where:
+    # Inv = total_investment_costs_boosters
+    # p_el = initial_electricity_cost_system
+    # W_booster = electricity_demand_boosters
+    # p_lth = LCOH_HP + LCOH_dhg
+    # Q_dhg = total_heat_supplied_by_dhg
+    # Cm = fixed_costs_boosters
 
     lcoh_electricity_boosters = calculate_future_values(
         {"electricity": initial_electricity_cost_system * electricity_demand_boosters},
@@ -491,6 +511,11 @@ def sensitivity_analysis_booster(
         lcoh_total_heat_generated_boosters,
         ir,
     )
+    print(f"LCOH booster: {lcoh_booster}")
+
+    # now i want to manually calculate the price of heat supplied to the customers.
+    # first we calculate the amount spent on electricity for the heat pumps:
+    el_boosters = booster_buildingstock["total_demand_electricity [kWh]"].sum()
 
     price_heat_eurokwh_residential = (
         (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
@@ -634,6 +659,41 @@ def sensitivity_analysis_booster(
             idx, f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
         ] = npv_savings
 
+    overnight_costs = (
+        total_installation_costs
+        + investment_costs_dhg
+        + total_investment_costs_boosters / 1000000
+    ) * 1000000
+    total_yearly_costs_large_hps = (
+        total_var_oem_large_hp
+        + total_fixed_oem_large_hp
+        + large_hp_total_electricity_cost.iloc[0, 0] * 1000000
+    )  # in Euros per year
+    total_yearly_costs_boosters = (
+        lcoh_fixed_oem_boosters.values[0] + lcoh_electricity_boosters.values[0]
+    )
+    total_yearly_costs = total_yearly_costs_large_hps + total_yearly_costs_boosters
+    npv_data["operator_selling_price"] = npv_data[f"consumer_size_unrenovated"].map(
+        operator_selling_price
+    )
+    revenues = calculate_revenues(
+        npv_data[f"yearly_demand_delivered_unrenovated_DH"],
+        npv_data["operator_selling_price"],
+    )
+
+    total_revenues = revenues.sum()
+    future_revenues = calculate_future_values(
+        {"revenues": total_revenues}, dhg_lifetime
+    )
+    future_expenses = calculate_future_values(
+        {"costs": total_yearly_costs}, dhg_lifetime
+    )
+    future_expenses["costs"] = future_expenses["costs"]
+    from costs.renovation_costs import npv_2
+
+    npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
+    print(f"NPV of the District Heating Operator: {npv_dh}")
+
     # We do not have energy savings for the buildingstock in this case. We do not need to import the
     # renovated buildingstock dataset.
 
@@ -761,5 +821,5 @@ plt.tight_layout()
 plt.savefig(
     f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/plots/sensitivity_analysis.png"
 )
-plt.close()
+# plt.close()
 plt.show()
