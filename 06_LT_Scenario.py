@@ -4,6 +4,7 @@ import geopandas as gpd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
+import os
 
 from pathlib import Path
 
@@ -105,7 +106,9 @@ installation_cost_HP = (
 total_installation_costs = installation_cost_HP * n_heat_pumps  # Million euros
 
 single_var_oem_hp = (
-    var_oem_hp(capacity_single_hp, "air", heat_pump_load) * DK_to_DE * update2022_2023
+    var_oem_hp(capacity_single_hp, "air", heat_pump_load.sum())
+    * DK_to_DE
+    * update2022_2023
 )  # Million Euros
 
 single_fix_oem = (
@@ -139,6 +142,8 @@ total_electricity_cost = (
     * future_electricity_prices
     / 1000000  # kWh electricity * price in €/kWh / 1000000 to convert to Million euros
 )  # Million euros
+
+
 total_var_oem_hp = single_var_oem_hp * n_heat_pumps
 total_fixed_oem_hp = single_fix_oem * n_heat_pumps
 yearly_heat_supplied = areas_demand["delivered_energy"].sum() / 1000  # MW
@@ -155,19 +160,18 @@ total_electricity_cost_df = pd.DataFrame(total_electricity_cost)
 
 ir_hp = 0.05
 LCOH_HP = calculate_lcoh(
-    total_installation_costs,
+    total_installation_costs * 1000000,  # convert to euros
     fixed_oem_hp_df,
     var_oem_hp_df,
-    total_electricity_cost_df,
-    heat_supplied_df,  # TODO: use heat delivered
+    total_electricity_cost_df * 1000000,  # convert to euros
+    heat_supplied_df * 1000,  # convert to kWh
     ir_hp,
 )  # in this case we are getting Million Euros per MWh produced. We need  to convert to Euros per kWh produced
 
-LCOH_eurokwh = LCOH_HP * 1000000 / 1000  # 1000000 million / 1000 kWh
-print(f"LCOH of the Heat Pumps: {LCOH_eurokwh}")
+print(f"LCOH of the Heat Pumps: {LCOH_HP}")
 
 
-dhg_lifetime = 60  # years
+dhg_lifetime = 25  # years
 dhg_other_costs = np.zeros(dhg_lifetime)
 dhg_other_costs_df = pd.DataFrame(dhg_other_costs)
 heat_supplied_dhg = pd.DataFrame(  ## In this case we are using the heat supplied in the Grid, not the delivered heat
@@ -191,18 +195,16 @@ print(f"LCOH_dhg_eurokwh: {LCOH_dhg_eurokwh}")
 
 margin = 0.111
 taxation = 0.07
-price_heat_eurokwh_residential = (
-    (LCOH_eurokwh + LCOD_dhg) * (1 + margin) * (1 + taxation)
-)
+price_heat_eurokwh_residential = (LCOH_HP + LCOD_dhg) * (1 + margin) * (1 + taxation)
 print(
     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
 )
-price_heat_eurokwh_non_residential = (LCOH_eurokwh + LCOD_dhg) * (1 + margin)
+price_heat_eurokwh_non_residential = (LCOH_HP + LCOD_dhg) * (1 + margin)
 print(
     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
 )
 price_heat_eurokwh_non_residential_VAT = (
-    (LCOH_eurokwh + LCOD_dhg) * (1 + margin) * (1 + taxation)
+    (LCOH_HP + LCOD_dhg) * (1 + margin) * (1 + taxation)
 )
 
 
@@ -262,11 +264,11 @@ building_interest_rate = 0.05
 
 # import the data with the renovated buildingstock
 renovated_buildingstock_path = Path(
-    "building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+    "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
 )
 
 renovated_buildingstock = gpd.read_parquet(renovated_buildingstock_path)
-
+renovated_buildingstock = renovated_buildingstock[renovated_buildingstock["NFA"] >= 30]
 
 year_consumption = pd.DataFrame(
     {
@@ -303,7 +305,11 @@ medium_consumer_threshold = 200  # GJ per year
 res_types = ["mfh", "sfh", "ab", "th"]
 
 npv_data["consumer_size"] = consumer_size(
-    npv_data, small_consumer_threshold, medium_consumer_threshold, res_types
+    npv_data,
+    small_consumer_threshold,
+    medium_consumer_threshold,
+    res_types,
+    "yearly_demand_delivered",
 )
 
 
@@ -407,6 +413,9 @@ for idx, row in npv_data.iterrows():
 # plt.grid(True)
 # plt.show()
 
+### create the folder for the plots
+os.makedirs("plots/LowTemperature", exist_ok=True)
+
 # Calculate average savings by building type
 avg_savings = (
     npv_data.groupby("building_usage")[
@@ -424,13 +433,14 @@ plt.xlabel("Building Type")
 plt.ylabel("Average NPV Savings (€)")
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/LowTemperature/LowTemperature_AverageSavingsByBuildingType.png")
 
 # Plot histogram of savings distribution by building type
 plt.figure(figsize=(15, 10))
 building_types = npv_data["building_usage"].unique()
 num_types = len(building_types)
 rows = (num_types + 1) // 2  # Calculate number of rows needed
+
 
 for i, building_type in enumerate(building_types, 1):
     plt.subplot(rows, 2, i)
@@ -443,8 +453,8 @@ for i, building_type in enumerate(building_types, 1):
     plt.ylabel("Frequency")
 
 plt.tight_layout()
-plt.show()
-
+# plt.show()
+plt.savefig("plots/LowTemperature/LowTemperature_SavingsDistribution.png")
 
 # Merge NFA data with npv_data
 merged_data = npv_data.merge(renovated_buildingstock[["full_id", "NFA"]], on="full_id")
@@ -476,8 +486,8 @@ for i, building_type in enumerate(building_types, 1):
     # sns.regplot(data=data, x='NFA', y='energy_savings', scatter=False, color='red')
 
 plt.tight_layout()
-plt.show()
-
+# plt.show()
+plt.savefig("plots/LowTemperature/LowTemperature_EnergySavingsVsNFA.png")
 
 ###################################################################################
 ###################################################################################
@@ -485,15 +495,13 @@ plt.show()
 ###################################################################################
 ###################################################################################
 
+
 # now we need to calculate the NPV for the DH Operator. The operator has spent money for the
 # installation of the grid. It spends money to upkeep the Heat Pumps and run it (electricity costs.)
 # It will also receive money from the customers from the heat delivered.
 # I am not sure about the maintenance and running costs for the District Heating Network.
 overnight_costs = total_installation_costs + investment_costs_dhg
-heat_pump_lifetime = 25
-heat_pump_replacement = pd.DataFrame()
-heat_pump_replacement["costs"] = np.zeros(dhg_lifetime)
-heat_pump_replacement.iloc[heat_pump_lifetime] = total_installation_costs
+
 #### We need to calculate the running costs for the heat pumps. We have this data from the LCOH calculation
 
 total_yearly_costs_hps = (
@@ -514,7 +522,7 @@ future_revenues = calculate_future_values({"revenues": total_revenues}, dhg_life
 future_expenses = calculate_future_values(
     {"costs": total_yearly_costs_hps}, dhg_lifetime
 )
-future_expenses["costs"] = future_expenses["costs"] + heat_pump_replacement["costs"]
+future_expenses["costs"] = future_expenses["costs"]
 
 interest_rate_dh = 0.03
 npv_dh = npv(-overnight_costs, future_expenses, future_revenues, interest_rate_dh)
