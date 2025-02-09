@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import seaborn as sns
 from tqdm import tqdm
+import os
 
 from pathlib import Path
 import sys
@@ -79,7 +80,7 @@ res_types = ["mfh", "sfh", "ab", "th"]
 ## We need to import both the unrenovated and renovated buildingstock
 
 path_unrenovated_area = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/area_results.csv"
+    "building_analysis/results/unrenovated_whole_buildingstock/area_results_unrenovated.csv"
 )
 areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
 areas_demand.index = pd.to_datetime(areas_demand.index)
@@ -309,10 +310,14 @@ operator_selling_price = {
 # and now let's import the unrenovated buildingstock
 
 unrenovated_buildingstock_path = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
 )
 
 unrenovated_buildingstock = gpd.read_parquet(unrenovated_buildingstock_path)
+unrenovated_buildingstock = unrenovated_buildingstock[
+    unrenovated_buildingstock["NFA"] >= 30
+]
+
 
 year_consumption = pd.DataFrame(
     {
@@ -472,7 +477,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 # plt.show()
-plt.savefig("HighTemperature_SavingsDistribution.png")
+plt.savefig("plots/HighTemperature/HighTemperature_SavingsDistribution.png")
 plt.close()
 
 
@@ -514,9 +519,10 @@ for i, building_type in enumerate(building_types, 1):
         color="red",
     )
 
+os.makedirs("plots/HighTemperature", exist_ok=True)
 plt.tight_layout()
 # plt.show()
-plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
+plt.savefig("plots/HighTemperature/HighTemperature_EnergySavingsVsNFA.png")
 plt.close()
 
 
