@@ -21,6 +21,7 @@ from costs.renovation_costs import (
     npv,
     renovation_costs_iwu,
 )
+from utils.misc import get_electricity_cost
 
 #############################################################################################
 # In this scenario we compare the NPV of the customer when they do not renovate and use gas
@@ -34,16 +35,18 @@ margin = 0
 taxation = 0.07
 reduction_factor = 1  # to match make have NPV (can't reach it) 0
 # reduction_factor = 0.42 # to match HT results
-# reduction_factor = 0.8268  # to bring NPV to 0
+# reduction_factor = 0.656  # to bring NPV to 0
 # reduction_factor = 1
 
 safety_factor = 1.2
 n_heat_pumps = 2
 
 
-initial_electricity_cost = (
-    0.2017  # EUROSTAT 2023- semester 2 for consumption between 2000 MWH and 19999 MWH
-)
+# initial_electricity_cost = (
+#     0.2017  # EUROSTAT 2023- semester 2 for consumption between 2000 MWH and 19999 MWH
+# )
+
+
 n_years_hp = 25  # for LCOH calculation
 ir_hp = 0.05  # interest rate for the heat pump
 heat_pump_lifetime = 25  # setting years until replacement
@@ -141,6 +144,11 @@ P_el = (
     areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
 )  # this is the Electric power input for ALL heat pumps
 
+# and this is the electricity cost for the large scale heat pump in €/MWh
+initial_electricity_cost = get_electricity_cost(
+    P_el.sum() / 1000,
+    "non_residential",  # total electricity consumption
+)
 DK_to_DE = (
     109.1 / 148.5
 )  # this is the ratio of the installation costs of a heat pump in Denmark to Germany
@@ -253,7 +261,7 @@ price_heat_eurokwh_non_residential_VAT = (
 ### We decide to set the price of the heat supplied to the customer depending on the energy demand of the customer.
 ### We will use the R2 and NR2 as the lowest (which should be price_heat_eurokwh_residential and price_heat_eurokwh_non_residential)ù
 ### All the other demand categories will have a price higher than those. The difference in prices will be based on the same ratio already
-### applied to the current energy prices for gas.
+### applied to the current energy prices for gas. There are actually only 3 categories for residential usage from EUROSTAT.
 gas_energy_prices = {  # eurostat data
     "r0": 0.1405,  # residential small
     "r1": 0.1145,  # residential medium
@@ -304,15 +312,17 @@ operator_selling_price = {
 
 # import the data with the renovated buildingstock
 renovated_buildingstock_path = Path(
-    "building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+    "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
 )
 
 renovated_buildingstock = gpd.read_parquet(renovated_buildingstock_path)
+renovated_buildingstock = renovated_buildingstock[renovated_buildingstock["NFA"] >= 30]
+
 
 # and now let's import the unrenovated buildingstock
 
 unrenovated_buildingstock_path = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
 )
 
 unrenovated_buildingstock = gpd.read_parquet(unrenovated_buildingstock_path)
@@ -475,8 +485,10 @@ bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
 bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.show()
-# plt.savefig("LowTemperature_AverageSavings.png")
+# plt.show()
+plt.savefig(
+    f"plots/LowTemperature/LowTemperature_AverageSavings_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
 
 n_columns = 3
@@ -498,7 +510,9 @@ for i, building_type in enumerate(building_types, 1):
     scatter.tick_params(labelsize=12)
 
 plt.tight_layout()
-plt.savefig("LowTemperature_SavingsDistribution.png")
+plt.savefig(
+    f"plots/LowTemperature/LowTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
 
 # Merge NFA data with npv_data
@@ -521,11 +535,6 @@ for i, building_type in enumerate(building_types, 1):
     )
 
     plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
-    plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
-    plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
-    plot.tick_params(labelsize=12)
-
-    # Add a trend line
     sns.regplot(
         data=data,
         x="NFA",
@@ -533,9 +542,16 @@ for i, building_type in enumerate(building_types, 1):
         scatter=False,
         color="red",
     )
+    plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
+    plot.tick_params(labelsize=12)
+
+    # Add a trend line
 
 plt.tight_layout()
-plt.savefig("LowTemperature_EnergySavingsVsNFA.png")
+plt.savefig(
+    f"plots/LowTemperature/LowTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
 
 
@@ -606,7 +622,9 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 # plt.show()
 plt.tight_layout()
-plt.savefig("LowTemperature_SavingsAverage.png")
+plt.savefig(
+    f"plots/LowTemperature/LowTemperature_SavingsAverage_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
 
 # Plot histogram of NPV per NFA distribution by building type
@@ -624,7 +642,9 @@ for i, building_type in enumerate(building_types, 1):
     plt.ylabel("Frequency")
 
 plt.tight_layout()
-plt.savefig("LowTemperature_SavingsDistribution.png")
+plt.savefig(
+    f"plots/LowTemperature/LowTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
 
 # Create scatter plots
@@ -634,18 +654,22 @@ num_types = len(building_types)
 rows = (num_types + 1) // 2  # Calculate number of rows needed
 
 for i, building_type in enumerate(building_types, 1):
-    plt.subplot(rows, 2, i)
+    # Create subplot and get axis object explicitly
+    ax = plt.subplot(rows, 2, i)
     data = npv_data[npv_data["building_usage"] == building_type]
 
-    sns.scatterplot(data=data, x="NFA", y="npv_per_nfa")
+    # Create both plots first
+    sns.scatterplot(data=data, x="NFA", y="npv_per_nfa", ax=ax)
+    sns.regplot(data=data, x="NFA", y="npv_per_nfa", scatter=False, color="red", ax=ax)
 
-    plt.title(f"NPV per NFA vs NFA - {building_type}")
-    plt.xlabel("Net Floor Area (m²)")
-    plt.ylabel("NPV per Net Floor Area (€/m²)")
-
-    # Add a trend line
-    sns.regplot(data=data, x="NFA", y="npv_per_nfa", scatter=False, color="red")
+    # Set all labels after both plots are created
+    ax.set_title(f"NPV per NFA vs NFA - {building_type}", fontsize=14)
+    ax.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    ax.set_ylabel("NPV per Net Floor Area (€/m²)", fontsize=12)
+    ax.tick_params(labelsize=12)
 
 plt.tight_layout()
-plt.savefig("LowTemperature_EnergySavingsVsNFA.png")
+plt.savefig(
+    f"plots/LowTemperature/LowTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
