@@ -35,7 +35,7 @@ interest_rate_dh = 0.05
 # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
 margin = 0
 taxation = 0.07
-# reduction_factor = 0.938372  # NPV DH operator is 0
+# reduction_factor = 0.951  # NPV DH operator is 0
 reduction_factor = 1
 
 safety_factor = 1.2
@@ -444,6 +444,151 @@ avg_savings = (
     .sort_values(ascending=False)
 )
 
+# Here I calculate the savings per NFA for each building
+npv_data["NFA"] = unrenovated_buildingstock["NFA"]
+npv_data["npv_per_nfa"] = (
+    npv_data[f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"]
+    / npv_data["NFA"]
+)
+
+#### these graphs will show the savings per NFA for each building type:
+# Calculate average NPV per NFA by building type
+avg_npv_per_nfa = (
+    npv_data.groupby("building_usage")["npv_per_nfa"]
+    .mean()
+    .sort_values(ascending=False)
+)
+
+# Plot average NPV savings per NFA by building type
+plt.figure(figsize=(12, 6))
+avg_npv_per_nfa.plot(kind="bar")
+plt.title("Average NPV per Net Floor Area by Building Type")
+plt.xlabel("Building Type")
+plt.ylabel("Average NPV per Net Floor Area (€/m²)")
+plt.xticks(rotation=45)
+plt.tight_layout()
+# plt.show()
+plt.tight_layout()
+plt.savefig(
+    f"plots/HighTemperature/HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}.png"
+)
+plt.close()
+
+
+# Plot histogram of NPV per NFA distribution by building type
+plt.figure(figsize=(15, 10))
+building_types = npv_data["building_usage"].unique()
+num_types = len(building_types)
+rows = (num_types + 1) // 3  # Calculate number of rows needed
+
+for i, building_type in enumerate(building_types, 1):
+    plt.subplot(rows, 3, i)
+    data = npv_data[npv_data["building_usage"] == building_type]["npv_per_nfa"]
+    sns.histplot(data, kde=True)
+    plt.title(f"NPV per NFA Distribution - {building_type}")
+    plt.xlabel("NPV per Net Floor Area (€/m²)")
+    plt.ylabel("Frequency")
+
+plt.tight_layout()
+plt.savefig(
+    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
+)
+plt.close()
+
+merged_data = npv_data.merge(
+    unrenovated_buildingstock[["full_id", "NFA"]], on="full_id"
+)
+
+
+# Create scatter plots
+plt.figure(figsize=(20, 15))
+building_types = merged_data["building_usage"].unique()
+num_types = len(building_types)
+rows = (num_types + 2) // 3  # Calculate number of rows needed for 3 columns
+
+for i, building_type in enumerate(building_types, 1):
+    plt.subplot(rows, 3, i)
+    data = merged_data[merged_data["building_usage"] == building_type]
+
+    plot = sns.scatterplot(
+        data=data,
+        x="NFA_x",
+        y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+    )
+
+    plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
+    sns.regplot(
+        data=data,
+        x="NFA_x",
+        y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+        scatter=False,
+        color="red",
+    )
+    plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
+    plot.tick_params(labelsize=12)
+
+    # Add a trend line
+
+plt.tight_layout()
+plt.savefig(
+    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
+)
+plt.close()
+
+
+# Plot histogram of NPV per NFA distribution by building type
+plt.figure(figsize=(15, 10))
+building_types = npv_data["building_usage"].unique()
+num_types = len(building_types)
+rows = (num_types + 1) // 2  # Calculate number of rows needed
+
+for i, building_type in enumerate(building_types, 1):
+    plt.subplot(rows, 2, i)
+    data = npv_data[npv_data["building_usage"] == building_type]["npv_per_nfa"]
+    sns.histplot(data, kde=True)
+    plt.title(f"NPV per NFA Distribution - {building_type}")
+    plt.xlabel("NPV per Net Floor Area (€/m²)")
+    plt.ylabel("Frequency")
+
+plt.tight_layout()
+plt.savefig(
+    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
+)
+plt.close()
+
+
+# Create scatter plots
+plt.figure(figsize=(20, 15))
+building_types = npv_data["building_usage"].unique()
+num_types = len(building_types)
+rows = (num_types + 1) // 2  # Calculate number of rows needed
+
+for i, building_type in enumerate(building_types, 1):
+    # Create subplot and get axis object explicitly
+    ax = plt.subplot(rows, 2, i)
+    data = npv_data[npv_data["building_usage"] == building_type]
+
+    # Create both plots first
+    sns.scatterplot(data=data, x="NFA", y="npv_per_nfa", ax=ax)
+    sns.regplot(data=data, x="NFA", y="npv_per_nfa", scatter=False, color="red", ax=ax)
+
+    # Set all labels after both plots are created
+    ax.set_title(f"NPV per NFA vs NFA - {building_type}", fontsize=14)
+    ax.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    ax.set_ylabel("NPV per Net Floor Area (€/m²)", fontsize=12)
+    ax.tick_params(labelsize=12)
+
+plt.tight_layout()
+plt.savefig(
+    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
+)
+plt.close()
+
+
+#### This has been commented out because we are doing slightly different graphs But I am not sure
+#### if we are going back to these anyway!
+
 # Plot average savings by building type
 plt.figure(figsize=(12, 6))
 bar = avg_savings.plot(kind="bar")
@@ -454,76 +599,78 @@ bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
 bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig("HighTemperature_AverageSavings.png")
-plt.close()
-
-n_columns = 3
-# Plot histogram of savings distribution by building type
-plt.figure(figsize=(20, 15))
-building_types = npv_data["building_usage"].unique()
-num_types = len(building_types)
-rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
-
-for i, building_type in enumerate(building_types, 1):
-    plt.subplot(rows, n_columns, i)
-    data = npv_data[npv_data["building_usage"] == building_type][
-        f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
-    ]
-    scatter = sns.histplot(data, kde=True)
-    scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
-    scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
-    scatter.set_ylabel("Frequency", fontsize=12)
-    scatter.tick_params(labelsize=12)
-
-plt.tight_layout()
-# plt.show()
-plt.savefig("plots/HighTemperature/HighTemperature_SavingsDistribution.png")
-plt.close()
-
-
-# Merge NFA data with npv_data
-merged_data = npv_data.merge(
-    unrenovated_buildingstock[["full_id", "NFA"]], on="full_id"
+plt.savefig(
+    f"plots/HighTemperature/HighTemperature_AverageSavings_reduction_factor_{reduction_factor}.png"
 )
-
-# Calculate energy savings (assuming original demand - new demand)
-# merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
-
-# Create scatter plots
-plt.figure(figsize=(20, 15))
-building_types = merged_data["building_usage"].unique()
-num_types = len(building_types)
-rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
-
-for i, building_type in enumerate(building_types, 1):
-    plt.subplot(rows, n_columns, i)
-    data = merged_data[merged_data["building_usage"] == building_type]
-
-    plot = sns.scatterplot(
-        data=data,
-        x="NFA",
-        y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
-    )
-
-    plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
-    plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
-    plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
-    plot.tick_params(labelsize=12)
-
-    # Add a trend line
-    sns.regplot(
-        data=data,
-        x="NFA",
-        y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
-        scatter=False,
-        color="red",
-    )
-
-os.makedirs("plots/HighTemperature", exist_ok=True)
-plt.tight_layout()
-# plt.show()
-plt.savefig("plots/HighTemperature/HighTemperature_EnergySavingsVsNFA.png")
 plt.close()
+
+# n_columns = 3
+# # Plot histogram of savings distribution by building type
+# plt.figure(figsize=(20, 15))
+# building_types = npv_data["building_usage"].unique()
+# num_types = len(building_types)
+# rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+
+# for i, building_type in enumerate(building_types, 1):
+#     plt.subplot(rows, n_columns, i)
+#     data = npv_data[npv_data["building_usage"] == building_type][
+#         f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
+#     ]
+#     scatter = sns.histplot(data, kde=True)
+#     scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
+#     scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+#     scatter.set_ylabel("Frequency", fontsize=12)
+#     scatter.tick_params(labelsize=12)
+
+# plt.tight_layout()
+# # plt.show()
+# plt.savefig("plots/HighTemperature/HighTemperature_SavingsDistribution.png")
+# plt.close()
+
+
+# # Merge NFA data with npv_data
+# merged_data = npv_data.merge(
+#     unrenovated_buildingstock[["full_id", "NFA"]], on="full_id"
+# )
+
+# # Calculate energy savings (assuming original demand - new demand)
+# # merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
+
+# # Create scatter plots
+# plt.figure(figsize=(20, 15))
+# building_types = merged_data["building_usage"].unique()
+# num_types = len(building_types)
+# rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+
+# for i, building_type in enumerate(building_types, 1):
+#     plt.subplot(rows, n_columns, i)
+#     data = merged_data[merged_data["building_usage"] == building_type]
+
+#     plot = sns.scatterplot(
+#         data=data,
+#         x="NFA",
+#         y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+#     )
+
+#     plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
+#     # Add a trend line
+#     sns.regplot(
+#         data=data,
+#         x="NFA",
+#         y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+#         scatter=False,
+#         color="red",
+#     )
+#     plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+#     plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
+#     plot.tick_params(labelsize=12)
+
+
+# os.makedirs("plots/HighTemperature", exist_ok=True)
+# plt.tight_layout()
+# # plt.show()
+# plt.savefig("plots/HighTemperature/HighTemperature_EnergySavingsVsNFA.png")
+# plt.close()
 
 
 ###################################################################################
