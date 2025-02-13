@@ -8,7 +8,7 @@ from tqdm import tqdm
 
 from pathlib import Path
 import sys
-
+import os
 from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
@@ -39,7 +39,7 @@ simulation = "booster"
 size = "whole_buildingstock"
 
 ### import EMBERS data to assess grid losses and total investment costs
-path_embers = f"grid_calculation/{simulation}_results.parquet"
+path_embers = f"grid_calculation/{simulation}_result_df.parquet"
 embers_data = pd.read_parquet(path_embers)
 
 supply_temperature_grid = 50  # °C
@@ -50,7 +50,7 @@ interest_rate_dh = 0.05
 # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
 margin = 0
 taxation = 0.07
-# reduction_factor = 0.938372  # NPV DH operator is 0
+# reduction_factor = 0.9036 # NPV DH operator is 0
 reduction_factor = 1
 
 safety_factor = 1.2
@@ -110,7 +110,7 @@ areas_demand["total useful demand thermal demand [kWh]"] = (
 # we need the buildingstock data to calculate the investment costs of the booster heat pumps
 path_booster_buildingstock = f"building_analysis/results/{simulation}_{size}/buildingstock_{simulation}_{size}_results.parquet"
 booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
-
+booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
 efficiency_he = (
     0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
 )
@@ -459,7 +459,7 @@ lcoh_booster = calculate_lcoh(
     lcoh_total_heat_generated_boosters,
     ir_dhg,
 )
-
+##### TODO I NEED TO DOUBLE CHECK THE LCOH FOR THE BOOSTERS!!!!!!
 
 price_heat_eurokwh_residential = (
     (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
@@ -614,6 +614,8 @@ for idx, row in tqdm(npv_data.iterrows(), total=len(npv_data)):
 
 # TODO: no inflation applied for the LCOH. calculate in real terms €2023
 
+### Create the folder for the plots if it does not exist:
+os.makedirs("plots/booster", exist_ok=True)
 
 # Calculate average savings by building type
 avg_savings = (
@@ -634,9 +636,36 @@ bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
 bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
-plt.savefig("HighTemperature_AverageSavings.png")
+plt.savefig(f"plots/booster/booster_AverageSavings_{reduction_factor}.png")
 plt.close()
 
+npv_data["NFA"] = booster_buildingstock["NFA"]
+npv_data["npv_per_nfa"] = (
+    npv_data[f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"]
+    / npv_data["NFA"]
+)
+
+# Calculate average NPV per NFA by building type
+avg_npv_per_nfa = (
+    npv_data.groupby("building_usage")["npv_per_nfa"]
+    .mean()
+    .sort_values(ascending=False)
+)
+
+# Plot average NPV per NFA by building type
+plt.figure(figsize=(12, 6))
+avg_npv_per_nfa.plot(kind="bar")
+plt.title("Average NPV per Net Floor Area by Building Type")
+plt.xlabel("Building Type")
+plt.ylabel("Average NPV per Net Floor Area (€/m²)")
+plt.xticks(rotation=45)
+plt.tight_layout()
+# plt.show()
+plt.tight_layout()
+plt.savefig(
+    f"plots/booster/booster_SavingsAverage_NFA_reduction_factor_{reduction_factor}.png"
+)
+plt.close()
 n_columns = 3
 # Plot histogram of savings distribution by building type
 plt.figure(figsize=(20, 15))
@@ -656,8 +685,33 @@ for i, building_type in enumerate(building_types, 1):
     scatter.tick_params(labelsize=12)
 
 plt.tight_layout()
-plt.show()
-plt.savefig("HighTemperature_SavingsDistribution.png")
+# plt.show()
+plt.savefig(
+    f"plots/booster/booster_SavingsDistribution_reduction_factor_{reduction_factor}.png"
+)
+plt.close()
+
+n_columns = 3
+# Plot histogram of savings distribution by building type in NPV per NFA
+plt.figure(figsize=(20, 15))
+building_types = npv_data["building_usage"].unique()
+num_types = len(building_types)
+rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+
+for i, building_type in enumerate(building_types, 1):
+    plt.subplot(rows, n_columns, i)
+    data = npv_data[npv_data["building_usage"] == building_type]["npv_per_nfa"]
+    scatter = sns.histplot(data, kde=True)
+    scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
+    scatter.set_xlabel("NPV Savings per NFA(€2023/m2)", fontsize=12)
+    scatter.set_ylabel("Frequency", fontsize=12)
+    scatter.tick_params(labelsize=12)
+
+plt.tight_layout()
+# plt.show()
+plt.savefig(
+    f"plots/booster/booster_SavingsDistribution_NFA_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
 
 
@@ -679,27 +733,29 @@ for i, building_type in enumerate(building_types, 1):
 
     plot = sns.scatterplot(
         data=data,
-        x="NFA",
-        y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+        x="NFA_x",
+        y="npv_per_nfa",
     )
-
-    plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
-    plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
-    plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
-    plot.tick_params(labelsize=12)
-
     # Add a trend line
     sns.regplot(
         data=data,
-        x="NFA",
-        y=f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}",
+        x="NFA_x",
+        y="npv_per_nfa",
         scatter=False,
         color="red",
     )
 
+    plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
+    plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    plot.set_ylabel("NPV Savings per NFA (€2023/m2)", fontsize=12)
+    plot.tick_params(labelsize=12)
+
+
 plt.tight_layout()
-plt.show()
-plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
+# plt.show()
+plt.savefig(
+    f"plots/booster/booster_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
+)
 plt.close()
 
 

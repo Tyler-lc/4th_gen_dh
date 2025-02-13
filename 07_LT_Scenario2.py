@@ -491,8 +491,8 @@ plt.savefig(
 )
 plt.close()
 
-n_columns = 3
 # Plot histogram of savings distribution by building type
+n_columns = 3
 plt.figure(figsize=(20, 15))
 building_types = npv_data["building_usage"].unique()
 num_types = len(building_types)
