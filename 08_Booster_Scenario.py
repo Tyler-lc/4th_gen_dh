@@ -52,6 +52,7 @@ margin = 0
 taxation = 0.07
 # reduction_factor = 0.9036 # NPV DH operator is 0
 reduction_factor = 1
+# reduction_factor = 0.5
 
 safety_factor = 1.2
 n_heat_pumps = 2  # might need changing!!!!
@@ -359,14 +360,6 @@ hp_energy_prices = {
     "nr2": price_heat_eurokwh_non_residential / ratios["nr2"],
 }
 
-# operator_selling_price = {
-#     "r0": price_heat_eurokwh_residential / ratios["r0"],
-#     "r1": price_heat_eurokwh_residential / ratios["r1"],
-#     "r2": price_heat_eurokwh_residential / ratios["r2"],
-#     "nr0": price_heat_eurokwh_non_residential_VAT / ratios["nr0"],
-#     "nr1": price_heat_eurokwh_non_residential_VAT / ratios["nr1"],
-#     "nr2": price_heat_eurokwh_non_residential_VAT / ratios["nr2"],
-# }
 
 booster_buildingstock["total_useful_demand [kWh]"] = (
     booster_buildingstock["yearly_dhw_energy"]
@@ -426,12 +419,12 @@ variable_oem_boosters = calculate_future_values({"Variable O&M": 0}, n_years_hp)
 
 total_investment_costs_boosters = booster_buildingstock["cost_hp_booster [€]"].sum()
 
-lcoh_boosters_num = total_investment_costs_boosters
-lcoh_booster_den = (
-    booster_buildingstock["yearly_space_heating"].sum()
-    + booster_buildingstock["yearly_dhw_energy"].sum()
-) / (1 + ir_dhg) ** 25
-lcoh_booster = lcoh_boosters_num / lcoh_booster_den
+# lcoh_boosters_num = total_investment_costs_boosters / (1 + ir_dhg) ** 25
+# lcoh_booster_den = (
+#     booster_buildingstock["yearly_space_heating"].sum()
+#     + booster_buildingstock["yearly_dhw_energy"].sum()
+# ) / (1 + ir_dhg) ** 25
+# lcoh_booster = lcoh_boosters_num / lcoh_booster_den
 
 lcoh_electricity_boosters = calculate_future_values(
     {"electricity": initial_electricity_cost_system * electricity_demand_boosters},
@@ -459,7 +452,7 @@ lcoh_booster = calculate_lcoh(
     lcoh_total_heat_generated_boosters,
     ir_dhg,
 )
-##### TODO I NEED TO DOUBLE CHECK THE LCOH FOR THE BOOSTERS!!!!!!
+##### TODO I NEED TO DOUBLE CHECK THE LCOH FOR THE BOOSTERS!!!!!! but it should be correct
 
 price_heat_eurokwh_residential = (
     (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
@@ -558,7 +551,7 @@ energy_expenditure_gas = calculate_expenses(
 )
 
 ### and how much would they pay when using heat pumps?
-dh_prices_future = calculate_future_values(hp_energy_prices, n_years_hp)
+dh_prices_future = calculate_future_values(operator_selling_price, n_years_hp)
 energy_expenditure_dh = calculate_expenses(
     npv_data,
     dh_prices_future,
