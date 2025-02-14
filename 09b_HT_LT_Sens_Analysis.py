@@ -164,7 +164,7 @@ def sensitivity_analysis(
         COP_max=max_COP,
     )
     max_cop = cop_hourly.max()
-    print(cop_hourly.head(200))
+    # print(cop_hourly.head(200))
 
     P_el = (
         areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
@@ -460,91 +460,91 @@ def sensitivity_analysis(
 
     # TODO: no inflation applied for the LCOH. calculate in real terms €2023
 
-    # Calculate average savings by building type
-    avg_savings = (
-        npv_data.groupby("building_usage")[
-            f"savings_npv_{years_buildingstock}years_ir_{ir}"
-        ]
-        .mean()
-        .sort_values(ascending=False)
-    )
+    # # Calculate average savings by building type
+    # avg_savings = (
+    #     npv_data.groupby("building_usage")[
+    #         f"savings_npv_{years_buildingstock}years_ir_{ir}"
+    #     ]
+    #     .mean()
+    #     .sort_values(ascending=False)
+    # )
 
-    # Plot average savings by building type
-    plt.figure(figsize=(12, 6))
-    bar = avg_savings.plot(kind="bar")
+    # # Plot average savings by building type
+    # plt.figure(figsize=(12, 6))
+    # bar = avg_savings.plot(kind="bar")
 
-    bar.set_title("Average NPV Savings by Building Type - HT DH Scenario", fontsize=16)
-    bar.set_xlabel("Building Type", fontsize=14)
-    bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
-    bar.tick_params(labelsize=14)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig("HighTemperature_AverageSavings.png")
-    plt.close()
+    # bar.set_title("Average NPV Savings by Building Type - HT DH Scenario", fontsize=16)
+    # bar.set_xlabel("Building Type", fontsize=14)
+    # bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
+    # bar.tick_params(labelsize=14)
+    # plt.xticks(rotation=45)
+    # plt.tight_layout()
+    # plt.savefig("HighTemperature_AverageSavings.png")
+    # plt.close()
 
-    n_columns = 3
-    # Plot histogram of savings distribution by building type
-    plt.figure(figsize=(20, 15))
-    building_types = npv_data["building_usage"].unique()
-    num_types = len(building_types)
-    rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+    # n_columns = 3
+    # # Plot histogram of savings distribution by building type
+    # plt.figure(figsize=(20, 15))
+    # building_types = npv_data["building_usage"].unique()
+    # num_types = len(building_types)
+    # rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
-    for i, building_type in enumerate(building_types, 1):
-        plt.subplot(rows, n_columns, i)
-        data = npv_data[npv_data["building_usage"] == building_type][
-            f"savings_npv_{years_buildingstock}years_ir_{ir}"
-        ]
-        scatter = sns.histplot(data, kde=True)
-        scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
-        scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
-        scatter.set_ylabel("Frequency", fontsize=12)
-        scatter.tick_params(labelsize=12)
+    # for i, building_type in enumerate(building_types, 1):
+    #     plt.subplot(rows, n_columns, i)
+    #     data = npv_data[npv_data["building_usage"] == building_type][
+    #         f"savings_npv_{years_buildingstock}years_ir_{ir}"
+    #     ]
+    #     scatter = sns.histplot(data, kde=True)
+    #     scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
+    #     scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+    #     scatter.set_ylabel("Frequency", fontsize=12)
+    #     scatter.tick_params(labelsize=12)
 
-    plt.tight_layout()
-    # plt.show()
-    plt.savefig("HighTemperature_SavingsDistribution.png")
-    plt.close()
+    # plt.tight_layout()
+    # # plt.show()
+    # plt.savefig("HighTemperature_SavingsDistribution.png")
+    # plt.close()
 
-    # Merge NFA data with npv_data
-    merged_data = npv_data.merge(buildingstock[["full_id", "NFA"]], on="full_id")
+    # # Merge NFA data with npv_data
+    # merged_data = npv_data.merge(buildingstock[["full_id", "NFA"]], on="full_id")
 
-    # Calculate energy savings (assuming original demand - new demand)
-    # merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
+    # # Calculate energy savings (assuming original demand - new demand)
+    # # merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
 
-    # Create scatter plots
-    plt.figure(figsize=(20, 15))
-    building_types = merged_data["building_usage"].unique()
-    num_types = len(building_types)
-    rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+    # # # Create scatter plots
+    # # plt.figure(figsize=(20, 15))
+    # # building_types = merged_data["building_usage"].unique()
+    # # num_types = len(building_types)
+    # # rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
-    for i, building_type in enumerate(building_types, 1):
-        plt.subplot(rows, n_columns, i)
-        data = merged_data[merged_data["building_usage"] == building_type]
+    # # for i, building_type in enumerate(building_types, 1):
+    # #     plt.subplot(rows, n_columns, i)
+    # #     data = merged_data[merged_data["building_usage"] == building_type]
 
-        plot = sns.scatterplot(
-            data=data,
-            x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
-        )
+    # #     plot = sns.scatterplot(
+    # #         data=data,
+    # #         x="NFA",
+    # #         y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
+    # #     )
 
-        plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
-        plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
-        plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
-        plot.tick_params(labelsize=12)
+    # #     plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
+    # #     plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    # #     plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
+    # #     plot.tick_params(labelsize=12)
 
-        # Add a trend line
-        sns.regplot(
-            data=data,
-            x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
-            scatter=False,
-            color="red",
-        )
+    # #     # Add a trend line
+    # #     sns.regplot(
+    # #         data=data,
+    # #         x="NFA",
+    # #         y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
+    # #         scatter=False,
+    # #         color="red",
+    # #     )
 
-    plt.tight_layout()
-    # plt.show()
-    # plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
-    plt.close()
+    # # plt.tight_layout()
+    # # # plt.show()
+    # # # plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
+    # # plt.close()
 
     ###################################################################################
     ###################################################################################
@@ -597,24 +597,26 @@ def sensitivity_analysis(
 
     # To be removed after debugging
     # Add some debugging prints in the sensitivity_analysis function
-    print(f"\nDebugging COP values:")
-    print(f"Max COP setting: {max_COP}")
-    print(f"Actual max COP achieved: {cop_hourly.max()}")
-    print(f"Average COP: {cop_hourly.mean()}")
-    print(f"Min COP: {cop_hourly.min()}")
-    
-    # After calculating electricity consumption
-    print(f"\nDebugging Energy values:")
-    print(f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}")
-    print(f"Total electricity consumed: {P_el.sum()}")
-    print(f"Supply temperature: {supply_temperature}")
-    
-    # After LCOH calculations
-    print(f"\nDebugging Cost Components:")
-    print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
-    print(f"Total installation costs: {total_installation_costs} Million euros")
-    print(f"Total var O&M: {total_var_oem_hp}")
-    print(f"Total fixed O&M: {total_fixed_oem_hp}")
+    # print(f"\nDebugging COP values:")
+    # print(f"Max COP setting: {max_COP}")
+    # print(f"Actual max COP achieved: {cop_hourly.max()}")
+    # print(f"Average COP: {cop_hourly.mean()}")
+    # print(f"Min COP: {cop_hourly.min()}")
+
+    # # After calculating electricity consumption
+    # print(f"\nDebugging Energy values:")
+    # print(
+    #     f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}"
+    # )
+    # print(f"Total electricity consumed: {P_el.sum()}")
+    # print(f"Supply temperature: {supply_temperature}")
+
+    # # After LCOH calculations
+    # print(f"\nDebugging Cost Components:")
+    # print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
+    # print(f"Total installation costs: {total_installation_costs} Million euros")
+    # print(f"Total var O&M: {total_var_oem_hp}")
+    # print(f"Total fixed O&M: {total_fixed_oem_hp}")
 
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
@@ -678,35 +680,34 @@ for rows, columns in df_sensitivity_parameters.iterrows():
     for value in tqdm(values):
         print(f"\n Analysis type: {analysis_type}, Processing value: {value} \n")
         if num_analysis == 0:  # interest rate
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
                 simulation, ir=value
             )
         elif num_analysis == 1:  # approach temperature
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
                 simulation, approach_temperature=value
             )
         elif num_analysis == 2:  # electricity price
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
                 simulation, electricity_cost_multiplier=value
             )
         elif num_analysis == 3:  # gas price
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
                 simulation, gas_cost_multiplier=value
             )
         elif num_analysis == 4:  # max COP
 
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, actual_cop = sensitivity_analysis(
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
                 simulation, max_COP=value
             )
         elif num_analysis == 5:  # supply temperature
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
                 simulation, supply_temperature=value
             )
         elif num_analysis == 6:  # investment cost multiplier
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis(
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
                 simulation, inv_cost_multiplier=value
             )
-        
 
         # Store results
         lcoh_dhg.append(LCOH_dhg)
@@ -714,7 +715,7 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         max_cop.append(cop)
         npv_operator.append(npv_dh)
         all_npv_data[value] = df_npv.copy()  # Store a copy of df_npv for this value
-        actual_cops.append(actual_cop)
+        actual_cops.append(cop_hourly)
 
         # Save individual NPV data
         df_npv.to_csv(
@@ -857,7 +858,7 @@ for rows, columns in df_sensitivity_parameters.iterrows():
     if num_analysis == 4:  # max COP analysis
         # First figure with LCOH, NPV, and COP plots
         fig1, axes = plt.subplots(1, 3, figsize=(15, 5), dpi=100)
-        
+
         # LCOH components
         axes[0].plot(values, lcoh_dhg, label="LCOH DHG")
         axes[0].plot(values, lcoh_hp, label="LCOH HP")
@@ -865,49 +866,54 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         axes[0].set_ylabel("LCOH (€/kWh)")
         axes[0].set_title("LCOH Components")
         axes[0].legend()
-        
+
         # Operator NPV
         axes[1].plot(values, npv_operator, label="DH Operator NPV", color="green")
         axes[1].set_xlabel("Max COP")
         axes[1].set_ylabel("NPV (€)")
         axes[1].set_title("DH Operator NPV")
         axes[1].legend()
-        
+
         # Average COP achieved
         axes[2].plot(values, actual_cops, label="Actual Average COP", color="orange")
         axes[2].set_xlabel("Max COP")
         axes[2].set_ylabel("Average COP")
         axes[2].set_title("Actual Average COP Achieved")
         axes[2].legend()
-        
+
         # Adjust spacing between subplots
         plt.subplots_adjust(wspace=0.3)
-        
+
         # Save first figure
         fig1.savefig(
             f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_detailed_analysis_part1.png",
-            dpi=100
+            dpi=100,
         )
         plt.close(fig1)
 
         # Second figure for building type NPV
         fig2 = plt.figure(figsize=(10, 6), dpi=100)
         ax = fig2.add_subplot(111)
-        
+
         for building_type in avg_savings_data.columns:
-            ax.plot(values, avg_savings_data[building_type], 
-                   marker='o', label=building_type, linewidth=1)
-        
+            ax.plot(
+                values,
+                avg_savings_data[building_type],
+                marker="o",
+                label=building_type,
+                linewidth=1,
+            )
+
         ax.set_xlabel("Max COP")
         ax.set_ylabel("NPV Savings (€)")
         ax.set_title("NPV Savings by Building Type")
-        ax.legend(loc='center left', bbox_to_anchor=(1.02, 0.5))
-        
+        ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5))
+
         # Save second figure
         fig2.savefig(
             f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_detailed_analysis_part2.png",
-            bbox_inches='tight',
-            dpi=100
+            bbox_inches="tight",
+            dpi=100,
         )
         plt.close(fig2)
 
@@ -915,8 +921,8 @@ print("done")
 
 
 ##### so, some explanation for the weirdness happening with the max_COP analysis.
-# I think that the is that up until about 2.7, the max_cop is equal to the min_cop. That is 
+# I think that the is that up until about 2.7, the max_cop is equal to the min_cop. That is
 # because in the renovated scenario, the supply_temperature is 55. So the COP are consistently higher
-# Now this means that the COP is always at maximum level. I think this means that we have basically two 
-# efficiency curves. One for the constant COP, and one for the variable COP. I could try to check this one 
+# Now this means that the COP is always at maximum level. I think this means that we have basically two
+# efficiency curves. One for the constant COP, and one for the variable COP. I could try to check this one
 # another day, trying to plot the NPV every 0.1 COP increment and see if this is the case...

@@ -31,7 +31,7 @@ grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
 # do this.
 def sensitivity_analysis_booster(
     simulation_type: str,
-    supply_temperature: Union[float, int] = 90,
+    supply_temperature: Union[float, int] = 50,
     approach_temperature: Union[float, int] = 5,
     margin: float = 0,
     taxation: float = 0.07,
@@ -102,7 +102,6 @@ def sensitivity_analysis_booster(
     )  # from EMBERS [Mil €]
 
     years_buildingstock = 25
-    building_interest_rate = 0.05
 
     ### Let's find out what is the size of the customer now for GAS
     small_consumer_threshold = 20  # GJ per year
@@ -134,6 +133,7 @@ def sensitivity_analysis_booster(
     # TODO: check whether the pathing is correct or not
     path_booster_buildingstock = f"building_analysis/results/sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/buildingstock_{simulation_type}_whole_buildingstock_{supply_temperature}_results.parquet"
     booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
+    booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
 
     efficiency_he = 0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
 
@@ -612,7 +612,8 @@ def sensitivity_analysis_booster(
     )
 
     ### and how much would they pay when using heat pumps?
-    dh_prices_future = calculate_future_values(hp_energy_prices, n_years_hp)
+
+    dh_prices_future = calculate_future_values(operator_selling_price, n_years_hp)
     energy_expenditure_dh = calculate_expenses(
         npv_data,
         dh_prices_future,
@@ -637,27 +638,25 @@ def sensitivity_analysis_booster(
 
         # Gas NPV for buildings
         energy_costs_original = energy_expenditure_gas[building_id]
-        npv_gas = npv(
-            0, energy_costs_original, income_buildings, building_interest_rate
-        )
+        npv_gas = npv(0, energy_costs_original, income_buildings, ir)
         npv_data.loc[
             idx,
-            f"npv_Gas_{years_buildingstock}years_ir_{building_interest_rate}",
+            f"npv_Gas_{years_buildingstock}years_ir_{ir}",
         ] = npv_gas
 
         # DH NPV for buildings
         energy_costs_new = energy_expenditure_dh[building_id]
-        npv_dh = npv(0, energy_costs_new, income_buildings, building_interest_rate)
+        npv_dh = npv(0, energy_costs_new, income_buildings, ir)
         npv_data.loc[
             idx,
-            f"npv_DH_{years_buildingstock}years_ir_{building_interest_rate}",
+            f"npv_DH_{years_buildingstock}years_ir_{ir}",
         ] = npv_dh
 
         # NPV of savings
         npv_savings = npv_dh - npv_gas
-        npv_data.loc[
-            idx, f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
-        ] = npv_savings
+        npv_data.loc[idx, f"savings_npv_{years_buildingstock}years_ir_{ir}"] = (
+            npv_savings
+        )
 
     overnight_costs = (
         total_installation_costs
@@ -702,124 +701,337 @@ def sensitivity_analysis_booster(
 
     # TODO: no inflation applied for the LCOH. calculate in real terms €2023
 
-    return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop
+    return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
 
 simulation = "booster"
-analysis_types = [
-    "supply_temperature",  # 0
-    "approach_temperature",  # 1
-    "electricity_price",  # 2
-    "gas_price",  # 3
-    "max_cop",  # 4
-    "ir",  # 5
-    "inv_cost_multiplier",  # 6
-]
-num_analysis = 0
+# analysis_types = [
+#     "supply_temperature",  # 0
+#     "approach_temperature",  # 1
+#     "electricity_price",  # 2
+#     "gas_price",  # 3
+#     "max_cop",  # 4
+#     "ir",  # 5
+#     "inv_cost_multiplier",  # 6
+# ]
 
-os.makedirs(
-    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}", exist_ok=True
+
+# num_analysis = 0
+
+df_sensitivity_parameters = pd.read_excel(
+    "sensitivity_analysis/sensitivity_analysis_parameters.xlsx"
 )
-os.makedirs(
-    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/plots",
-    exist_ok=True,
-)
-os.makedirs(
-    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/data",
-    exist_ok=True,
-)
-df_npv = pd.DataFrame()
+df_sensitivity_parameters.set_index("num_analysis", inplace=True)
 
 
-###### we will create a loop for the analysis
-# To set up the loop we want to create different values for the analysis. So we will first insert the number
-# of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
-# and then we will loop through these values.
-n_steps = 10
-max_value = 70
-min_value = 25
-step_size = (max_value - min_value) / n_steps
-values = np.linspace(min_value, max_value, n_steps).astype(int)
-lcoh_dhg = []
-lcoh_hp = []
-max_cop = []
-npv_operator = []  # Add this list to collect operator NPV values
-
-# the max_COP simulation will require also to change the carnot_efficiency.
-# The max_COP we hit is anyway 3.6 with the standard carnot_efficiency value. So we do not see
-# almost any diffeerence. To change the carnot_efficiency during the max_COP simulation use this
-carnot_efficiency = 0.524  # 0.524 is the standard value.
-
-for value in tqdm(values):
-    print(
-        f"\n Analysis type: {analysis_types[num_analysis]}, Processing value: {value} \n"
+for num_analysis, row in df_sensitivity_parameters.iterrows():
+    print(f"num_analysis: {num_analysis}")
+    os.makedirs(
+        f"sensitivity_analysis/{simulation}/{row['analysis_type']}", exist_ok=True
     )
-    if num_analysis == 0:
-        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-            simulation, supply_temperature=value
-        )
-    elif num_analysis == 1:
-        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-            simulation, approach_temperature=value
-        )
-    elif num_analysis == 2:
-        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-            simulation, electricity_cost_multiplier=value
-        )
-    elif num_analysis == 3:
-        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-            simulation, gas_cost_multiplier=value
-        )
-    elif num_analysis == 4:
-        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-            simulation, max_COP=value, carnot_efficiency=carnot_efficiency
-        )
-    elif num_analysis == 5:
-        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-            simulation, ir=value
-        )
-    elif num_analysis == 6:
-        df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-            simulation, inv_cost_multiplier=value
-        )
-
-    df_npv.to_csv(
-        f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/data/supply_temperature_{value}C.csv"
+    os.makedirs(
+        f"sensitivity_analysis/{simulation}/{row['analysis_type']}/plots",
+        exist_ok=True,
     )
-    lcoh_dhg.append(LCOH_dhg)
-    lcoh_hp.append(LCOH_HP)
-    max_cop.append(cop)
-    npv_operator.append(npv_dh)  # Add the operator NPV to our list
+    os.makedirs(
+        f"sensitivity_analysis/{simulation}/{row['analysis_type']}/data",
+        exist_ok=True,
+    )
+    df_npv = pd.DataFrame()
 
-# Create a figure with two subplots
-fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+    ###### we will create a loop for the analysis
+    # To set up the loop we want to create different values for the analysis. So we will first insert the number
+    # of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
+    # and then we will loop through these values.
+    analysis_type = df_sensitivity_parameters.loc[num_analysis, "analysis_type"]
+    n_steps = df_sensitivity_parameters.loc[num_analysis, "n_steps"]
+    max_value = df_sensitivity_parameters.loc[num_analysis, "max_val"]
+    min_value = df_sensitivity_parameters.loc[num_analysis, "min_val"]
+    step_size = (max_value - min_value) / n_steps
+    values = np.linspace(min_value, max_value, n_steps)
+    lcoh_dhg = []
+    lcoh_hp = []
+    max_cop = []
+    npv_operator = []  # Add this list to collect operator NPV values
+    all_npv_data = {}  # Dictionary to store df_npv for each value
+    actual_cops = []
 
-from operator import add
+    # the max_COP simulation will require also to change the carnot_efficiency.
+    # The max_COP we hit is anyway 3.6 with the standard carnot_efficiency value. So we do not see
+    # almost any diffeerence. To change the carnot_efficiency during the max_COP simulation use this
+    carnot_efficiency = 0.524  # 0.524 is the standard value.
 
-# First subplot for LCOH
-ax1.plot(values, lcoh_dhg, label="LCOH DHG")
-ax1.plot(values, lcoh_hp, label="LCOH HP")
-ax1.plot(values, list(map(add, lcoh_dhg, lcoh_hp)), label="Total LCOH")
-ax1.set_xlabel(f"{analysis_types[num_analysis]}")
-ax1.set_ylabel("LCOH (€/kWh)")
-ax1.set_title(f"Sensitivity Analysis - LCOH vs {analysis_types[num_analysis]}")
-ax1.legend()
+    for value in tqdm(values):
+        print(f"\n Analysis type: {row['analysis_type']}, Processing value: {value} \n")
+        if num_analysis == 0:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, ir=value)
+            )
+        elif num_analysis == 1:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, approach_temperature=value)
+            )
+        elif num_analysis == 2:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(
+                    simulation, electricity_cost_multiplier=value
+                )
+            )
+        elif num_analysis == 3:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, gas_cost_multiplier=value)
+            )
+        elif num_analysis == 4:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(
+                    simulation, max_COP=value, carnot_efficiency=carnot_efficiency
+                )
+            )
+        elif num_analysis == 5:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(
+                    simulation, supply_temperature=value.astype(int)
+                )
+            )
+        elif num_analysis == 6:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, inv_cost_multiplier=value)
+            )
 
-# Second subplot for Operator NPV
-ax2.plot(values, npv_operator, label="DH Operator NPV", color="green")
-ax2.set_xlabel(f"{analysis_types[num_analysis]}")
-ax2.set_ylabel("NPV (€)")
-ax2.set_title(
-    f"Sensitivity Analysis - DH Operator NPV vs {analysis_types[num_analysis]}"
-)
-ax2.legend()
+        df_npv.to_csv(
+            f"sensitivity_analysis/{simulation}/{row['analysis_type']}/data/supply_temperature_{value}C.csv"
+        )
+        lcoh_dhg.append(LCOH_dhg)
+        lcoh_hp.append(LCOH_HP)
+        max_cop.append(cop)
+        npv_operator.append(npv_dh)  # Add the operator NPV to our list
+        all_npv_data[value] = df_npv.copy()  # Store a copy of df_npv for this value
+        actual_cops.append(cop_hourly)
 
-# Adjust layout to prevent overlap
-plt.tight_layout()
+    # Create a figure with two subplots
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
 
-# Save the figure
-plt.savefig(
-    f"sensitivity_analysis/{simulation}/{analysis_types[num_analysis]}/plots/sensitivity_analysis.png"
-)
-# plt.close()
-plt.show()
+    from operator import add
+
+    # First subplot for LCOH
+    ax1.plot(values, lcoh_dhg, label="LCOH DHG")
+    ax1.plot(values, lcoh_hp, label="LCOH HP")
+    ax1.plot(values, list(map(add, lcoh_dhg, lcoh_hp)), label="Total LCOH")
+    ax1.set_xlabel(f"{row['analysis_type']}")
+    ax1.set_ylabel("LCOH (€/kWh)")
+    ax1.set_title(f"Sensitivity Analysis - LCOH vs {row['analysis_type']}")
+    ax1.legend()
+
+    # Second subplot for Operator NPV
+    ax2.plot(values, npv_operator, label="DH Operator NPV", color="green")
+    ax2.set_xlabel(f"{row['analysis_type']}")
+    ax2.set_ylabel("NPV (€)")
+    ax2.set_title(f"Sensitivity Analysis - DH Operator NPV vs {row['analysis_type']}")
+    ax2.legend()
+
+    # Adjust layout to prevent overlap
+    plt.tight_layout()
+
+    # Save the figure
+    plt.savefig(
+        f"sensitivity_analysis/{simulation}/{row['analysis_type']}/plots/lcoh_vs_{analysis_type}.png"
+    )
+    # plt.close()
+    plt.show()
+
+    # Create a figure with multiple subplots for different analyses
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+
+    # First subplot for LCOH
+    ax1.plot(values, lcoh_dhg, label="LCOH DHG")
+    ax1.plot(values, lcoh_hp, label="LCOH HP")
+    ax1.set_xlabel(f"{analysis_type}")
+    ax1.set_ylabel("LCOH (€/kWh)")
+    ax1.set_title(f"Sensitivity Analysis - LCOH vs {analysis_type}")
+    ax1.legend()
+
+    # Second subplot for Operator NPV
+    ax2.plot(values, npv_operator, label="DH Operator NPV", color="green")
+    ax2.set_xlabel(f"{analysis_type}")
+    ax2.set_ylabel("NPV (€)")
+    ax2.set_title(f"Sensitivity Analysis - DH Operator NPV vs {analysis_type}")
+    ax2.legend()
+
+    plt.tight_layout()
+    plt.savefig(
+        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_sensitivity_analysis.png"
+    )
+    plt.close()
+
+    # First get all building types from any of the DataFrames
+    building_types = all_npv_data[values[0]]["building_usage"].unique()
+    avg_savings_data = pd.DataFrame(columns=building_types, index=values)
+
+    for value in values:
+        if analysis_type == "ir":
+            ir = value
+        else:
+            ir = 0.05
+        # Calculate average savings for each building type at this value
+        avg_savings = (
+            all_npv_data[value]
+            .groupby("building_usage")[f"savings_npv_25years_ir_{ir}"]
+            .mean()
+        )
+        # Fill in the row for this value
+        avg_savings_data.loc[value] = avg_savings
+
+    # No need to transpose as we've already structured it correctly
+    # avg_savings_data = avg_savings_data.T
+
+    # Create line plot
+    plt.figure(figsize=(12, 8))
+    for building_type in avg_savings_data.columns:
+        plt.plot(
+            values, avg_savings_data[building_type], marker="o", label=building_type
+        )
+
+    plt.title(f"Average NPV Savings by Building Type vs {analysis_type}", fontsize=16)
+    plt.xlabel(f"{analysis_type}", fontsize=14)
+    plt.ylabel("Average NPV Savings (€)", fontsize=14)
+    plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=12)
+    plt.grid(True, linestyle="--", alpha=0.7)
+    plt.tight_layout()
+    plt.savefig(
+        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_average_savings_sensitivity.png",
+        bbox_inches="tight",
+    )
+    plt.close()
+
+    ######## For the time being we don'twant this plot, which is also causing issues at the moment!!!############
+    # The problem is that i need to use the all_npv_data to get the data for the histogram.
+    for value in values:
+        if analysis_type == "ir":
+            ir = value
+        else:
+            ir = 0.05
+        n_columns = 3
+        # Plot histogram of savings distribution by building type
+        plt.figure(figsize=(20, 15))
+        building_types = all_npv_data[value]["building_usage"].unique()
+        num_types = len(building_types)
+        rows = (
+            num_types + 2
+        ) // n_columns  # Calculate number of rows needed for n_columns
+
+        for i, building_type in enumerate(building_types, 1):
+            plt.subplot(rows, n_columns, i)
+            data = all_npv_data[value][
+                all_npv_data[value]["building_usage"] == building_type
+            ][f"savings_npv_25years_ir_{ir}"]
+            scatter = sns.histplot(data, kde=True)
+            scatter.set_title(
+                f"Savings Distribution - {building_type}\n{analysis_type}: {value}",
+                fontsize=14,
+            )
+            scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+            scatter.set_ylabel("Frequency", fontsize=12)
+            scatter.tick_params(labelsize=12)
+
+        plt.tight_layout()
+        plt.savefig(
+            f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_savings_distribution_{value}.png"
+        )
+        plt.close()
+
+    # Now we can plot distributions using the stored data
+    n_columns = 3
+    for value in values:
+        if analysis_type == "ir":
+            ir = value
+        else:
+            ir = 0.05
+        plt.figure(figsize=(20, 15))
+        building_types = all_npv_data[value]["building_usage"].unique()
+        num_types = len(building_types)
+        rows = (num_types + 2) // n_columns
+
+        for i, building_type in enumerate(building_types, 1):
+            plt.subplot(rows, n_columns, i)
+            data = all_npv_data[value][
+                all_npv_data[value]["building_usage"] == building_type
+            ][f"savings_npv_25years_ir_{ir}"]
+            scatter = sns.histplot(data, kde=True)
+            scatter.set_title(
+                f"Savings Distribution - {building_type}\n{analysis_type}: {value}",
+                fontsize=14,
+            )
+            scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+            scatter.set_ylabel("Frequency", fontsize=12)
+            scatter.tick_params(labelsize=12)
+
+        plt.tight_layout()
+        plt.savefig(
+            f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_savings_distribution_{value}.png"
+        )
+        plt.close()
+
+    # In the max_COP analysis section, add detailed component plotting
+    if num_analysis == 4:  # max COP analysis
+        # First figure with LCOH, NPV, and COP plots
+        fig1, axes = plt.subplots(1, 3, figsize=(15, 5), dpi=100)
+
+        # LCOH components
+        axes[0].plot(values, lcoh_dhg, label="LCOH DHG")
+        axes[0].plot(values, lcoh_hp, label="LCOH HP")
+        axes[0].set_xlabel("Max COP")
+        axes[0].set_ylabel("LCOH (€/kWh)")
+        axes[0].set_title("LCOH Components")
+        axes[0].legend()
+
+        # Operator NPV
+        axes[1].plot(values, npv_operator, label="DH Operator NPV", color="green")
+        axes[1].set_xlabel("Max COP")
+        axes[1].set_ylabel("NPV (€)")
+        axes[1].set_title("DH Operator NPV")
+        axes[1].legend()
+
+        # Average COP achieved
+        axes[2].plot(values, actual_cops, label="Actual Average COP", color="orange")
+        axes[2].set_xlabel("Max COP")
+        axes[2].set_ylabel("Average COP")
+        axes[2].set_title("Actual Average COP Achieved")
+        axes[2].legend()
+
+        # Adjust spacing between subplots
+        plt.subplots_adjust(wspace=0.3)
+
+        # Save first figure
+        fig1.savefig(
+            f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_detailed_analysis_part1.png",
+            dpi=100,
+        )
+        plt.close(fig1)
+
+        # Second figure for building type NPV
+        fig2 = plt.figure(figsize=(10, 6), dpi=100)
+        ax = fig2.add_subplot(111)
+
+        for building_type in avg_savings_data.columns:
+            ax.plot(
+                values,
+                avg_savings_data[building_type],
+                marker="o",
+                label=building_type,
+                linewidth=1,
+            )
+
+        ax.set_xlabel("Max COP")
+        ax.set_ylabel("NPV Savings (€)")
+        ax.set_title("NPV Savings by Building Type")
+        ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5))
+
+        # Save second figure
+        fig2.savefig(
+            f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_detailed_analysis_part2.png",
+            bbox_inches="tight",
+            dpi=100,
+        )
+        plt.close(fig2)
+
+print("done")

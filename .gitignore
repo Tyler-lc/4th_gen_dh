@@ -47,3 +47,7 @@ sensitivity_analysis/unrenovated/supply_temperature/data/supply_temperature_92.7
 sensitivity_analysis/unrenovated/supply_temperature/data/supply_temperature_93.88888888888889C.csv
 sensitivity_analysis/unrenovated/supply_temperature/data/supply_temperature_95.0C.csv
 .DS_Store
+sensitivity_analysis/booster
+sensitivity_analysis/booster/supply_temperature
+sensitivity_analysis/booster/supply_temperature/data
+sensitivity_analysis/booster/supply_temperature/data/supply_temperature_25C.csv
