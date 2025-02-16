@@ -604,6 +604,63 @@ plt.savefig(
 )
 plt.close()
 
+savings_column = f"savings_npv_{years_buildingstock}years_ir_{building_interest_rate}"
+# Calculate mean and std for each building type
+means = npv_data.groupby("building_usage")[savings_column].mean()
+stds = npv_data.groupby("building_usage")[savings_column].std()
+
+
+# box plot with error bars, quartile and outliers
+plt.figure(figsize=(12, 8))
+sns.boxplot(data=npv_data, x="building_usage", y=savings_column)
+plt.xticks(rotation=45)
+plt.title("NPV Savings Distribution by Building Type - HT DH Scenario")
+plt.xlabel("Building Type")
+plt.ylabel("NPV Savings (€)")
+
+npv_data.to_csv(
+    f"plots/HighTemperature/data_exports_{reduction_factor}/npv_data_high_temperature.csv"
+)
+# bar plot with box plot overlayed.
+plt.figure(figsize=(12, 8))
+# Plot bars for means
+# Overlay boxplots
+# sns.boxplot(data=npv_data, x='building_usage', y=savings_column, color='white', width=0.5)
+# plt.xticks(rotation=45)
+# plt.title('NPV Savings Distribution by Building Type - HT DH Scenario')
+# plt.xlabel('Building Type')
+# plt.ylabel('NPV Savings (€)')
+sns.barplot(
+    data=npv_data, x="building_usage", y=savings_column, color="lightblue", alpha=0.5
+)
+
+plt.figure(figsize=(12, 8))
+sns.boxplot(
+    data=npv_data,
+    x="building_usage",
+    y=savings_column,
+    showfliers=True,  # show outlier points
+    fliersize=4,  # size of outlier points
+    whis=1.5,  # length of whiskers (1.5 IQR is default)
+    width=0.6,  # width of boxes
+    linewidth=1,  # width of lines
+    saturation=1,  # color saturation
+    medianprops={"color": "red", "linewidth": 1},  # make median line red and thinner
+    boxprops={"alpha": 0.5},  # make boxes slightly transparent
+    showmeans=True,  # show mean as triangle marker
+    meanprops={
+        "marker": "^",
+        "markerfacecolor": "white",
+        "markeredgecolor": "black",
+        "markersize": 8,
+    },  # mean marker properties
+)
+
+plt.xticks(rotation=45)
+plt.title("NPV Savings Distribution by Building Type - HT DH Scenario")
+plt.xlabel("Building Type")
+plt.ylabel("NPV Savings (€)")
+
 # n_columns = 3
 # # Plot histogram of savings distribution by building type
 # plt.figure(figsize=(20, 15))
@@ -719,3 +776,37 @@ from costs.renovation_costs import npv_2
 
 npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, interest_rate_dh)
 print(f"NPV of the District Heating Operator: {npv_dh}")
+
+# Create export directory if it doesn't exist
+export_path = f"plots/HighTemperature/data_exports_{reduction_factor}"
+os.makedirs(export_path, exist_ok=True)
+
+# Export DataFrames and data
+npv_data.to_csv(f"{export_path}/npv_data.csv")
+merged_data.to_csv(f"{export_path}/merged_data.csv")
+avg_savings.to_csv(f"{export_path}/average_savings_by_building_type.csv")
+avg_npv_per_nfa.to_csv(f"{export_path}/average_npv_per_nfa_by_building_type.csv")
+
+# Export key parameters and results as JSON
+import json
+
+parameters = {
+    "reduction_factor": reduction_factor,
+    "margin": margin,
+    "taxation": taxation,
+    "interest_rate_dh": interest_rate_dh,
+    "supply_temperature": supply_temperature,
+    "npv_dh_operator": npv_dh,
+    "LCOH_HP": LCOH_HP,
+    "LCOH_dhg": LCOH_dhg,
+    "price_heat_eurokwh_residential": price_heat_eurokwh_residential,
+    "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
+    "operator_selling_price": operator_selling_price,
+    "gas_prices": gas_energy_prices,
+}
+
+with open(f"{export_path}/parameters.json", "w") as f:
+    json.dump(parameters, f, indent=4)
+
+
+print(f"Data exported to {export_path}")
