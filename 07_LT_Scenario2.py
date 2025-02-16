@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from pathlib import Path
 import sys
+import os
 
 from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
 from heat_supply.carnot_efficiency import carnot_cop
@@ -673,3 +674,36 @@ plt.savefig(
     f"plots/LowTemperature/LowTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
 )
 plt.close()
+
+# Create export directory if it doesn't exist
+export_path = f"plots/LowTemperature/data_exports_{reduction_factor}"
+os.makedirs(export_path, exist_ok=True)
+
+# Export DataFrames and data
+npv_data.to_csv(f"{export_path}/npv_data.csv")
+merged_data.to_csv(f"{export_path}/merged_data.csv")
+avg_savings.to_csv(f"{export_path}/average_savings_by_building_type.csv")
+avg_npv_per_nfa.to_csv(f"{export_path}/average_npv_per_nfa_by_building_type.csv")
+
+# Export key parameters and results as JSON
+import json
+
+parameters = {
+    "reduction_factor": reduction_factor,
+    "margin": margin,
+    "taxation": taxation,
+    "interest_rate_dh": interest_rate_dh,
+    "supply_temperature": supply_temperature,
+    "npv_dh_operator": npv_dh,
+    "LCOH_HP": LCOH_HP,
+    "LCOH_dhg": LCOH_dhg,
+    "price_heat_eurokwh_residential": price_heat_eurokwh_residential,
+    "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
+    "operator_selling_price": operator_selling_price,
+    "gas_prices": gas_energy_prices,
+}
+
+with open(f"{export_path}/parameters.json", "w") as f:
+    json.dump(parameters, f, indent=4)
+
+print(f"Data exported to {export_path}")

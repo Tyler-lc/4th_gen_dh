@@ -813,3 +813,35 @@ from costs.renovation_costs import npv_2
 
 npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, interest_rate_dh)
 print(f"NPV of the District Heating Operator: {npv_dh}")
+
+# Create export directory if it doesn't exist
+export_path = f"plots/booster/data_exports_{reduction_factor}"
+os.makedirs(export_path, exist_ok=True)
+
+# Export DataFrames and data
+npv_data.to_csv(f"{export_path}/npv_data.csv")
+merged_data.to_csv(f"{export_path}/merged_data.csv")
+avg_savings.to_csv(f"{export_path}/average_savings_by_building_type.csv")
+avg_npv_per_nfa.to_csv(f"{export_path}/average_npv_per_nfa_by_building_type.csv")
+
+# Export key parameters and results as JSON
+import json
+
+parameters = {
+    "reduction_factor": reduction_factor,
+    "margin": margin,
+    "taxation": taxation,
+    "interest_rate_dh": interest_rate_dh,
+    "supply_temperature_grid": supply_temperature_grid,
+    "npv_dh_operator": npv_dh,
+    "lcoh_booster": lcoh_booster,
+    "price_heat_eurokwh_residential": price_heat_eurokwh_residential,
+    "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
+    "operator_selling_price": operator_selling_price,
+    "gas_prices": gas_energy_prices,
+}
+
+with open(f"{export_path}/parameters.json", "w") as f:
+    json.dump(parameters, f, indent=4)
+
+print(f"Data exported to {export_path}")

@@ -797,6 +797,10 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(simulation, inv_cost_multiplier=value)
             )
+        elif num_analysis == 7:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, oversizing_factor=value)
+            )
 
         df_npv.to_csv(
             f"sensitivity_analysis/{simulation}/{row['analysis_type']}/data/supply_temperature_{value}C.csv"
@@ -1033,5 +1037,61 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
             dpi=100,
         )
         plt.close(fig2)
+    # Create figure and primary axis to show the savings by building type
+    # and on the secondary axis the NPV of the operator
+    fig, ax1 = plt.subplots(figsize=(12, 8))
+
+    # Plot average customer savings on primary axis (left)
+    ax1.set_xlabel(f"{analysis_type}", fontsize=12)
+    ax1.set_ylabel("Average Customer Savings (€)", color="tab:blue", fontsize=12)
+
+    # Plot each building type's savings
+    colors = plt.cm.tab20(np.linspace(0.4, 0.8, len(avg_savings_data.columns)))
+    for building_type, color in zip(avg_savings_data.columns, colors):
+        ax1.plot(
+            values,
+            avg_savings_data[building_type],
+            marker="o",
+            label=building_type,
+            color=color,
+        )
+    ax1.tick_params(axis="y", labelcolor="tab:blue")
+
+    # Create secondary axis (right) for DH operator NPV
+    ax2 = ax1.twinx()
+    ax2.set_ylabel("DH Operator NPV (M€)", color="tab:red", fontsize=12)
+    ax2.plot(
+        values,
+        np.array(npv_operator) / 1000000,
+        "r-",
+        linewidth=3,
+        label="DH Operator NPV",
+    )
+    ax2.tick_params(axis="y", labelcolor="tab:red")
+
+    # Add title
+    plt.title(
+        f"DH Operator NPV vs Building Type Savings\nSensitivity to {analysis_type}",
+        fontsize=14,
+    )
+
+    # Combine legends from both axes
+    lines1, labels1 = ax1.get_legend_handles_labels()
+    lines2, labels2 = ax2.get_legend_handles_labels()
+    ax1.legend(
+        lines1 + lines2,
+        labels1 + labels2,
+        loc="center left",
+        bbox_to_anchor=(1.15, 0.5),
+        fontsize=10,
+    )
+
+    # Adjust layout and save
+    plt.tight_layout()
+    plt.savefig(
+        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_operator_vs_building_savings.png",
+        bbox_inches="tight",
+    )
+    plt.close()
 
 print("done")
