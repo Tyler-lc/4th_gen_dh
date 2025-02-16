@@ -504,7 +504,8 @@ def sensitivity_analysis(
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
 
-simulation = "unrenovated"
+# simulation = "unrenovated"
+simulation = "renovated"
 buildingstock_years = 25
 
 
@@ -682,15 +683,18 @@ for rows, columns in df_sensitivity_parameters.iterrows():
 
         for i, building_type in enumerate(building_types, 1):
             plt.subplot(rows, n_columns, i)
-            data = all_npv_data[value][
-                all_npv_data[value]["building_usage"] == building_type
-            ][f"savings_npv_25years_ir_{ir}"]
+            data = (
+                all_npv_data[value][
+                    all_npv_data[value]["building_usage"] == building_type
+                ][f"savings_npv_25years_ir_{ir}"]
+                / 1000
+            )  # Convert to k€
             scatter = sns.histplot(data, kde=True)
             scatter.set_title(
                 f"Savings Distribution - {building_type}\n{analysis_type}: {value}",
                 fontsize=14,
             )
-            scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+            scatter.set_xlabel("NPV Savings (k€)", fontsize=12)
             scatter.set_ylabel("Frequency", fontsize=12)
             scatter.tick_params(labelsize=12)
 
@@ -714,15 +718,18 @@ for rows, columns in df_sensitivity_parameters.iterrows():
 
         for i, building_type in enumerate(building_types, 1):
             plt.subplot(rows, n_columns, i)
-            data = all_npv_data[value][
-                all_npv_data[value]["building_usage"] == building_type
-            ][f"savings_npv_25years_ir_{ir}"]
+            data = (
+                all_npv_data[value][
+                    all_npv_data[value]["building_usage"] == building_type
+                ][f"savings_npv_25years_ir_{ir}"]
+                / 1000
+            )  # Convert to k€
             scatter = sns.histplot(data, kde=True)
             scatter.set_title(
                 f"Savings Distribution - {building_type}\n{analysis_type}: {value}",
                 fontsize=14,
             )
-            scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+            scatter.set_xlabel("NPV Savings (k€)", fontsize=12)
             scatter.set_ylabel("Frequency", fontsize=12)
             scatter.tick_params(labelsize=12)
 
@@ -795,36 +802,40 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         )
         plt.close(fig2)
 
-    # Create figure and primary axis to show the savings by building type
-    # and on the secondary axis the NPV of the operator
+    # Create figure and primary axis
     fig, ax1 = plt.subplots(figsize=(12, 8))
 
-    # Plot average customer savings on primary axis (left)
+    # Plot average customer savings on primary axis (left) - convert to k€
     ax1.set_xlabel(f"{analysis_type}", fontsize=12)
-    ax1.set_ylabel("Average Customer Savings (€)", color="tab:blue", fontsize=12)
+    ax1.set_ylabel("Average Customer Savings (k€)", color="tab:blue", fontsize=12)
 
-    # Plot each building type's savings
-    colors = plt.cm.tab20(np.linspace(0.4, 0.8, len(avg_savings_data.columns)))
-    for building_type, color in zip(avg_savings_data.columns, colors):
+    # Plot each building type's savings (converting to k€)
+    colors = sns.color_palette("colorblind", n_colors=len(avg_savings_data.columns))
+    markers = ["o", "s", "D", "^", "v", "<", ">", "p", "*", "h"]
+
+    for building_type, color, marker in zip(avg_savings_data.columns, colors, markers):
         ax1.plot(
             values,
-            avg_savings_data[building_type],
-            marker="o",
+            avg_savings_data[building_type] / 1000,  # Convert to k€
+            marker=marker,
+            markersize=8,
             label=building_type,
             color=color,
+            linestyle="-",
+            linewidth=2,
+            markerfacecolor=color,
+            markeredgecolor="black",
         )
     ax1.tick_params(axis="y", labelcolor="tab:blue")
 
-    # Create secondary axis (right) for DH operator NPV
+    # Create secondary axis (right) for DH operator NPV - convert to M€
     ax2 = ax1.twinx()
     ax2.set_ylabel("DH Operator NPV (M€)", color="tab:red", fontsize=12)
-    ax2.plot(
-        values,
-        np.array(npv_operator) / 1000000,
-        "r-",
-        linewidth=3,
-        label="DH Operator NPV",
-    )
+
+    # Convert operator NPV to M€
+    npv_operator_millions = np.array(npv_operator) / 1000000
+
+    ax2.plot(values, npv_operator_millions, "r-", linewidth=3, label="DH Operator NPV")
     ax2.tick_params(axis="y", labelcolor="tab:red")
 
     # Add title
