@@ -295,31 +295,10 @@ print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 # but each building has a differently sized booster. That also will use a different amount of energy.
 # It should not be a problem because they will all share the same "coefficient" for investment costs.
 
-# price_heat_eurokwh_residential = (
-#     (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
-# )
-# print(
-#     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
-# )
-# price_heat_eurokwh_non_residential = (
-#     (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
-# )
-# print(
-#     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
-# )
-# price_heat_eurokwh_non_residential_VAT = (
-#     (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
-# )
-
-
 price_heat_eurokwh_residential = LCOH_HP + LCOH_dhg
-print(
-    f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
-)
+
 price_heat_eurokwh_non_residential = LCOH_HP + LCOH_dhg
-print(
-    f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
-)
+
 price_heat_eurokwh_non_residential_VAT = LCOH_HP + LCOH_dhg
 
 
@@ -468,6 +447,8 @@ price_heat_eurokwh_non_residential_VAT = (
     (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
 )
 
+
+### DH operator sells including VAT
 operator_selling_price = {
     "r0": price_heat_eurokwh_residential / ratios["r0"],
     "r1": price_heat_eurokwh_residential / ratios["r1"],
@@ -476,6 +457,17 @@ operator_selling_price = {
     "nr1": price_heat_eurokwh_non_residential_VAT / ratios["nr1"],
     "nr2": price_heat_eurokwh_non_residential_VAT / ratios["nr2"],
 }
+
+### But NON residential customers do not pay VAT.<
+customer_purchasing_price = {
+    "r0": price_heat_eurokwh_residential / ratios["r0"],
+    "r1": price_heat_eurokwh_residential / ratios["r1"],
+    "r2": price_heat_eurokwh_residential / ratios["r2"],
+    "nr0": price_heat_eurokwh_non_residential / ratios["nr0"],
+    "nr1": price_heat_eurokwh_non_residential / ratios["nr1"],
+    "nr2": price_heat_eurokwh_non_residential / ratios["nr2"],
+}
+
 
 ###################################################################################
 ###################################################################################
@@ -551,7 +543,7 @@ energy_expenditure_gas = calculate_expenses(
 )
 
 ### and how much would they pay when using heat pumps?
-dh_prices_future = calculate_future_values(operator_selling_price, n_years_hp)
+dh_prices_future = calculate_future_values(customer_purchasing_price, n_years_hp)
 energy_expenditure_dh = calculate_expenses(
     npv_data,
     dh_prices_future,
@@ -839,6 +831,9 @@ parameters = {
     "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
     "operator_selling_price": operator_selling_price,
     "gas_prices": gas_energy_prices,
+    "total_hp_inv_costs": total_installation_costs,
+    "total_booster_inv_costs": total_investment_costs_boosters,
+    "total_grid_inv_costs": investment_costs_dhg,
 }
 
 with open(f"{export_path}/parameters.json", "w") as f:
