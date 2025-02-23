@@ -640,7 +640,7 @@ def sensitivity_analysis(
 # df_npv = pd.DataFrame()
 
 analysis_type = "combined_electicity_gas"
-simulation = "renovated"
+simulation = "unrenovated"
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
 el_multiplier = np.linspace(0.5, 2, 10)
@@ -899,6 +899,93 @@ def create_savings_contour(all_npv_data, df_combinations):
 create_savings_scatter_plot(all_npv_data, df_combinations)
 create_savings_heatmap(all_npv_data, df_combinations)
 create_savings_contour(all_npv_data, df_combinations)
+
+
+def export_mfh_data(all_npv_data, df_combinations, simulation, analysis_type):
+    # Create empty lists to store data
+    el_mults = []
+    gas_mults = []
+    avg_savings = []
+
+    # Process each price combination
+    for _, row in df_combinations.iterrows():
+        el_mult = row["electricity_multiplier"]
+        gas_mult = row["gas_multiplier"]
+
+        # Get the NPV data for this combination
+        npv_key = f"gas{gas_mult} el{el_mult}"
+        df_subset = all_npv_data[npv_key]
+
+        # Calculate average savings for mfh buildings
+        mfh_data = df_subset[df_subset["building_usage"] == "mfh"]
+        if not mfh_data.empty:
+            avg_saving = mfh_data["savings_npv_25years_ir_0.05"].mean()
+
+            el_mults.append(el_mult)
+            gas_mults.append(gas_mult)
+            avg_savings.append(avg_saving)
+
+    # Create DataFrame with results
+    results_df = pd.DataFrame(
+        {
+            "electricity_multiplier": el_mults,
+            "gas_multiplier": gas_mults,
+            "average_savings": avg_savings,
+        }
+    )
+
+    # Export to CSV
+    results_df.to_csv(
+        f"sensitivity_analysis/{simulation}/{analysis_type}/data/mfh_savings_analysis.csv",
+        index=False,
+    )
+    return results_df
+
+
+def create_mfh_contour(all_npv_data, df_combinations):
+    # Create figure
+    fig, ax = plt.subplots(figsize=(10, 8))
+
+    # Get unique multipliers
+    el_mults = sorted(df_combinations["electricity_multiplier"].unique())
+    gas_mults = sorted(df_combinations["gas_multiplier"].unique())
+
+    # Create meshgrid for contour plot
+    X, Y = np.meshgrid(el_mults, gas_mults)
+
+    # Create data matrix for contour
+    Z = np.zeros((len(gas_mults), len(el_mults)))
+
+    for i, gas_mult in enumerate(gas_mults):
+        for j, el_mult in enumerate(el_mults):
+            npv_key = f"gas{gas_mult} el{el_mult}"
+            df_subset = all_npv_data[npv_key]
+            avg_saving = df_subset[df_subset["building_usage"] == "mfh"][
+                "savings_npv_25years_ir_0.05"
+            ].mean()
+            Z[i, j] = avg_saving
+
+    # Only plot the break-even line (removed the contourf)
+    cs = ax.contour(X, Y, Z, levels=[0], colors="black", linestyles="solid")
+    ax.clabel(cs, inline=True, fmt="Break-even")
+
+    ax.set_xlabel("Electricity Price Multiplier")
+    ax.set_ylabel("Gas Price Multiplier")
+    ax.set_title("Break-even Line")
+    ax.grid(True, linestyle="--", alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(
+        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/mfh_price_sensitivity_contour.png",
+        bbox_inches="tight",
+        dpi=300,
+    )
+    plt.close()
+
+
+# Replace or add to the existing plotting calls
+mfh_data = export_mfh_data(all_npv_data, df_combinations, simulation, analysis_type)
+create_mfh_contour(all_npv_data, df_combinations)
 
 
 # Create a figure with multiple subplots for different analyses

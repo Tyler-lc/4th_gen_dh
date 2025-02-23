@@ -504,8 +504,8 @@ def sensitivity_analysis(
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
 
-# simulation = "unrenovated"
-simulation = "renovated"
+simulation = "unrenovated"
+# simulation = "renovated"
 buildingstock_years = 25
 
 
