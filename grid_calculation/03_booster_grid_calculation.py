@@ -24,6 +24,13 @@ n_supply_list = [
 buildingstock_path = "../building_analysis/results/booster_whole_buildingstock/buildingstock_booster_whole_buildingstock_results.parquet"
 buildingstock = gpd.read_parquet(buildingstock_path)
 
+buildingstock["space_heating_path"] = buildingstock["space_heating_path"].str.replace(
+    "\\", "/"
+)
+buildingstock["dhw_energy_path"] = buildingstock["dhw_energy_path"].str.replace(
+    "\\", "/"
+)
+buildingstock = buildingstock[buildingstock["NFA"] >= 30]
 print("calculating space heating max \n")
 buildingstock["space_heating_cap"] = buildings_capacity(
     buildingstock, "space_heating_path"
@@ -352,8 +359,14 @@ ground_temp = 8  # C
 ambient_temp = 10  # C
 
 ###########COSTS DIGGING STREET#################
-fc_dig_st = 350
-vc_dig_st = 700
+### ORIGINAL VALUES
+# fc_dig_st = 350
+# vc_dig_st = 700
+
+
+### FlexyNets curve fit VALUES
+fc_dig_st = 2.0583023861573324e-13
+vc_dig_st = 73942.24960797853
 
 
 ###########COSTS DIGGING TERRAIN#################
@@ -362,15 +375,34 @@ vc_dig_tr = 500
 
 
 ###########COSTS PIPES###########################
-fc_pip = 50
-vc_pip = 700
+# fc_pip = 50
+# vc_pip = 700
 
+### SERIES 1 VALUES
+# fc_pip= 26.512730133354303
+# vc_pip= 187.6969006863942
+
+### SERIES 2 VALUES
+fc_pip = 42.52334125532351
+vc_pip = 147.1245773285605
 
 ###########COST FORMULAS EXPONENTS###############
-vc_dig_st_ex = 1.1
-vc_dig_tr_ex = 1.1
-vc_pip_ex = 1.3
+### ORIGINAL VALUE
+# vc_dig_st_ex = 1.1
 
+### Flexynets curve fit Value
+vc_dig_st_ex = 0.6445274602417989
+
+vc_dig_tr_ex = 1.1
+
+### Original Value
+# vc_pip_ex = 1.3
+
+### SERIES 1 VALUE
+# vc_pip_ex = 1.45171040129113
+
+### SERIES 2 VALUE
+vc_pip_ex = 1.5669355282782995
 ###########INVESTMENT COSTS PUMPS###############
 
 invest_pumps = 10000
