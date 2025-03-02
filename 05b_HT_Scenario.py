@@ -35,7 +35,7 @@ interest_rate_dh = 0.05
 # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
 margin = 0
 taxation = 0.07
-# reduction_factor = 0.951  # NPV DH operator is 0
+# reduction_factor = 0.9509  # NPV DH operator is 0
 reduction_factor = 1
 
 safety_factor = 1.2
@@ -618,6 +618,7 @@ plt.title("NPV Savings Distribution by Building Type - HT DH Scenario")
 plt.xlabel("Building Type")
 plt.ylabel("NPV Savings (€)")
 
+os.makedirs(f"plots/HighTemperature/data_exports_{reduction_factor}", exist_ok=True)
 npv_data.to_csv(
     f"plots/HighTemperature/data_exports_{reduction_factor}/npv_data_high_temperature.csv"
 )
@@ -733,6 +734,7 @@ parameters = {
     "LCOH_dhg": LCOH_dhg,
     "price_heat_eurokwh_residential": price_heat_eurokwh_residential,
     "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
+    "purchasing_price_heat": hp_energy_prices,
     "operator_selling_price": operator_selling_price,
     "gas_prices": gas_energy_prices,
 }

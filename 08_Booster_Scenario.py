@@ -50,8 +50,8 @@ interest_rate_dh = 0.05
 # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
 margin = 0
 taxation = 0.07
-# reduction_factor = 0.9036 # NPV DH operator is 0
-reduction_factor = 1
+reduction_factor = 0.8894  # NPV DH operator is 0
+# reduction_factor = 1
 # reduction_factor = 0.5
 
 safety_factor = 1.2
@@ -830,6 +830,7 @@ parameters = {
     "price_heat_eurokwh_residential": price_heat_eurokwh_residential,
     "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
     "operator_selling_price": operator_selling_price,
+    "purchasing_price_heat": customer_purchasing_price,
     "gas_prices": gas_energy_prices,
     "total_hp_inv_costs": total_installation_costs,
     "total_booster_inv_costs": total_investment_costs_boosters,

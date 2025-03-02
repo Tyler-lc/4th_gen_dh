@@ -34,10 +34,9 @@ interest_rate_dh = 0.05
 
 margin = 0
 taxation = 0.07
-reduction_factor = 1  # to match make have NPV (can't reach it) 0
-# reduction_factor = 0.42 # to match HT results
-# reduction_factor = 0.656  # to bring NPV to 0
-# reduction_factor = 1
+# reduction_factor = 1  # to match make have NPV (can't reach it) 0
+# reduction_factor = 0.6515  # to bring NPV to 0
+reduction_factor = 0
 
 safety_factor = 1.2
 n_heat_pumps = 2
@@ -700,6 +699,7 @@ parameters = {
     "price_heat_eurokwh_residential": price_heat_eurokwh_residential,
     "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
     "operator_selling_price": operator_selling_price,
+    "purchasing_price_heat": hp_energy_prices,
     "gas_prices": gas_energy_prices,
 }
 
