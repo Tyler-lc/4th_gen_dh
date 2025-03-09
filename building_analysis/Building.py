@@ -298,6 +298,7 @@ class Building:
             global_irradiation.index = self.solar_gain.index
 
             # compute gain for all hours in one vectorized operation
+            # PVGIS data are in Wh/m2
             gains = global_irradiation * window_SHGC * window_area / 1000
             # Set gains to zero during summer months
             gains[self.summer_months] = 0
