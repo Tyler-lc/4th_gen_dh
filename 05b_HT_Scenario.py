@@ -746,6 +746,32 @@ with open(f"{export_path}/parameters.json", "w") as f:
 print(f"Data exported to {export_path}")
 
 
+# Create the plot
+fig, ax = plt.subplots(figsize=(12, 8))
+
+# Plot the buildings colored by specific_ued
+unrenovated_buildingstock.plot(
+    column="specific_ued",
+    cmap="viridis",  # You can change the colormap (e.g., 'RdYlBu', 'hot', 'coolwarm')
+    legend=True,
+    legend_kwds={
+        "label": "Specific Energy Use Demand (kWh/m²/year)",
+        "orientation": "horizontal",
+        "pad": 0.05,
+        "shrink": 0.8,
+    },
+    ax=ax,
+)
+
+# Add a title
+plt.title("Building Specific Energy Use Demand")
+
+# Optional: Add basemap or additional context
+# ax.axis('equal')  # Maintain aspect ratio
+
+plt.tight_layout()
+plt.savefig(f"plots/HighTemperature_specific_ued.png")
+
 # n_columns = 3
 # # Plot histogram of savings distribution by building type
 # plt.figure(figsize=(20, 15))
