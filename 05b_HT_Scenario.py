@@ -54,7 +54,11 @@ path_embers = f"grid_calculation/unrenovated_result_df.parquet"
 ember_results = pd.read_parquet(path_embers)
 investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
-dhg_lifetime = 25  # years
+
+### Because we are assuming the DHG lasts longer. We will use 50 years for the lcoh calculation
+# and 25 years for the NPV but we will add also the residual value of the grid on the last year.
+dhg_lifetime = 50  # years
+percent_residual_value = 0.4
 # investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
 ir_dhg = 0.05
 
@@ -470,7 +474,7 @@ plt.tight_layout()
 # plt.show()
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}.png"
+    f"plots/HighTemperature/HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -491,7 +495,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
+    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -532,7 +536,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
+    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -553,7 +557,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
+    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -581,7 +585,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
+    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -600,7 +604,7 @@ bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_AverageSavings_reduction_factor_{reduction_factor}.png"
+    f"plots/HighTemperature/HighTemperature_AverageSavings_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -618,7 +622,10 @@ plt.title("NPV Savings Distribution by Building Type - HT DH Scenario")
 plt.xlabel("Building Type")
 plt.ylabel("NPV Savings (€)")
 
-os.makedirs(f"plots/HighTemperature/data_exports_{reduction_factor}", exist_ok=True)
+os.makedirs(
+    f"plots/HighTemperature/data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}",
+    exist_ok=True,
+)
 npv_data.to_csv(
     f"plots/HighTemperature/data_exports_{reduction_factor}/npv_data_high_temperature.csv"
 )
@@ -699,9 +706,14 @@ revenues = calculate_revenues(
 total_revenues = revenues.sum()  # in Mio €/year
 
 
-future_revenues = calculate_future_values({"revenues": total_revenues}, dhg_lifetime)
+future_revenues = calculate_future_values(
+    {"revenues": total_revenues}, heat_pump_lifetime
+)
+future_revenues.iloc[len(future_revenues) - 1] += (
+    investment_costs_dhg * 1000000 * percent_residual_value
+)
 future_expenses = calculate_future_values(
-    {"costs": total_yearly_costs_hps}, dhg_lifetime
+    {"costs": total_yearly_costs_hps}, heat_pump_lifetime
 )
 future_expenses["costs"] = future_expenses["costs"]
 from costs.renovation_costs import npv_2
@@ -711,7 +723,9 @@ npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, interest_
 print(f"NPV of the District Heating Operator: {npv_dh}")
 
 # Create export directory if it doesn't exist
-export_path = f"plots/HighTemperature/data_exports_{reduction_factor}"
+export_path = (
+    f"plots/HighTemperature/data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}"
+)
 os.makedirs(export_path, exist_ok=True)
 
 # Export DataFrames and data
@@ -770,7 +784,9 @@ plt.title("Building Specific Energy Use Demand")
 # ax.axis('equal')  # Maintain aspect ratio
 
 plt.tight_layout()
-plt.savefig(f"plots/HighTemperature_specific_ued.png")
+plt.savefig(
+    f"plots/HighTemperature/HighTemperature_specific_ued_dhg_lifetime_{dhg_lifetime}_dhg_lifetime_{dhg_lifetime}.png"
+)
 
 # n_columns = 3
 # # Plot histogram of savings distribution by building type
