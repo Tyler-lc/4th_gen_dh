@@ -35,7 +35,7 @@ interest_rate_dh = 0.05
 # margin = 0.166867 this is the margin to be applied so that DH operator earns nothing
 margin = 0
 taxation = 0.07
-# reduction_factor = 0.9509  # NPV DH operator is 0
+# reduction_factor = 0.727  # NPV DH operator is 0
 reduction_factor = 1
 
 safety_factor = 1.2
@@ -473,6 +473,7 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 # plt.show()
 plt.tight_layout()
+os.makedirs(f"plots/HighTemperature/", exist_ok=True)
 plt.savefig(
     f"plots/HighTemperature/HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
@@ -627,7 +628,7 @@ os.makedirs(
     exist_ok=True,
 )
 npv_data.to_csv(
-    f"plots/HighTemperature/data_exports_{reduction_factor}/npv_data_high_temperature.csv"
+    f"plots/HighTemperature/data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}/npv_data_high_temperature.csv"
 )
 # bar plot with box plot overlayed.
 plt.figure(figsize=(12, 8))

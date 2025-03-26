@@ -73,7 +73,7 @@ n_years_hp = 25  # for LCOH calculation
 ir_hp = 0.05  # interest rate for the heat pump
 heat_pump_lifetime = 25  # setting years until replacement
 
-dhg_lifetime = 25  # years
+dhg_lifetime = 50  # years
 percent_residual_value = 0.4
 investment_costs_dhg = embers_data["cost_total"].sum() / 1000000  # from EMBERS [Mil €]
 ir_dhg = 0.05
@@ -623,6 +623,7 @@ bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
 bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
+os.makedirs(f"plots/booster/", exist_ok=True)
 plt.savefig(
     f"plots/booster/booster_AverageSavings_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
