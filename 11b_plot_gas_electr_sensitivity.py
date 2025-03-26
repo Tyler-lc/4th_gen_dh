@@ -84,4 +84,3 @@ def create_combined_contour(df_booster, df_ht, df_lt):
 
 # Call the function with your imported dataframes
 create_combined_contour(df_booster, df_ht, df_lt)
-print("done")

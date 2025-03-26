@@ -139,8 +139,7 @@ def calculate_lcoh(
     # since we are using the investment cost as the year 0 cash flow here.
     years = fixed_om_series.index
     for t in years:
-        # discount_factor = (1 + discount_rate) ** (t + 1)
-        discount_factor = (1 + discount_rate) ** (t)
+        discount_factor = (1 + discount_rate) ** (t + 1)
         # Sum the discounted costs
         numerator += (
             fixed_om_series.iloc[t, 0]

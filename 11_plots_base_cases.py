@@ -4,15 +4,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # import all the npv data from the csv files
-unrenovated_savings = pd.read_csv(
-    "plots/HighTemperature/data_exports_1_dhg_lifetime_50/npv_data.csv"
-)
-renovated_savings = pd.read_csv(
-    "plots/LowTemperature/data_exports_1_dhg_lifetime_50/npv_data.csv"
-)
-booster_savings = pd.read_csv(
-    "plots/booster/data_exports_1_dhg_lifetime_50/npv_data.csv"
-)
+unrenovated_savings = pd.read_csv("plots/HighTemperature/data_exports_1/npv_data.csv")
+renovated_savings = pd.read_csv("plots/LowTemperature/data_exports_1/npv_data.csv")
+booster_savings = pd.read_csv("plots/booster/data_exports_1/npv_data.csv")
 
 # Add scenario column to each dataframe
 unrenovated_savings["scenario"] = "High Temperature"
@@ -67,34 +61,32 @@ plot_npv_savings(
 #### now we want also to plot for the case in which the DH operator is not allowed to make a profit
 # first we need to import the correct data:
 
-# unrenovated_savings_no_profit = pd.read_csv(
-#     "plots/HighTemperature/data_exports_0.9509/npv_data.csv"
-# )
-# renovated_savings_no_profit = pd.read_csv(
-#     "plots/LowTemperature/data_exports_0.6515/npv_data.csv"
-# )
-# booster_savings_no_profit = pd.read_csv(
-#     "plots/booster/data_exports_0.8894/npv_data.csv"
-# )
+unrenovated_savings_no_profit = pd.read_csv(
+    "plots/HighTemperature/data_exports_0.9509/npv_data.csv"
+)
+renovated_savings_no_profit = pd.read_csv(
+    "plots/LowTemperature/data_exports_0.6515/npv_data.csv"
+)
+booster_savings_no_profit = pd.read_csv(
+    "plots/booster/data_exports_0.8894/npv_data.csv"
+)
 
-# # Add scenario column to each dataframe
-# unrenovated_savings_no_profit["scenario"] = "High Temperature"
-# renovated_savings_no_profit["scenario"] = "Low Temperature"
-# booster_savings_no_profit["scenario"] = "Booster"
+# Add scenario column to each dataframe
+unrenovated_savings_no_profit["scenario"] = "High Temperature"
+renovated_savings_no_profit["scenario"] = "Low Temperature"
+booster_savings_no_profit["scenario"] = "Booster"
 
-# # and now combine the dataframes
-# combined_data_no_profit = pd.concat(
-#     [
-#         unrenovated_savings_no_profit,
-#         renovated_savings_no_profit,
-#         booster_savings_no_profit,
-#     ]
-# )
+# and now combine the dataframes
+combined_data_no_profit = pd.concat(
+    [
+        unrenovated_savings_no_profit,
+        renovated_savings_no_profit,
+        booster_savings_no_profit,
+    ]
+)
 
-# plot_npv_savings(
-#     combined_data_no_profit,
-#     "NPV Savings Distribution by Building Type and Scenario - No Profit Allowed",
-#     "all_scenarios_no_profit",
-# )
-
-print("done")
+plot_npv_savings(
+    combined_data_no_profit,
+    "NPV Savings Distribution by Building Type and Scenario - No Profit Allowed",
+    "all_scenarios_no_profit",
+)

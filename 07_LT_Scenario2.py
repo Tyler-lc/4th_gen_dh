@@ -28,7 +28,7 @@ from utils.misc import get_electricity_cost
 # In this scenario we compare the NPV of the customer when they do not renovate and use gas
 # against the case when they renovate and use DH which uses a air Heat Pump.
 #############################################################################################
-supply_temperature = 50
+supply_temperature = 55
 approach_temperature = 5
 interest_rate_dh = 0.05
 
@@ -36,7 +36,7 @@ margin = 0
 taxation = 0.07
 # reduction_factor = 1  # to match make have NPV (can't reach it) 0
 # reduction_factor = 0.6515  # to bring NPV to 0
-reduction_factor = 1
+reduction_factor = 0
 
 safety_factor = 1.2
 n_heat_pumps = 2
@@ -55,8 +55,7 @@ path_embers = f"grid_calculation/renovated_result_df.parquet"
 ember_results = pd.read_parquet(path_embers)
 investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
-dhg_lifetime = 50  # years
-percent_residual_value = 0.4
+dhg_lifetime = 25  # years
 # investment_costs_dhg = 16.25  # from thermos with LT option
 ir_dhg = 0.05
 
@@ -487,9 +486,8 @@ bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
 # plt.show()
-os.makedirs(f"plots/LowTemperature/", exist_ok=True)
 plt.savefig(
-    f"plots/LowTemperature/LowTemperature_AverageSavings_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    f"plots/LowTemperature/LowTemperature_AverageSavings_reduction_factor_{reduction_factor}.png"
 )
 plt.close()
 
@@ -513,7 +511,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/LowTemperature/LowTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    f"plots/LowTemperature/LowTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
 )
 plt.close()
 
@@ -552,7 +550,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/LowTemperature/LowTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    f"plots/LowTemperature/LowTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
 )
 plt.close()
 
@@ -588,14 +586,9 @@ revenues = calculate_revenues(
 total_revenues = revenues.sum()  # in Mio €/year
 
 
-future_revenues = calculate_future_values(
-    {"revenues": total_revenues}, heat_pump_lifetime
-)
-future_revenues.iloc[len(future_revenues) - 1] += (
-    investment_costs_dhg * 1000000 * percent_residual_value
-)
+future_revenues = calculate_future_values({"revenues": total_revenues}, dhg_lifetime)
 future_expenses = calculate_future_values(
-    {"costs": total_yearly_costs_hps}, heat_pump_lifetime
+    {"costs": total_yearly_costs_hps}, dhg_lifetime
 )
 future_expenses["costs"] = future_expenses["costs"]
 from costs.renovation_costs import npv_2
@@ -630,7 +623,7 @@ plt.tight_layout()
 # plt.show()
 plt.tight_layout()
 plt.savefig(
-    f"plots/LowTemperature/LowTemperature_SavingsAverage_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    f"plots/LowTemperature/LowTemperature_SavingsAverage_reduction_factor_{reduction_factor}.png"
 )
 plt.close()
 
@@ -650,7 +643,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/LowTemperature/LowTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    f"plots/LowTemperature/LowTemperature_SavingsDistribution_reduction_factor_{reduction_factor}.png"
 )
 plt.close()
 
@@ -677,14 +670,12 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/LowTemperature/LowTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    f"plots/LowTemperature/LowTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}.png"
 )
 plt.close()
 
 # Create export directory if it doesn't exist
-export_path = (
-    f"plots/LowTemperature/data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}"
-)
+export_path = f"plots/LowTemperature/data_exports_{reduction_factor}"
 os.makedirs(export_path, exist_ok=True)
 
 # Export DataFrames and data
@@ -742,6 +733,4 @@ plt.title("Building Specific Energy Use Demand")
 # ax.axis('equal')  # Maintain aspect ratio
 
 plt.tight_layout()
-plt.savefig(
-    f"plots/LowTemperature/LowTemperature_specific_ued_dhg_lifetime_{dhg_lifetime}_reduction_factor_{reduction_factor}.png"
-)
+plt.savefig(f"plots/LowTemperature_specific_ued.png")

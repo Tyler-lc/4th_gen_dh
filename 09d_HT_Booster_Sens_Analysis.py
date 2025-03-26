@@ -37,9 +37,7 @@ def sensitivity_analysis_booster(
     taxation: float = 0.07,
     reduction_factor: float = 1,
     oversizing_factor: float = 1.2,
-    n_heat_pumps: int = 2,
-    dhg_lifetime: int = 50,
-    percent_residual_value: float = 0.4,
+    n_heat_pumps: int = 3,
     inv_cost_multiplier: Union[float, int] = 1,
     electricity_cost_multiplier: float = 1,
     gas_cost_multiplier: Union[float, int] = 1,
@@ -49,7 +47,7 @@ def sensitivity_analysis_booster(
 ):
     """
     This is a helper function to run the sensitivity analysis for the HT and LT scenario
-    ### Parameters:
+    Parameters:
     - simulation_type: can be "renovated" or "unrenovated"
     - supply_temperature: the supply temperature to the buildings
     - approach_temperature: the approach temperature of the heat exchanger (grid to heat pump)
@@ -58,9 +56,6 @@ def sensitivity_analysis_booster(
     - reduction_factor: the reduction factor to be applied to the price of the heat supplied to the customers
     - safety_factor: the oversizing factor for the large scale heat pumps
     - n_heat_pumps: the number of large scale heat pumps installed
-    - dhg_lifetime: the lifetime of the DHG
-    - percent_residual_value: the percentage residual value of the DHG
-    - inv_cost_multiplier: the multiplier for the investment costs of the large scale heat pumps
     - electricity_cost_multiplier: the multiplier for the electricity cost
     - max_COP: the maximum COP for the heat pumps
     - ir: the interest rate for the whole simulation
@@ -86,6 +81,8 @@ def sensitivity_analysis_booster(
     # taxation = 0.07
     # reduction_factor = 1
 
+    n_heat_pumps = 2  # might need changing!!!!
+
     initial_electricity_cost = {
         "IA": 0.3279,  # these are the electricity costs based on consumption
         "IB": 0.2480,
@@ -99,6 +96,7 @@ def sensitivity_analysis_booster(
     n_years_hp = 25  # for LCOH calculation
     heat_pump_lifetime = 25  # setting years until replacement
 
+    dhg_lifetime = 25  # years
     investment_costs_dhg = (
         embers_data["cost_total"].sum() / 1000000
     )  # from EMBERS [Mil €]
@@ -684,13 +682,10 @@ def sensitivity_analysis_booster(
 
     total_revenues = revenues.sum()
     future_revenues = calculate_future_values(
-        {"revenues": total_revenues}, heat_pump_lifetime
+        {"revenues": total_revenues}, dhg_lifetime
     )
     future_expenses = calculate_future_values(
-        {"costs": total_yearly_costs}, heat_pump_lifetime
-    )
-    future_revenues.iloc[len(future_revenues) - 1] += (
-        investment_costs_dhg * 1000000 * percent_residual_value
+        {"costs": total_yearly_costs}, dhg_lifetime
     )
     future_expenses["costs"] = future_expenses["costs"]
     from costs.renovation_costs import npv_2
@@ -710,8 +705,18 @@ def sensitivity_analysis_booster(
 
 
 simulation = "booster"
-n_heat_pumps = 2
-supply_temperature = 50
+# analysis_types = [
+#     "supply_temperature",  # 0
+#     "approach_temperature",  # 1
+#     "electricity_price",  # 2
+#     "gas_price",  # 3
+#     "max_cop",  # 4
+#     "ir",  # 5
+#     "inv_cost_multiplier",  # 6
+# ]
+
+
+# num_analysis = 0
 
 df_sensitivity_parameters = pd.read_excel(
     "sensitivity_analysis/sensitivity_analysis_parameters.xlsx"
@@ -758,86 +763,43 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
 
     for value in tqdm(values):
         print(f"\n Analysis type: {row['analysis_type']}, Processing value: {value} \n")
-        if num_analysis == 0:  # ir
+        if num_analysis == 0:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, ir=value)
+            )
+        elif num_analysis == 1:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, approach_temperature=value)
+            )
+        elif num_analysis == 2:
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
-                    ir=value,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
+                    simulation, electricity_cost_multiplier=value
                 )
             )
-        elif num_analysis == 1:  # approach temperature
+        elif num_analysis == 3:
+            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
+                sensitivity_analysis_booster(simulation, gas_cost_multiplier=value)
+            )
+        elif num_analysis == 4:
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
-                    approach_temperature=value,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
+                    simulation, max_COP=value, carnot_efficiency=carnot_efficiency
                 )
             )
-        elif num_analysis == 2:  # electricity price
+        elif num_analysis == 5:
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
-                    electricity_cost_multiplier=value,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
+                    simulation, supply_temperature=value.astype(int)
                 )
             )
-        elif num_analysis == 3:  # gas price
+        elif num_analysis == 6:
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
-                sensitivity_analysis_booster(
-                    simulation,
-                    gas_cost_multiplier=value,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
-                )
+                sensitivity_analysis_booster(simulation, inv_cost_multiplier=value)
             )
-        elif num_analysis == 4:  # max COP
+        elif num_analysis == 7:
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
-                sensitivity_analysis_booster(
-                    simulation,
-                    max_COP=value,
-                    carnot_efficiency=carnot_efficiency,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
-                )
-            )
-        elif num_analysis == 5:  # supply temperature
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
-                sensitivity_analysis_booster(
-                    simulation,
-                    supply_temperature=value.astype(int),
-                    n_heat_pumps=n_heat_pumps,
-                )
-            )
-        elif num_analysis == 6:  # investment cost multiplier
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
-                sensitivity_analysis_booster(
-                    simulation,
-                    inv_cost_multiplier=value,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
-                )
-            )
-        elif num_analysis == 7:  # oversizing factor
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
-                sensitivity_analysis_booster(
-                    simulation,
-                    oversizing_factor=value,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
-                )
-            )
-        elif num_analysis == 8:  # percent residual value
-            df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
-                sensitivity_analysis_booster(
-                    simulation,
-                    percent_residual_value=value,
-                    n_heat_pumps=n_heat_pumps,
-                    supply_temperature=supply_temperature,
-                )
+                sensitivity_analysis_booster(simulation, oversizing_factor=value)
             )
 
         df_npv.to_csv(
