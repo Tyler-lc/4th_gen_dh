@@ -130,23 +130,18 @@ def calculate_lcoh(
         or len(fixed_om_series) != len(heat_output_series)
     ):
         raise ValueError("All input series must have the same length")
-
-    # Start with investment costs at year 0 (not discounted)
-    numerator = investment_costs
-    denominator = 0
-
-    ### Because the index starts at 0, we need to add 1 to the year to get the correct year number
-    # since we are using the investment cost as the year 0 cash flow here.
     years = fixed_om_series.index
+    denominator = 0
+    numerator = 0
+
     for t in years:
-        discount_factor = (1 + discount_rate) ** (t + 1)
+        discount_factor = (1 + discount_rate) ** t
         # Sum the discounted costs
         numerator += (
             fixed_om_series.iloc[t, 0]
             + variable_om_series.iloc[t, 0]
             + electricity_costs_series.iloc[t, 0]
         ) / discount_factor
-
         # Sum the discounted heat output
         denominator += heat_output_series.iloc[t, 0] / discount_factor
 
@@ -154,6 +149,7 @@ def calculate_lcoh(
     numerator += investment_costs
 
     lcoh = numerator / denominator
+
     return lcoh
 
 

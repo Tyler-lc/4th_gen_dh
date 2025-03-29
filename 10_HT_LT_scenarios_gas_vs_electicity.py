@@ -640,7 +640,7 @@ def sensitivity_analysis(
 # df_npv = pd.DataFrame()
 
 analysis_type = "combined_electicity_gas"
-simulation = "renovated"
+simulation = "unrenovated"
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
 el_multiplier = np.linspace(0.5, 2, 10)
