@@ -364,19 +364,14 @@ for idx, row in tqdm(
     if size_hp_booster > 500:
         specific_cost_booster = 100
     else:
-        specific_cost_booster = 190
+        specific_cost_booster = 170
     cost_heat_boosters = specific_cost_booster * size_hp_booster
     booster_buildingstock.loc[idx, "cost_hp_booster [€]"] = cost_heat_boosters
-
-    # i think i actually need to calculate the LCOH for each booster now. poo.
 
     booster_buildingstock.loc[idx, "electricity_cost_booster [€]"] = (
         booster_buildingstock.loc[idx, "total_demand_electricity [kWh]"]
         * initial_electricity_cost_system
     )  # we are using the DH operator electricity price
-    # booster_buildingstock.loc[idx, "dhg_cost_booster [€]"] = booster_buildingstock.loc[
-    #     idx, "total_demand_on_grid [kWh]"
-    # ]
 
 fixed_oem_boosters = calculate_future_values(
     {"Fixed O&M": fixed_costs_boosters}, n_years_hp

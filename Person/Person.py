@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-import icecream as ic
+
+# import icecream as ic
 import warnings
 
 
@@ -304,7 +305,7 @@ if __name__ == "__main__":
     # generate the occupancy for the whole year
     luca_occupancy_year = luca.defined_time_occupancy()
     luca_dhw = luca.dhw_profile()
-    plot = False
+    plot = True
 
     if plot == True:
         start_date = "2021-01-01"
@@ -312,17 +313,26 @@ if __name__ == "__main__":
         days_df = luca_occupancy_year[start_date:end_date]
 
         # Plot the occupancy profile
-        plt.figure(figsize=(30, 10))
 
         plt.bar(range(len(days_df)), days_df.occupancy)
         plt.show()
 
-        plt.plot(range(len(occupancy_probabilities)), luca.freeday_occupancy_pdf)
-        plt.plot(range(len(occupancy_probabilities)), luca.workday_occupancy_pdf)
-        plt.legend(["Free day", "Work day"])
+        plt.figure(figsize=(20, 10))
+        plt.plot(
+            range(len(occupancy_probabilities)), luca.freeday_occupancy_pdf, linewidth=5
+        )
+        plt.plot(
+            range(len(occupancy_probabilities)), luca.workday_occupancy_pdf, linewidth=5
+        )
+        plt.legend(["Free day", "Work day"], fontsize=22)
+        plt.xlabel("Time of day (hours)", fontsize=28)
+        plt.ylabel("Probability of occupancy", fontsize=28)
+        plt.xticks(fontsize=20)
+        plt.yticks(fontsize=20)
+        plt.title("Occupancy probability distribution", fontsize=28)
         plt.show()
 
-    from pyinstrument import Profiler
+    # from pyinstrument import Profiler
 
     # profiler = Profiler()
     # profiler.start()

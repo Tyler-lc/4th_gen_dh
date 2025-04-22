@@ -430,6 +430,9 @@ def sensitivity_analysis(
     # TODO: Where there was no renovation now we have a NaN. We have to change these into the right data
     # because the price of the heating has changed. So they actually have a different NPV. We have to do that in the
     # renovation_costs["total_cost"]. There we get NaN data.
+    convert2020_2023 = 188.40 / 133.90
+    renovation_costs = renovation_costs_iwu(buildingstock, convert2020_2023)
+    renovation_costs["total_cost"] = renovation_costs["total_cost"].fillna(0)
 
     for idx, row in npv_data.iterrows():
         building_id = row["full_id"]
@@ -444,7 +447,12 @@ def sensitivity_analysis(
 
         # DH NPV for buildings
         energy_costs_new = energy_expenditure_dh[building_id]
-        npv_dh = npv(0, energy_costs_new, income_buildings, ir)
+        npv_dh = npv(
+            -renovation_costs["total_cost"].values[0],
+            energy_costs_new,
+            income_buildings,
+            ir,
+        )
         npv_data.loc[
             idx,
             f"npv_DH_{years_buildingstock}years_ir_{ir}",
