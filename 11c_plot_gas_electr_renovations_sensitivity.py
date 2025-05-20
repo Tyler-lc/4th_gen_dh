@@ -140,7 +140,7 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
                 Z,  # Use this dataset's specific grid
                 levels=[0],
                 colors=[color],
-                linestyles=linestyle,
+                linestyles=[linestyle],
                 linewidths=2,
             )
             legend_elements.append(
@@ -229,7 +229,7 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
                 Z_lt,
                 levels=[0],  # Still level 0
                 colors=[lt_base_color],  # Keep color as a list element
-                linestyles=linestyle_for_this_contour,  # Pass the *specific* style string/tuple
+                linestyles=[linestyle_for_this_contour],
                 linewidths=2,
             )
             lt_label = f"Renovated (LT) - Reno Cost x{reno_mult:.2f}"
