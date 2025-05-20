@@ -34,7 +34,7 @@ def sensitivity_analysis(
     taxation: float = 0.07,
     reduction_factor: float = 1,
     oversizing_factor: float = 1.2,
-    n_heat_pumps: int = 3,
+    n_heat_pumps: int = 2,
     dhg_lifetime=50,  # years
     percent_residual_value: float = 0.4,  # percentage residual value of the DHG
     inv_cost_multiplier: Union[float, int] = 1,
@@ -69,6 +69,7 @@ def sensitivity_analysis(
         )
     if simulation_type == "renovated":
         supply_temperature = 55
+        n_heat_pumps = 2
     #############################################################################################
     # In this scenario we compare the NPV of the customer when they do not renovate and use gas
     # against the case when they renovate and use DH which uses a air Heat Pump.
@@ -447,8 +448,11 @@ def sensitivity_analysis(
 
         # DH NPV for buildings
         energy_costs_new = energy_expenditure_dh[building_id]
+        renovations = renovation_costs.loc[
+            renovation_costs["full_id"] == building_id, "total_cost"
+        ]
         npv_dh = npv(
-            -renovation_costs["total_cost"].values[0],
+            -renovations.values[0],
             energy_costs_new,
             income_buildings,
             ir,
