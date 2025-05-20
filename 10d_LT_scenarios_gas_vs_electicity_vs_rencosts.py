@@ -77,7 +77,7 @@ def sensitivity_analysis(
     # In this scenario we compare the NPV of the customer when they do not renovate and use gas
     # against the case when they renovate and use DH which uses a air Heat Pump.
     #############################################################################################
-
+    # print("Start of the simulation")
     n_years_hp = 25  # for LCOH calculation
     heat_pump_lifetime = 25  # setting years until replacement
 
@@ -173,7 +173,7 @@ def sensitivity_analysis(
         COP_max=max_COP,
     )
     max_cop = cop_hourly.max()
-    print(cop_hourly.head(200))
+    # print(cop_hourly.head(200))
 
     P_el = (
         areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
@@ -205,9 +205,9 @@ def sensitivity_analysis(
         fixed_oem_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
     )  # Million Euros/MW_thermal installed
 
-    print(
-        f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
-    )
+    # print(
+    #     f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
+    # )
 
     initial_electricity_cost = (
         get_electricity_cost(
@@ -224,7 +224,7 @@ def sensitivity_analysis(
 
     # TODO: I could make a little function or simply a mapping to calculate the electricity cost for the DH operator
     ## we need to calculate also the electricity cost of running the heat pump:
-
+    # print("Calculating electricity cost")
     future_electricity_prices = calculate_future_values(
         {"electricity": initial_electricity_cost}, n_years_hp
     )
@@ -260,8 +260,8 @@ def sensitivity_analysis(
         heat_supplied_df * 1000,  # # convert to kWh
         ir,
     )  # in this case we are getting Euros per kWh produced.
-    print(f"interest rate: {ir}")
-    print(f"LCOH of the Heat Pumps: {LCOH_HP}")
+    # print(f"interest rate: {ir}")
+    # print(f"LCOH of the Heat Pumps: {LCOH_HP}")
 
     dhg_other_costs = np.zeros(dhg_lifetime)
     dhg_other_costs_df = pd.DataFrame(dhg_other_costs)
@@ -277,22 +277,22 @@ def sensitivity_analysis(
         heat_supplied_dhg * 1000,
         ir,
     )
-    print(f"interest rate: {ir}")
+    # print(f"interest rate: {ir}")
     # LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
-    print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
+    # print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 
     price_heat_eurokwh_residential = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
-    print(
-        f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
+    # )
     price_heat_eurokwh_non_residential = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
     )
-    print(
-        f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
+    # )
     price_heat_eurokwh_non_residential_VAT = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
@@ -352,7 +352,7 @@ def sensitivity_analysis(
 
     # import the data with the renovated buildingstock
     # and now let's import the unrenovated buildingstock
-
+    # print("Importing buildingstock data")
     buildingstock_path = Path(
         f"building_analysis/results/{simulation_type}_whole_buildingstock/buildingstock_results_{simulation_type}.parquet"
     )
@@ -440,6 +440,7 @@ def sensitivity_analysis(
     renovation_costs["total_cost"] = renovation_costs["total_cost"].fillna(0)
     renovation_costs["total_cost"] *= renovation_cost_multiplier
 
+    # print("Calculating NPV for gas and DH")
     for idx, row in npv_data.iterrows():
         building_id = row["full_id"]
 
@@ -486,40 +487,40 @@ def sensitivity_analysis(
     )
 
     # Plot average savings by building type
-    plt.figure(figsize=(12, 6))
-    bar = avg_savings.plot(kind="bar")
+    # plt.figure(figsize=(12, 6))
+    # bar = avg_savings.plot(kind="bar")
 
-    bar.set_title("Average NPV Savings by Building Type - HT DH Scenario", fontsize=16)
-    bar.set_xlabel("Building Type", fontsize=14)
-    bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
-    bar.tick_params(labelsize=14)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig("HighTemperature_AverageSavings.png")
-    plt.close()
+    # bar.set_title("Average NPV Savings by Building Type - HT DH Scenario", fontsize=16)
+    # bar.set_xlabel("Building Type", fontsize=14)
+    # bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
+    # bar.tick_params(labelsize=14)
+    # plt.xticks(rotation=45)
+    # plt.tight_layout()
+    # plt.savefig("HighTemperature_AverageSavings.png")
+    # plt.close()
 
-    n_columns = 3
-    # Plot histogram of savings distribution by building type
-    plt.figure(figsize=(20, 15))
-    building_types = npv_data["building_usage"].unique()
-    num_types = len(building_types)
-    rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+    # n_columns = 3
+    # # Plot histogram of savings distribution by building type
+    # plt.figure(figsize=(20, 15))
+    # building_types = npv_data["building_usage"].unique()
+    # num_types = len(building_types)
+    # rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
-    for i, building_type in enumerate(building_types, 1):
-        plt.subplot(rows, n_columns, i)
-        data = npv_data[npv_data["building_usage"] == building_type][
-            f"savings_npv_{years_buildingstock}years_ir_{ir}"
-        ]
-        scatter = sns.histplot(data, kde=True)
-        scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
-        scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
-        scatter.set_ylabel("Frequency", fontsize=12)
-        scatter.tick_params(labelsize=12)
+    # for i, building_type in enumerate(building_types, 1):
+    #     plt.subplot(rows, n_columns, i)
+    #     data = npv_data[npv_data["building_usage"] == building_type][
+    #         f"savings_npv_{years_buildingstock}years_ir_{ir}"
+    #     ]
+    #     scatter = sns.histplot(data, kde=True)
+    #     scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
+    #     scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+    #     scatter.set_ylabel("Frequency", fontsize=12)
+    #     scatter.tick_params(labelsize=12)
 
-    plt.tight_layout()
-    # plt.show()
-    plt.savefig("HighTemperature_SavingsDistribution.png")
-    plt.close()
+    # plt.tight_layout()
+    # # plt.show()
+    # # plt.savefig("HighTemperature_SavingsDistribution.png")
+    # plt.close()
 
     # Merge NFA data with npv_data
     merged_data = npv_data.merge(buildingstock[["full_id", "NFA"]], on="full_id")
@@ -528,39 +529,39 @@ def sensitivity_analysis(
     # merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
 
     # Create scatter plots
-    plt.figure(figsize=(20, 15))
-    building_types = merged_data["building_usage"].unique()
-    num_types = len(building_types)
-    rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+    # plt.figure(figsize=(20, 15))
+    # building_types = merged_data["building_usage"].unique()
+    # num_types = len(building_types)
+    # rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
-    for i, building_type in enumerate(building_types, 1):
-        plt.subplot(rows, n_columns, i)
-        data = merged_data[merged_data["building_usage"] == building_type]
+    # for i, building_type in enumerate(building_types, 1):
+    #     plt.subplot(rows, n_columns, i)
+    #     data = merged_data[merged_data["building_usage"] == building_type]
 
-        plot = sns.scatterplot(
-            data=data,
-            x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
-        )
+    #     plot = sns.scatterplot(
+    #         data=data,
+    #         x="NFA",
+    #         y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
+    #     )
 
-        plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
-        plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
-        plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
-        plot.tick_params(labelsize=12)
+    #     plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
+    #     plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    #     plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
+    #     plot.tick_params(labelsize=12)
 
-        # Add a trend line
-        sns.regplot(
-            data=data,
-            x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
-            scatter=False,
-            color="red",
-        )
+    #     # Add a trend line
+    #     sns.regplot(
+    #         data=data,
+    #         x="NFA",
+    #         y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
+    #         scatter=False,
+    #         color="red",
+    #     )
 
-    plt.tight_layout()
-    # plt.show()
-    # plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
-    plt.close()
+    # plt.tight_layout()
+    # # plt.show()
+    # # plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
+    # plt.close()
 
     ###################################################################################
     ###################################################################################
@@ -568,6 +569,7 @@ def sensitivity_analysis(
     ###################################################################################
     ###################################################################################
 
+    # print("Calculating NPV for the DH Operator")
     # now we need to calculate the NPV for the DH Operator. The operator has spent money for the
     # installation of the grid. It spends money to upkeep the Heat Pumps and run it (electricity costs.)
     # It will also receive money from the customers from the heat delivered.
@@ -612,30 +614,30 @@ def sensitivity_analysis(
     from costs.renovation_costs import npv_2
 
     npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
-    print(f"NPV of the District Heating Operator: {npv_dh}")
+    # print(f"NPV of the District Heating Operator: {npv_dh}")
 
     # To be removed after debugging
     # Add some debugging prints in the sensitivity_analysis function
-    print(f"\nDebugging COP values:")
-    print(f"Max COP setting: {max_COP}")
-    print(f"Actual max COP achieved: {cop_hourly.max()}")
-    print(f"Average COP: {cop_hourly.mean()}")
-    print(f"Min COP: {cop_hourly.min()}")
+    # print(f"\nDebugging COP values:")
+    # print(f"Max COP setting: {max_COP}")
+    # print(f"Actual max COP achieved: {cop_hourly.max()}")
+    # print(f"Average COP: {cop_hourly.mean()}")
+    # print(f"Min COP: {cop_hourly.min()}")
 
     # After calculating electricity consumption
-    print(f"\nDebugging Energy values:")
-    print(
-        f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}"
-    )
-    print(f"Total electricity consumed: {P_el.sum()}")
-    print(f"Supply temperature: {supply_temperature}")
+    # print(f"\nDebugging Energy values:")
+    # print(
+    #     f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}"
+    # )
+    # print(f"Total electricity consumed: {P_el.sum()}")
+    # print(f"Supply temperature: {supply_temperature}")
 
     # After LCOH calculations
-    print(f"\nDebugging Cost Components:")
-    print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
-    print(f"Total installation costs: {total_installation_costs} Million euros")
-    print(f"Total var O&M: {total_var_oem_hp}")
-    print(f"Total fixed O&M: {total_fixed_oem_hp}")
+    # print(f"\nDebugging Cost Components:")
+    # print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
+    # print(f"Total installation costs: {total_installation_costs} Million euros")
+    # print(f"Total var O&M: {total_var_oem_hp}")
+    # print(f"Total fixed O&M: {total_fixed_oem_hp}")
 
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
@@ -667,8 +669,8 @@ elif simulation == "renovated":
     supply_temperature = 50
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
-el_multiplier = np.linspace(0.5, 2, 10)
-gas_multiplier = np.linspace(0.5, 2, 10)
+el_multiplier = np.linspace(0.1, 5, 10)
+gas_multiplier = np.linspace(0.1, 5, 10)
 renovation_cost_multiplier = np.linspace(0, 1, 11)
 combinations = list(
     itertools.product(el_multiplier, gas_multiplier, renovation_cost_multiplier)
@@ -688,7 +690,7 @@ actual_cops = []
 # To set up the loop we want to create different values for the analysis. So we will first insert the number
 # of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
 # and then we will loop through these values.
-for rows, columns in df_combinations.iterrows():
+for rows, columns in tqdm(df_combinations.iterrows(), total=len(df_combinations)):
 
     electricity_multiplier = df_combinations.loc[rows, "electricity_multiplier"]
     gas_multiplier = df_combinations.loc[rows, "gas_multiplier"]
@@ -728,7 +730,7 @@ def create_savings_scatter_plot(all_npv_data, df_combinations):
     # Get unique building types from first combination
     first_key = f"gas{df_combinations['gas_multiplier'].iloc[0]} el{df_combinations['electricity_multiplier'].iloc[0]}"
     building_types = list(all_npv_data[first_key]["building_usage"].unique())
-    print(f"Found building types: {building_types}")  # Debug print
+    # print(f"Found building types: {building_types}")  # Debug print
 
     # Create markers for different building types
     markers = ["o", "s", "^", "D", "v", ">", "<", "p", "*", "h"]  # Add more if needed

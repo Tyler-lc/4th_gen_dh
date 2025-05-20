@@ -367,7 +367,7 @@ def npv_2(year_0, expenses, incomes, i):
     cash_flow = incomes_array - expenses_array
 
     cash_flow = np.insert(cash_flow, 0, year_0)
-    print(len(cash_flow))
+    # print(len(cash_flow))
 
     npv_value = npf.npv(i, cash_flow)
     df = pd.DataFrame({"cash_flow": cash_flow})
