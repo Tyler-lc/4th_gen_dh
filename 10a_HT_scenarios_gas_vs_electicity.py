@@ -172,7 +172,7 @@ def sensitivity_analysis(
         COP_max=max_COP,
     )
     max_cop = cop_hourly.max()
-    print(cop_hourly.head(200))
+    # print(cop_hourly.head(200))
 
     P_el = (
         areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
@@ -204,9 +204,9 @@ def sensitivity_analysis(
         fixed_oem_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
     )  # Million Euros/MW_thermal installed
 
-    print(
-        f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
-    )
+    # print(
+    #     f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
+    # )
 
     initial_electricity_cost = (
         get_electricity_cost(
@@ -259,8 +259,8 @@ def sensitivity_analysis(
         heat_supplied_df * 1000,  # # convert to kWh
         ir,
     )  # in this case we are getting Euros per kWh produced.
-    print(f"interest rate: {ir}")
-    print(f"LCOH of the Heat Pumps: {LCOH_HP}")
+    # print(f"interest rate: {ir}")
+    # print(f"LCOH of the Heat Pumps: {LCOH_HP}")
 
     dhg_other_costs = np.zeros(dhg_lifetime)
     dhg_other_costs_df = pd.DataFrame(dhg_other_costs)
@@ -276,22 +276,22 @@ def sensitivity_analysis(
         heat_supplied_dhg * 1000,
         ir,
     )
-    print(f"interest rate: {ir}")
+    # print(f"interest rate: {ir}")
     # LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
-    print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
+    # print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 
     price_heat_eurokwh_residential = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
-    print(
-        f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
+    # )
     price_heat_eurokwh_non_residential = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
     )
-    print(
-        f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
+    # )
     price_heat_eurokwh_non_residential_VAT = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
@@ -604,30 +604,30 @@ def sensitivity_analysis(
     from costs.renovation_costs import npv_2
 
     npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
-    print(f"NPV of the District Heating Operator: {npv_dh}")
+    # print(f"NPV of the District Heating Operator: {npv_dh}")
 
-    # To be removed after debugging
-    # Add some debugging prints in the sensitivity_analysis function
-    print(f"\nDebugging COP values:")
-    print(f"Max COP setting: {max_COP}")
-    print(f"Actual max COP achieved: {cop_hourly.max()}")
-    print(f"Average COP: {cop_hourly.mean()}")
-    print(f"Min COP: {cop_hourly.min()}")
+    # # To be removed after debugging
+    # # Add some debugging prints in the sensitivity_analysis function
+    # print(f"\nDebugging COP values:")
+    # print(f"Max COP setting: {max_COP}")
+    # print(f"Actual max COP achieved: {cop_hourly.max()}")
+    # print(f"Average COP: {cop_hourly.mean()}")
+    # print(f"Min COP: {cop_hourly.min()}")
 
-    # After calculating electricity consumption
-    print(f"\nDebugging Energy values:")
-    print(
-        f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}"
-    )
-    print(f"Total electricity consumed: {P_el.sum()}")
-    print(f"Supply temperature: {supply_temperature}")
+    # # After calculating electricity consumption
+    # print(f"\nDebugging Energy values:")
+    # print(
+    #     f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}"
+    # )
+    # print(f"Total electricity consumed: {P_el.sum()}")
+    # print(f"Supply temperature: {supply_temperature}")
 
-    # After LCOH calculations
-    print(f"\nDebugging Cost Components:")
-    print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
-    print(f"Total installation costs: {total_installation_costs} Million euros")
-    print(f"Total var O&M: {total_var_oem_hp}")
-    print(f"Total fixed O&M: {total_fixed_oem_hp}")
+    # # After LCOH calculations
+    # print(f"\nDebugging Cost Components:")
+    # print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
+    # print(f"Total installation costs: {total_installation_costs} Million euros")
+    # print(f"Total var O&M: {total_var_oem_hp}")
+    # print(f"Total fixed O&M: {total_fixed_oem_hp}")
 
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
@@ -659,8 +659,8 @@ elif simulation == "renovated":
     supply_temperature = 50
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
-el_multiplier = np.linspace(0.5, 2, 10)
-gas_multiplier = np.linspace(0.5, 2, 10)
+el_multiplier = np.linspace(0.1, 5, 10)
+gas_multiplier = np.linspace(0.1, 5, 10)
 combinations = list(itertools.product(el_multiplier, gas_multiplier))
 df_combinations = pd.DataFrame(
     combinations, columns=["electricity_multiplier", "gas_multiplier"]
@@ -668,7 +668,7 @@ df_combinations = pd.DataFrame(
 lcoh_dhg = []
 lcoh_hp = []
 max_cop = []
-npv_operator = []  # Add this list to collect operator NPV values
+npv_operator = []  # List to collect operator NPV values
 all_npv_data = {}  # Dictionary to store df_npv for each value
 actual_cops = []
 
@@ -676,7 +676,7 @@ actual_cops = []
 # To set up the loop we want to create different values for the analysis. So we will first insert the number
 # of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
 # and then we will loop through these values.
-for rows, columns in df_combinations.iterrows():
+for rows, columns in tqdm(df_combinations.iterrows(), total=len(df_combinations)):
 
     electricity_multiplier = df_combinations.loc[rows, "electricity_multiplier"]
     gas_multiplier = df_combinations.loc[rows, "gas_multiplier"]
@@ -713,7 +713,7 @@ def create_savings_scatter_plot(all_npv_data, df_combinations):
     # Get unique building types from first combination
     first_key = f"gas{df_combinations['gas_multiplier'].iloc[0]} el{df_combinations['electricity_multiplier'].iloc[0]}"
     building_types = list(all_npv_data[first_key]["building_usage"].unique())
-    print(f"Found building types: {building_types}")  # Debug print
+    # print(f"Found building types: {building_types}")  # Debug print
 
     # Create markers for different building types
     markers = ["o", "s", "^", "D", "v", ">", "<", "p", "*", "h"]  # Add more if needed
@@ -740,9 +740,9 @@ def create_savings_scatter_plot(all_npv_data, df_combinations):
                 not building_data.empty
             ):  # Only proceed if we have data for this building type
                 avg_saving = building_data["savings_npv_25years_ir_0.05"].mean()
-                print(
-                    f"Building type: {building_type}, el: {el_mult}, gas: {gas_mult}, avg_saving: {avg_saving}"
-                )  # Debug print
+                # print(
+                #     f"Building type: {building_type}, el: {el_mult}, gas: {gas_mult}, avg_saving: {avg_saving}"
+                # )  # Debug print
 
                 x_coords.append(el_mult)
                 y_coords.append(gas_mult)

@@ -665,8 +665,8 @@ elif simulation == "renovated":
     supply_temperature = 50
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
-el_multiplier = np.linspace(0.5, 2, 10)
-gas_multiplier = np.linspace(0.5, 2, 10)
+el_multiplier = np.linspace(0.1, 5, 10)
+gas_multiplier = np.linspace(0.1, 5, 10)
 combinations = list(itertools.product(el_multiplier, gas_multiplier))
 df_combinations = pd.DataFrame(
     combinations, columns=["electricity_multiplier", "gas_multiplier"]
@@ -674,7 +674,7 @@ df_combinations = pd.DataFrame(
 lcoh_dhg = []
 lcoh_hp = []
 max_cop = []
-npv_operator = []  # Add this list to collect operator NPV values
+npv_operator = []  # List to collect operator NPV values
 all_npv_data = {}  # Dictionary to store df_npv for each value
 actual_cops = []
 

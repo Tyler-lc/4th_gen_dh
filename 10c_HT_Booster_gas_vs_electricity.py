@@ -238,9 +238,9 @@ def sensitivity_analysis_booster(
         fixed_oem_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
     )  # Million Euros/MW_thermal installed
 
-    print(
-        f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
-    )
+    # print(
+    #     f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
+    # )
 
     ###################################################################################
     ###################################################################################
@@ -302,7 +302,7 @@ def sensitivity_analysis_booster(
         heat_supplied_df_large_hp * 1000,  # # convert to kWh
         ir,
     )  # in this case we are getting Euros per kWh produced.
-    print(f"LCOH of the Heat Pumps: {LCOH_HP}")
+    # print(f"LCOH of the Heat Pumps: {LCOH_HP}")
 
     dhg_other_costs = np.zeros(dhg_lifetime)
     dhg_other_costs_df = pd.DataFrame(dhg_other_costs)
@@ -320,7 +320,7 @@ def sensitivity_analysis_booster(
     )
 
     # LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
-    print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
+    # print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 
     #### Now we need to calculate the LCOH for the booster heat pumps as well.
     # We have the list of all buildings with the "installed" capacity of each booster.
@@ -346,13 +346,13 @@ def sensitivity_analysis_booster(
     # )
 
     price_heat_eurokwh_residential = LCOH_HP + LCOH_dhg
-    print(
-        f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
+    # )
     price_heat_eurokwh_non_residential = LCOH_HP + LCOH_dhg
-    print(
-        f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
+    # )
     price_heat_eurokwh_non_residential_VAT = LCOH_HP + LCOH_dhg
 
     #### So far the LCOH only included the large scale heat pumps. Now we need to add also the boosters.
@@ -490,7 +490,7 @@ def sensitivity_analysis_booster(
         lcoh_total_heat_generated_boosters,
         ir,
     )
-    print(f"LCOH booster: {lcoh_booster}")
+    # print(f"LCOH booster: {lcoh_booster}")
 
     # now i want to manually calculate the price of heat supplied to the customers.
     # first we calculate the amount spent on electricity for the heat pumps:
@@ -499,15 +499,15 @@ def sensitivity_analysis_booster(
     price_heat_eurokwh_residential = (
         (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
     )
-    print(
-        f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
+    # )
     price_heat_eurokwh_non_residential = (
         (lcoh_booster) * (1 + margin) * reduction_factor
     )
-    print(
-        f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
+    # )
     price_heat_eurokwh_non_residential_VAT = (
         (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
     )
@@ -684,7 +684,7 @@ def sensitivity_analysis_booster(
     from costs.renovation_costs import npv_2
 
     npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
-    print(f"NPV of the District Heating Operator: {npv_dh}")
+    # print(f"NPV of the District Heating Operator: {npv_dh}")
 
     # We do not have energy savings for the buildingstock in this case. We do not need to import the
     # renovated buildingstock dataset.
@@ -704,8 +704,8 @@ analysis_type = "combined_electicity_gas"
 simulation = "booster"
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
-el_multiplier = np.linspace(0.5, 2, 10)
-gas_multiplier = np.linspace(0.5, 2, 10)
+el_multiplier = np.linspace(0.1, 5, 10)
+gas_multiplier = np.linspace(0.1, 5, 10)
 combinations = list(itertools.product(el_multiplier, gas_multiplier))
 df_combinations = pd.DataFrame(
     combinations, columns=["electricity_multiplier", "gas_multiplier"]
@@ -713,7 +713,7 @@ df_combinations = pd.DataFrame(
 lcoh_dhg = []
 lcoh_hp = []
 max_cop = []
-npv_operator = []  # Add this list to collect operator NPV values
+npv_operator = []  # List to collect operator NPV values
 all_npv_data = {}  # Dictionary to store df_npv for each value
 actual_cops = []
 
@@ -767,7 +767,7 @@ def create_savings_scatter_plot(all_npv_data, df_combinations):
     # Get unique building types from first combination
     first_key = f"gas{df_combinations['gas_multiplier'].iloc[0]} el{df_combinations['electricity_multiplier'].iloc[0]}"
     building_types = list(all_npv_data[first_key]["building_usage"].unique())
-    print(f"Found building types: {building_types}")  # Debug print
+    # print(f"Found building types: {building_types}")  # Debug print
 
     # Create markers for different building types
     markers = ["o", "s", "^", "D", "v", ">", "<", "p", "*", "h"]  # Add more if needed
@@ -794,9 +794,9 @@ def create_savings_scatter_plot(all_npv_data, df_combinations):
                 not building_data.empty
             ):  # Only proceed if we have data for this building type
                 avg_saving = building_data["savings_npv_25years_ir_0.05"].mean()
-                print(
-                    f"Building type: {building_type}, el: {el_mult}, gas: {gas_mult}, avg_saving: {avg_saving}"
-                )  # Debug print
+                # print(
+                #     f"Building type: {building_type}, el: {el_mult}, gas: {gas_mult}, avg_saving: {avg_saving}"
+                # )  # Debug print
 
                 x_coords.append(el_mult)
                 y_coords.append(gas_mult)
