@@ -821,16 +821,18 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
                     supply_temperature=supply_temperature,
                 )
             )
-        elif num_analysis == 7:  # oversizing factor
+        elif num_analysis == 7:  # reduction factor
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
                     simulation,
-                    oversizing_factor=value,
+                    reduction_factor=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,
                 )
             )
-        elif num_analysis == 8:  # percent residual value
+        elif (
+            num_analysis == 8
+        ):  # percent residual value still not implemented nor working.
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
                     simulation,
