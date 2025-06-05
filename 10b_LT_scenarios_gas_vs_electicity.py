@@ -172,7 +172,7 @@ def sensitivity_analysis(
         COP_max=max_COP,
     )
     max_cop = cop_hourly.max()
-    print(cop_hourly.head(200))
+    # print(cop_hourly.head(200))
 
     P_el = (
         areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
@@ -204,9 +204,9 @@ def sensitivity_analysis(
         fixed_oem_hp(capacity_single_hp, "air") * DK_to_DE * update2022_2023
     )  # Million Euros/MW_thermal installed
 
-    print(
-        f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
-    )
+    # print(
+    #     f"Data in Million Euros. Total costs installation: {total_installation_costs}\nSingle HP Variable OEM: {single_var_oem_hp}\nSingle HP Fixed OEM: {single_fix_oem}"
+    # )
 
     initial_electricity_cost = (
         get_electricity_cost(
@@ -259,8 +259,8 @@ def sensitivity_analysis(
         heat_supplied_df * 1000,  # # convert to kWh
         ir,
     )  # in this case we are getting Euros per kWh produced.
-    print(f"interest rate: {ir}")
-    print(f"LCOH of the Heat Pumps: {LCOH_HP}")
+    # print(f"interest rate: {ir}")
+    # print(f"LCOH of the Heat Pumps: {LCOH_HP}")
 
     dhg_other_costs = np.zeros(dhg_lifetime)
     dhg_other_costs_df = pd.DataFrame(dhg_other_costs)
@@ -276,22 +276,22 @@ def sensitivity_analysis(
         heat_supplied_dhg * 1000,
         ir,
     )
-    print(f"interest rate: {ir}")
-    # LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
-    print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
+    # print(f"interest rate: {ir}")
+    # # LCOH_dhg_eurokwh = LCOD_dhg * 1000000 / 1000  # 1000000 million / 1000 kWh
+    # print(f"LCOH_dhg_eurokwh: {LCOH_dhg}")
 
     price_heat_eurokwh_residential = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
-    print(
-        f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the residential heat supplied: {price_heat_eurokwh_residential}"
+    # )
     price_heat_eurokwh_non_residential = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
     )
-    print(
-        f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
-    )
+    # print(
+    #     f"Lowest Price of the non-residential heat supplied: {price_heat_eurokwh_non_residential}"
+    # )
     price_heat_eurokwh_non_residential_VAT = (
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
@@ -610,30 +610,30 @@ def sensitivity_analysis(
     from costs.renovation_costs import npv_2
 
     npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
-    print(f"NPV of the District Heating Operator: {npv_dh}")
+    # print(f"NPV of the District Heating Operator: {npv_dh}")
 
-    # To be removed after debugging
-    # Add some debugging prints in the sensitivity_analysis function
-    print(f"\nDebugging COP values:")
-    print(f"Max COP setting: {max_COP}")
-    print(f"Actual max COP achieved: {cop_hourly.max()}")
-    print(f"Average COP: {cop_hourly.mean()}")
-    print(f"Min COP: {cop_hourly.min()}")
+    # # To be removed after debugging
+    # # Add some debugging prints in the sensitivity_analysis function
+    # print(f"\nDebugging COP values:")
+    # print(f"Max COP setting: {max_COP}")
+    # print(f"Actual max COP achieved: {cop_hourly.max()}")
+    # print(f"Average COP: {cop_hourly.mean()}")
+    # print(f"Min COP: {cop_hourly.min()}")
 
-    # After calculating electricity consumption
-    print(f"\nDebugging Energy values:")
-    print(
-        f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}"
-    )
-    print(f"Total electricity consumed: {P_el.sum()}")
-    print(f"Supply temperature: {supply_temperature}")
+    # # After calculating electricity consumption
+    # print(f"\nDebugging Energy values:")
+    # print(
+    #     f"Total heat generated: {areas_demand['hourly heat generated in Large HP [kWh]'].sum()}"
+    # )
+    # print(f"Total electricity consumed: {P_el.sum()}")
+    # print(f"Supply temperature: {supply_temperature}")
 
-    # After LCOH calculations
-    print(f"\nDebugging Cost Components:")
-    print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
-    print(f"Total installation costs: {total_installation_costs} Million euros")
-    print(f"Total var O&M: {total_var_oem_hp}")
-    print(f"Total fixed O&M: {total_fixed_oem_hp}")
+    # # After LCOH calculations
+    # print(f"\nDebugging Cost Components:")
+    # print(f"Total electricity cost: {total_electricity_cost.iloc[0,0]} Million euros")
+    # print(f"Total installation costs: {total_installation_costs} Million euros")
+    # print(f"Total var O&M: {total_var_oem_hp}")
+    # print(f"Total fixed O&M: {total_fixed_oem_hp}")
 
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
