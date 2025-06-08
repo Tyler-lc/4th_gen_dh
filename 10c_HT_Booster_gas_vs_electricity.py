@@ -566,6 +566,7 @@ def sensitivity_analysis_booster(
     # Let's assess the energy prices for each building and then we can calculate the monetary savings.
     npv_data = pd.DataFrame()
     npv_data["full_id"] = booster_buildingstock["full_id"]
+    npv_data["NFA"] = booster_buildingstock["NFA"]
     npv_data["building_usage"] = booster_buildingstock["building_usage"]
     npv_data["yearly_demand_useful_unrenovated"] = year_consumption[
         "unrenovated_total_demand"

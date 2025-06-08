@@ -380,6 +380,7 @@ def sensitivity_analysis(
     # Let's assess the energy prices for each building and then we can calculate the monetary savings.
     npv_data = pd.DataFrame()
     npv_data["full_id"] = buildingstock["full_id"]
+    npv_data["NFA"] = buildingstock["NFA"]
     npv_data["building_usage"] = buildingstock["building_usage"]
     npv_data[f"yearly_demand_useful_{simulation_type}"] = year_consumption[
         f"{simulation_type}_total_demand"
@@ -462,11 +463,6 @@ def sensitivity_analysis(
 
     # We do not have energy savings for the buildingstock in this case. We do not need to import the
     # renovated buildingstock dataset.
-
-    # TODO: we will use a 10% profit margin for the LCOH. The resulting number will be the price at which the heat will be sold to the customers.
-    # We might use a slightly higher Interest Rate in the NPV to account a little bit for inflation though. We need more research on this.
-
-    # TODO: no inflation applied for the LCOH. calculate in real terms €2023
 
     # Calculate average savings by building type
     avg_savings = (

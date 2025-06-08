@@ -380,6 +380,7 @@ def sensitivity_analysis(
     # Let's assess the energy prices for each building and then we can calculate the monetary savings.
     npv_data = pd.DataFrame()
     npv_data["full_id"] = buildingstock["full_id"]
+    npv_data["NFA"] = buildingstock["NFA"]
     npv_data["building_usage"] = buildingstock["building_usage"]
     npv_data[f"yearly_demand_useful_{simulation_type}"] = year_consumption[
         f"{simulation_type}_total_demand"
@@ -637,23 +638,6 @@ def sensitivity_analysis(
 
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
-
-# analysis_types = [
-#     "supply_temperature",  # 0
-#     "approach_temperature",  # 1
-#     "electricity_price",  # 2
-#     "gas_price",  # 3
-#     "max_cop",  # 4
-#     "ir",  # 5
-#     "inv_cost_multiplier",  # 6
-# ]
-# num_analysis = 5
-
-
-# df_sensitivity_parameters = pd.read_excel(
-#     "sensitivity_analysis/sensitivity_analysis_parameters.xlsx"
-# )
-# df_npv = pd.DataFrame()
 
 analysis_type = "combined_electicity_gas"
 simulation = "renovated"

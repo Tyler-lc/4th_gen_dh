@@ -579,6 +579,7 @@ def sensitivity_analysis_booster(
     # Let's assess the energy prices for each building and then we can calculate the monetary savings.
     npv_data = pd.DataFrame()
     npv_data["full_id"] = booster_buildingstock["full_id"]
+    npv_data["NFA"] = booster_buildingstock["NFA"]
     npv_data["building_usage"] = booster_buildingstock["building_usage"]
     npv_data["yearly_demand_useful_unrenovated"] = year_consumption[
         "unrenovated_total_demand"
@@ -697,14 +698,6 @@ def sensitivity_analysis_booster(
 
     npv_dh, df = npv_2(-overnight_costs, future_expenses, future_revenues, ir)
     print(f"NPV of the District Heating Operator: {npv_dh}")
-
-    # We do not have energy savings for the buildingstock in this case. We do not need to import the
-    # renovated buildingstock dataset.
-
-    # TODO: we will use a 10% profit margin for the LCOH. The resulting number will be the price at which the heat will be sold to the customers.
-    # We might use a slightly higher Interest Rate in the NPV to account a little bit for inflation though. We need more research on this.
-
-    # TODO: no inflation applied for the LCOH. calculate in real terms €2023
 
     return npv_data, npv_dh, LCOH_dhg, LCOH_HP, max_cop, cop_hourly
 
@@ -1082,7 +1075,8 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
     fig, ax1 = plt.subplots(figsize=(12, 8))
 
     # Plot average customer savings on primary axis (left)
-    ax1.set_xlabel(f"{analysis_type}", fontsize=12)
+    analysis_type_title = analysis_type.replace("_", " ").title()
+    ax1.set_xlabel(f"{analysis_type_title} [%]", fontsize=12)
     ax1.set_ylabel("Average Customer Savings (€)", color="tab:blue", fontsize=12)
 
     # Plot each building type's savings
@@ -1111,7 +1105,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
 
     # Add title
     plt.title(
-        f"DH Operator NPV vs Building Type Savings\nSensitivity to {analysis_type}",
+        f"DH Operator NPV vs Building Type Savings\nSensitivity to {analysis_type_title}",
         fontsize=14,
     )
 
