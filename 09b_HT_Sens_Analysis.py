@@ -376,6 +376,7 @@ def sensitivity_analysis(
     # Let's assess the energy prices for each building and then we can calculate the monetary savings.
     npv_data = pd.DataFrame()
     npv_data["full_id"] = buildingstock["full_id"]
+    npv_data["NFA"] = buildingstock["NFA"]
     npv_data["building_usage"] = buildingstock["building_usage"]
     npv_data[f"yearly_demand_useful_{simulation_type}"] = year_consumption[
         f"{simulation_type}_total_demand"
@@ -640,29 +641,32 @@ for rows, columns in df_sensitivity_parameters.iterrows():
             f"sensitivity_analysis/{simulation}/{analysis_type}/data/{analysis_type}_{value}.csv"
         )
 
-    # Create a figure with multiple subplots for different analyses
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
+    def lcoh_operator_NPV(
+        values, lcoh_dhg, lcoh_hp, npv_operator, analysis_type, simulation
+    ):
+        # Create a figure with multiple subplots for different analyses
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10))
 
-    # First subplot for LCOH
-    ax1.plot(values, lcoh_dhg, label="LCOH DHG")
-    ax1.plot(values, lcoh_hp, label="LCOH HP")
-    ax1.set_xlabel(f"{analysis_type}")
-    ax1.set_ylabel("LCOH (€/kWh)")
-    ax1.set_title(f"Sensitivity Analysis - LCOH vs {analysis_type}")
-    ax1.legend()
+        # First subplot for LCOH
+        ax1.plot(values, lcoh_dhg, label="LCOH DHG")
+        ax1.plot(values, lcoh_hp, label="LCOH HP")
+        ax1.set_xlabel(f"{analysis_type}")
+        ax1.set_ylabel("LCOH (€/kWh)")
+        ax1.set_title(f"Sensitivity Analysis - LCOH vs {analysis_type}")
+        ax1.legend()
 
-    # Second subplot for Operator NPV
-    ax2.plot(values, npv_operator, label="DH Operator NPV", color="green")
-    ax2.set_xlabel(f"{analysis_type}")
-    ax2.set_ylabel("NPV (€)")
-    ax2.set_title(f"Sensitivity Analysis - DH Operator NPV vs {analysis_type}")
-    ax2.legend()
+        # Second subplot for Operator NPV
+        ax2.plot(values, npv_operator, label="DH Operator NPV", color="green")
+        ax2.set_xlabel(f"{analysis_type}")
+        ax2.set_ylabel("NPV (€)")
+        ax2.set_title(f"Sensitivity Analysis - DH Operator NPV vs {analysis_type}")
+        ax2.legend()
 
-    plt.tight_layout()
-    plt.savefig(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_sensitivity_analysis.png"
-    )
-    plt.close()
+        plt.tight_layout()
+        plt.savefig(
+            f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_sensitivity_analysis.png"
+        )
+        plt.close()
 
     # First get all building types from any of the DataFrames
     building_types = all_npv_data[values[0]]["building_usage"].unique()
