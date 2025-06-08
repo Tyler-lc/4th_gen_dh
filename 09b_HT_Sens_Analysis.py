@@ -644,17 +644,17 @@ for rows, columns in df_sensitivity_parameters.iterrows():
     from utils.plotting import (
         lcoh_operator_NPV,
         calculate_average_savings,
-        detailed_analysis_cop,
         plot_savings_distribution,
+        nfa_savings_operator_comparison,
+        plot_savings_operator_comparison,
     )
 
     # Plot the LCOH and the NPV of the DH operator as a function of the sensitivity parameter
     lcoh_operator_NPV(
-        values, lcoh_dhg, lcoh_hp, npv_operator, analysis_type, simulation, num_analysis
+        values, lcoh_dhg, lcoh_hp, npv_operator, analysis_type, simulation
     )
 
     # First get all building types from any of the DataFrames
-    building_types = all_npv_data[values[0]]["building_usage"].unique()
 
     # Calculate average savings for each building type as the average
     # and as the average per NFA (Net Floor Area).
@@ -662,7 +662,8 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         all_npv_data, values, analysis_type
     )
 
-    plot_savings_distribution(all_npv_data, values, analysis_type, simulation)
+    # we do not really need this one. At least not at the moment
+    # plot_savings_distribution(all_npv_data, values, analysis_type, simulation)
 
     nfa_savings_operator_comparison(
         avg_savings_data_nfa,
@@ -672,13 +673,17 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         analysis_type,
         simulation,
     )
+    plot_savings_operator_comparison(
+        avg_savings_data, npv_operator, all_npv_data, values, analysis_type, simulation
+    )
+
     # Print some statistics for reference
 
 
 print("done")
 
 
-# planning to dismiss this plot because we have a better one.
+# planning to discontinue this plot. We have a better one.
 # Plot the average savings for each building type as a function of the sensitivity parameter
 # Create line plot
 # plt.figure(figsize=(12, 8))
