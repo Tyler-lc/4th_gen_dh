@@ -33,4 +33,5 @@ export_df.loc["unrenovated"] = [
 export_df.loc["renovated"] = [renovated_cost, renovated_length, renovated_losses]
 export_df.loc["booster"] = [booster_cost, booster_length, booster_losses]
 
+
 export_df.to_csv("grid_calculation/dh_parameters.csv")
