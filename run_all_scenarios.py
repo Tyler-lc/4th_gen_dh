@@ -11,8 +11,11 @@ scripts_to_run = [
     "10a_HT_scenarios_gas_vs_electicity.py",
     "10b_LT_scenarios_gas_vs_electicity.py",
     "10c_HT_Booster_gas_vs_electricity.py",
+    "10d_LT_scenarios_gas_vs_electicity_vs_rencosts.py",
     "11_plots_base_cases.py",
     "11b_plot_gas_electr_sensitivity.py",
+    "12_buildingstock_analysis.py",
+    "13_DH_parameters.py",
 ]
 
 # Run each script in sequence

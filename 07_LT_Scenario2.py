@@ -710,6 +710,8 @@ parameters = {
     "operator_selling_price": operator_selling_price,
     "purchasing_price_heat": hp_energy_prices,
     "gas_prices": gas_energy_prices,
+    "total_hp_inv_costs": total_installation_costs,
+    "total_grid_inv_costs": investment_costs_dhg,
 }
 
 with open(f"{export_path}/parameters.json", "w") as f:

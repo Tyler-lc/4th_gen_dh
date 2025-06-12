@@ -474,40 +474,40 @@ def sensitivity_analysis(
     )
 
     # Plot average savings by building type
-    plt.figure(figsize=(12, 6))
-    bar = avg_savings.plot(kind="bar")
+    # plt.figure(figsize=(12, 6))
+    # bar = avg_savings.plot(kind="bar")
 
-    bar.set_title("Average NPV Savings by Building Type - HT DH Scenario", fontsize=16)
-    bar.set_xlabel("Building Type", fontsize=14)
-    bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
-    bar.tick_params(labelsize=14)
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.savefig("HighTemperature_AverageSavings.png")
-    plt.close()
+    # bar.set_title("Average NPV Savings by Building Type - HT DH Scenario", fontsize=16)
+    # bar.set_xlabel("Building Type", fontsize=14)
+    # bar.set_ylabel("Average NPV Savings (€)", fontsize=14)
+    # bar.tick_params(labelsize=14)
+    # plt.xticks(rotation=45)
+    # plt.tight_layout()
+    # plt.savefig("HighTemperature_AverageSavings.png")
+    # plt.close()
 
-    n_columns = 3
-    # Plot histogram of savings distribution by building type
-    plt.figure(figsize=(20, 15))
-    building_types = npv_data["building_usage"].unique()
-    num_types = len(building_types)
-    rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+    # n_columns = 3
+    # # Plot histogram of savings distribution by building type
+    # plt.figure(figsize=(20, 15))
+    # building_types = npv_data["building_usage"].unique()
+    # num_types = len(building_types)
+    # rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
-    for i, building_type in enumerate(building_types, 1):
-        plt.subplot(rows, n_columns, i)
-        data = npv_data[npv_data["building_usage"] == building_type][
-            f"savings_npv_{years_buildingstock}years_ir_{ir}"
-        ]
-        scatter = sns.histplot(data, kde=True)
-        scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
-        scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
-        scatter.set_ylabel("Frequency", fontsize=12)
-        scatter.tick_params(labelsize=12)
+    # for i, building_type in enumerate(building_types, 1):
+    #     plt.subplot(rows, n_columns, i)
+    #     data = npv_data[npv_data["building_usage"] == building_type][
+    #         f"savings_npv_{years_buildingstock}years_ir_{ir}"
+    #     ]
+    #     scatter = sns.histplot(data, kde=True)
+    #     scatter.set_title(f"Savings Distribution - {building_type}", fontsize=14)
+    #     scatter.set_xlabel("NPV Savings (€2023)", fontsize=12)
+    #     scatter.set_ylabel("Frequency", fontsize=12)
+    #     scatter.tick_params(labelsize=12)
 
-    plt.tight_layout()
-    # plt.show()
-    plt.savefig("HighTemperature_SavingsDistribution.png")
-    plt.close()
+    # plt.tight_layout()
+    # # plt.show()
+    # plt.savefig("HighTemperature_SavingsDistribution.png")
+    # plt.close()
 
     # Merge NFA data with npv_data
     merged_data = npv_data.merge(buildingstock[["full_id", "NFA"]], on="full_id")
@@ -515,40 +515,40 @@ def sensitivity_analysis(
     # Calculate energy savings (assuming original demand - new demand)
     # merged_data['energy_savings'] = merged_data['yearly_demand_unrenovated'] - merged_data['yearly_demand_unrenovated']  # Replace with actual new demand if available
 
-    # Create scatter plots
-    plt.figure(figsize=(20, 15))
-    building_types = merged_data["building_usage"].unique()
-    num_types = len(building_types)
-    rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
+    # # Create scatter plots
+    # plt.figure(figsize=(20, 15))
+    # building_types = merged_data["building_usage"].unique()
+    # num_types = len(building_types)
+    # rows = (num_types + 2) // n_columns  # Calculate number of rows needed for 3 columns
 
-    for i, building_type in enumerate(building_types, 1):
-        plt.subplot(rows, n_columns, i)
-        data = merged_data[merged_data["building_usage"] == building_type]
+    # for i, building_type in enumerate(building_types, 1):
+    #     plt.subplot(rows, n_columns, i)
+    #     data = merged_data[merged_data["building_usage"] == building_type]
 
-        plot = sns.scatterplot(
-            data=data,
-            x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
-        )
+    #     plot = sns.scatterplot(
+    #         data=data,
+    #         x="NFA",
+    #         y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
+    #     )
 
-        plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
-        plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
-        plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
-        plot.tick_params(labelsize=12)
+    #     plot.set_title(f"€2023 Savings vs NFA - {building_type}", fontsize=14)
+    #     plot.set_xlabel("Net Floor Area (m²)", fontsize=12)
+    #     plot.set_ylabel("NPV Savings (€2023)", fontsize=12)
+    #     plot.tick_params(labelsize=12)
 
-        # Add a trend line
-        sns.regplot(
-            data=data,
-            x="NFA",
-            y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
-            scatter=False,
-            color="red",
-        )
+    #     # Add a trend line
+    #     sns.regplot(
+    #         data=data,
+    #         x="NFA",
+    #         y=f"savings_npv_{years_buildingstock}years_ir_{ir}",
+    #         scatter=False,
+    #         color="red",
+    #     )
 
-    plt.tight_layout()
-    # plt.show()
-    # plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
-    plt.close()
+    # plt.tight_layout()
+    # # plt.show()
+    # # plt.savefig("HighTemperature_EnergySavingsVsNFA.png")
+    # plt.close()
 
     ###################################################################################
     ###################################################################################

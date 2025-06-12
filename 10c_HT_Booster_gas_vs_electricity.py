@@ -408,9 +408,7 @@ def sensitivity_analysis_booster(
     ### the various data for booster heat pumps can be found here:
     # https://doi.org/10.1016/j.energy.2018.04.081
 
-    for idx, row in tqdm(
-        booster_buildingstock.iterrows(), total=len(booster_buildingstock)
-    ):
+    for idx, row in booster_buildingstock.iterrows():
         size_hp_booster = row["heat_pump_size [kW]"]
         if size_hp_booster > 500:
             specific_cost_booster = 100
@@ -622,7 +620,7 @@ def sensitivity_analysis_booster(
     # because the price of the heating has changed. So they actually have a different NPV. We have to do that in the
     # renovation_costs["total_cost"]. There we get NaN data.
 
-    for idx, row in tqdm(npv_data.iterrows(), total=len(npv_data)):
+    for idx, row in npv_data.iterrows():
         building_id = row["full_id"]
 
         # Gas NPV for buildings
@@ -731,7 +729,7 @@ os.makedirs(
 # To set up the loop we want to create different values for the analysis. So we will first insert the number
 # of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
 # and then we will loop through these values.
-for rows, columns in df_combinations.iterrows():
+for rows, columns in tqdm(df_combinations.iterrows(), total=len(df_combinations)):
 
     electricity_multiplier = df_combinations.loc[rows, "electricity_multiplier"]
     gas_multiplier = df_combinations.loc[rows, "gas_multiplier"]
