@@ -31,7 +31,7 @@ average_specific_ued_renovated = renovated_buildingstock.groupby("building_usage
 ].mean()
 
 
-labels = building_types
+labels = average_specific_ued_unrenovated.index.tolist()
 values_unrenovated = average_specific_ued_unrenovated.values
 values_renovated = average_specific_ued_renovated.values
 
