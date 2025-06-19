@@ -19,6 +19,7 @@ renovated_buildingstock_path = Path(
 )
 renovated_buildingstock = gpd.read_parquet(renovated_buildingstock_path)
 renovated_buildingstock = renovated_buildingstock[renovated_buildingstock["NFA"] >= 30]
+renovated_buildingstock.fillna(0, inplace=True)
 
 
 building_types = unrenovated_buildingstock["building_usage"].unique()
@@ -73,6 +74,7 @@ renovation_costs = renovation_costs_iwu(renovated_buildingstock, convert2020_202
 average_costs_renovations = renovation_costs.groupby("building_usage")[
     "total_cost"
 ].mean()
+average_costs_renovations = average_costs_renovations.fillna(0)
 renovated_buildingstock["renovation_cost_m2"] = (
     renovation_costs["total_cost"] / renovation_costs["NFA"]
 )
