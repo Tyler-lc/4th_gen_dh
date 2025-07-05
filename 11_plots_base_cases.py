@@ -43,6 +43,7 @@ def plot_npv_savings(combined_data, title, scenario):
         width=0.8,  # Reduced from default 0.8 to make boxes slimmer
         dodge=1,  # Ensures boxes are properly spaced
         gap=1.8,
+        whis=1.5,  # Explicitly set whiskers to 1.5×IQR
     )
 
     plt.xticks(rotation=45, fontsize=22)
