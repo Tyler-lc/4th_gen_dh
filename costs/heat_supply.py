@@ -152,7 +152,7 @@ def calculate_lcoh(
         denominator += heat_output_series.iloc[t, 0] / discount_factor
 
     # Add investment cost as a one-time cost in the first year (not discounted if it's paid upfront)
-    numerator += investment_costs
+    # numerator += investment_costs
 
     lcoh = numerator / denominator
     return lcoh

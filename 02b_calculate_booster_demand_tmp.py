@@ -8,6 +8,7 @@ import shutil
 from multiprocessing import Pool
 from tqdm import tqdm
 import warnings
+from pathlib import Path
 
 from building_analysis.Building import Building
 from Person.Person import Person
@@ -31,12 +32,21 @@ t_supply = 85  # °C
 
 ### and we also set the inlet temperature to the booster heat pump. Which in this case
 ### is the temperature coming from the district heating network
-t_grid = 55  # °C
+t_grid = 50  # °C
 
 
 # first we load the energy demand data that we generated in the calculate_energy_demand.py script
-path_load_results = "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+path_load_results = "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
 gdf_buildingstock_results = gpd.read_parquet(path_load_results)
+
+
+# Fix all path separators for cross-platform compatibility
+path_columns = ["space_heating_path", "dhw_energy_path", "dhw_volume_path"]
+for col in path_columns:
+    if col in gdf_buildingstock_results.columns:
+        gdf_buildingstock_results[col] = gdf_buildingstock_results[col].str.replace(
+            "\\", "/", regex=False
+        )
 
 
 # Now we know that the DHW doesn't change across scenarios. Also we do not need to recalculate the
@@ -123,6 +133,7 @@ os.makedirs(booster_dhw_path, exist_ok=True)
 ### We export this to a csv file later in the loop.
 ### First let's retrieve a single space heating file to get the index
 space_heating_path = gdf_buildingstock_results.loc[0, "space_heating_path"]
+space_heating_path = Path(space_heating_path).as_posix()
 space_heating = pd.read_csv(space_heating_path, index_col=0)
 space_heating.index = pd.to_datetime(space_heating.index)
 
@@ -164,17 +175,17 @@ for idx, row in tqdm(
     building_id = row["full_id"]
 
     ### loading the space heating data
-    space_heating_path = row["space_heating_path"]
+    space_heating_path = Path(row["space_heating_path"]).as_posix()
     space_heating = pd.read_csv(space_heating_path, index_col=0)
     space_heating.index = pd.to_datetime(space_heating.index)
 
     ### loading the dhw energy data
-    dhw_energy_path = row["dhw_energy_path"]
+    dhw_energy_path = Path(row["dhw_energy_path"]).as_posix()
     dhw_energy = pd.read_csv(dhw_energy_path, index_col=0)
     dhw_energy.index = pd.to_datetime(dhw_energy.index)
 
     ### loading the dhw volume data
-    dhw_volume_path = row["dhw_volume_path"]
+    dhw_volume_path = Path(row["dhw_volume_path"]).as_posix()
     dhw_volume = pd.read_csv(dhw_volume_path, index_col=0)
     dhw_volume.index = index
 
@@ -186,6 +197,8 @@ for idx, row in tqdm(
     max_demand = total_demand.max()
     hp_size = float(max_demand * safety_factor)
     gdf_buildingstock_results.loc[idx, "heat_pump_size [kW]"] = hp_size
+
+    ## now we want to calculate the total heat supplied by the booster
 
     ### now we need to calculate the COP for these heat pumps
     ### luckily we have the COP function calculator, so we can use that.
@@ -199,6 +212,7 @@ for idx, row in tqdm(
     gdf_buildingstock_results.loc[idx, "total_demand_electricity [kWh]"] = (
         el_demand.sum()
     )
+    heat_by_booster = el_demand * COP_hourly
 
     # original COP eq is COP = Qh / (Qh - Qc)
     # solving for Qc ->
@@ -227,6 +241,9 @@ for idx, row in tqdm(
     ### so we will store the path to the csv files in the gdf_buildingstock_results
     gdf_buildingstock_results.loc[idx, "booster_path"] = (
         f"{booster_space_heating_path}/{building_id}_{sim}_{t_grid}.csv"
+    )
+    gdf_buildingstock_results.loc[idx, "total_heat_supplied_booster [kWh]"] = (
+        heat_by_booster.sum()
     )
 
     ### before we exit the loop, let's save the data in the dataframe that we will use
