@@ -36,22 +36,25 @@ def plot_npv_savings(combined_data, title, scenario):
             "marker": "^",
             "markerfacecolor": "white",
             "markeredgecolor": "black",
-            "markersize": 8,
+            "markersize": 12,  # Increased from 8
         },
-        medianprops={"color": "red", "linewidth": 1},
+        medianprops={"color": "red", "linewidth": 2},  # Increased from 1
         boxprops={"alpha": 0.5},
         width=0.8,  # Reduced from default 0.8 to make boxes slimmer
         dodge=1,  # Ensures boxes are properly spaced
         gap=1.8,
         whis=1.5,  # Explicitly set whiskers to 1.5×IQR
+        flierprops={"markersize": 8},  # Added: controls outlier point size
+        whiskerprops={"linewidth": 2},  # Added: controls whisker line width
+        capprops={"linewidth": 2},  # Added: controls cap line width
     )
 
-    plt.xticks(rotation=45, fontsize=22)
-    plt.yticks(fontsize=22)
-    plt.title(title, fontsize=30)
-    plt.xlabel("Building Type", fontsize=25)
-    plt.ylabel("NPV per Net Floor Area (€/m²)", fontsize=25)
-    plt.legend(fontsize=20)
+    plt.xticks(rotation=45, fontsize=28)  # Increased from 22
+    plt.yticks(fontsize=28)  # Increased from 22
+    plt.title(title, fontsize=36)  # Increased from 30
+    plt.xlabel("Building Type", fontsize=30)  # Increased from 25
+    plt.ylabel("NPV per Net Floor Area (€/m²)", fontsize=30)  # Increased from 25
+    plt.legend(fontsize=24)  # Increased from 20
 
     plt.tight_layout()
     plt.savefig(f"plots/comparison_all_scenarios_{scenario}.png")

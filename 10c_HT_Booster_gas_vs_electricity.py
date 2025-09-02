@@ -101,7 +101,7 @@ def sensitivity_analysis_booster(
     n_years_hp = 25  # for LCOH calculation
     heat_pump_lifetime = 25  # setting years until replacement
 
-    dhg_lifetime = 25  # years
+    dhg_lifetime = 50  # years
     investment_costs_dhg = (
         embers_data["cost_total"].sum() / 1000000
     )  # from EMBERS [Mil €]
@@ -124,8 +124,11 @@ def sensitivity_analysis_booster(
 
     ## We need to import both the unrenovated and renovated buildingstock
 
+    # path_unrenovated_area = Path(
+    #     f"building_analysis/results//sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/area_results_{supply_temperature}/area_results_{simulation_type}_whole_buildingstock_{supply_temperature}.csv"
+    # )
     path_unrenovated_area = Path(
-        f"building_analysis/results//sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/area_results_{supply_temperature}/area_results_{simulation_type}_whole_buildingstock_{supply_temperature}.csv"
+        "building_analysis/results/booster_whole_buildingstock/area_results/area_results_booster_whole_buildingstock.csv"
     )
     areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
     areas_demand.index = pd.to_datetime(areas_demand.index)
@@ -137,7 +140,11 @@ def sensitivity_analysis_booster(
 
     # we need the buildingstock data to calculate the investment costs of the booster heat pumps
     # TODO: check whether the pathing is correct or not
-    path_booster_buildingstock = f"building_analysis/results/sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/buildingstock_{simulation_type}_whole_buildingstock_{supply_temperature}_results.parquet"
+    # path_booster_buildingstock = f"building_analysis/results/sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/buildingstock_{simulation_type}_whole_buildingstock_{supply_temperature}_results.parquet"
+
+    # trying a new path
+    size = "whole_buildingstock"
+    path_booster_buildingstock = f"building_analysis/results/{simulation}_{size}/buildingstock_{simulation}_{size}_results.parquet"
     booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
     booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
 
@@ -703,8 +710,8 @@ analysis_type = "combined_electicity_gas"
 simulation = "booster"
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
-el_multiplier = np.linspace(0.1, 5, 10)
-gas_multiplier = np.linspace(0.1, 5, 10)
+el_multiplier = np.array([0.1, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 5.0])
+gas_multiplier = np.array([0.1, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 5.0])
 combinations = list(itertools.product(el_multiplier, gas_multiplier))
 df_combinations = pd.DataFrame(
     combinations, columns=["electricity_multiplier", "gas_multiplier"]

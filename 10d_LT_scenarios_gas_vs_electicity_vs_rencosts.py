@@ -85,7 +85,7 @@ def sensitivity_analysis(
     ember_results = pd.read_parquet(path_embers)
     investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
-    dhg_lifetime = 25  # years
+    dhg_lifetime = 50  # years
     # investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
 
     years_buildingstock = 25
@@ -653,8 +653,8 @@ elif simulation == "renovated":
     supply_temperature = 50
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
 os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
-el_multiplier = np.linspace(0.1, 5, 10)
-gas_multiplier = np.linspace(0.1, 5, 10)
+el_multiplier = np.array([0.1, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 5.0])
+gas_multiplier = np.array([0.1, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 5.0])
 renovation_cost_multiplier = np.linspace(0, 1, 11)
 combinations = list(
     itertools.product(el_multiplier, gas_multiplier, renovation_cost_multiplier)

@@ -111,7 +111,8 @@ areas_demand["total useful demand thermal demand [kWh]"] = (
 )
 
 # we need the buildingstock data to calculate the investment costs of the booster heat pumps
-path_booster_buildingstock = f"building_analysis/results/{simulation}_{size}_{supply_temperature_grid}/buildingstock_{simulation}_{size}_{supply_temperature_grid}_results.parquet"
+
+path_booster_buildingstock = f"building_analysis/results/{simulation}_{size}/buildingstock_{simulation}_{size}_results.parquet"
 booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
 booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
 efficiency_he = (
@@ -387,12 +388,12 @@ electricity_demand_boosters = booster_buildingstock[
     "total_demand_electricity [kWh]"
 ].sum()
 
-heat_supplied_by_boosters = booster_buildingstock[
-    "total_heat_supplied_booster [kWh]"
-].sum()
-total_heat_supplied_by_boosters = calculate_future_values(
-    {"Heat Supplied (MWh)": heat_supplied_by_boosters}, n_years_hp
-)
+# heat_supplied_by_boosters = booster_buildingstock[
+#     "total_heat_supplied_booster [kWh]"
+# ].sum()
+# total_heat_supplied_by_boosters = calculate_future_values(
+#     {"Heat Supplied (MWh)": heat_supplied_by_boosters}, n_years_hp
+# )
 
 total_heat_supplied_by_dhg = booster_buildingstock["total_demand_on_grid [kWh]"].sum()
 variable_oem_boosters = calculate_future_values({"Variable O&M": 0}, n_years_hp)
