@@ -889,9 +889,14 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
     avg_savings_data_nfa, avg_savings_data = calculate_average_savings(
         all_npv_data, values, analysis_type
     )
-
+    simulation_title = "Booster Scenario"
     plot_savings_operator_comparison(
-        avg_savings_data, npv_operator, all_npv_data, values, analysis_type, simulation
+        avg_savings_data,
+        npv_operator,
+        all_npv_data,
+        values,
+        analysis_type,
+        simulation,
     )
 
     nfa_savings_operator_comparison(
@@ -901,6 +906,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         values,
         analysis_type,
         simulation,
+        simulation_title,
     )
 
 print("done")

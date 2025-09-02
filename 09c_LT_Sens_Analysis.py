@@ -662,8 +662,15 @@ for rows, columns in df_sensitivity_parameters.iterrows():
     )
 
     # Create a figure with multiple subplots for different analyses
+    simulation_title = "LT+Reno Scenario"
     lcoh_operator_NPV(
-        values, lcoh_dhg, lcoh_hp, npv_operator, analysis_type, simulation
+        values,
+        lcoh_dhg,
+        lcoh_hp,
+        npv_operator,
+        analysis_type,
+        simulation,
+        simulation_title,
     )
     # First get all building types from any of the DataFrames
 
@@ -678,6 +685,7 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         values,
         analysis_type,
         simulation,
+        simulation_title,
     )
     plot_savings_operator_comparison(
         avg_savings_data, npv_operator, all_npv_data, values, analysis_type, simulation

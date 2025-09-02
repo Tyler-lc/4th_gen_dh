@@ -5,7 +5,7 @@ import seaborn as sns
 
 
 def lcoh_operator_NPV(
-    values, lcoh_dhg, lcoh_hp, npv_operator, analysis_type, simulation
+    values, lcoh_dhg, lcoh_hp, npv_operator, analysis_type, simulation, simulation_title
 ):
     """
     Creates a plots with two subplots one of top of the other.
@@ -35,7 +35,9 @@ def lcoh_operator_NPV(
     ax2.plot(values, npv_operator, label="DH Operator NPV", color="green")
     ax2.set_xlabel(f"{analysis_type}")
     ax2.set_ylabel("NPV (€)")
-    ax2.set_title(f"Sensitivity Analysis - DH Operator NPV vs {analysis_type}")
+    ax2.set_title(
+        f"DH Operator NPV and Customers' Savings vs {analysis_type} - {simulation_title}"
+    )
     ax2.legend()
 
     plt.tight_layout()
@@ -223,6 +225,7 @@ def nfa_savings_operator_comparison(
     values,
     analysis_type,
     simulation,
+    simulation_title,
 ):
 
     # Create figure and primary axis
@@ -266,7 +269,7 @@ def nfa_savings_operator_comparison(
 
     # Add title
     plt.title(
-        f"DH Operator NPV vs Building Type Savings\nSensitivity to {analysis_type_title}",
+        f"DH Operator NPV and Customers' savings\nSensitivity to {analysis_type_title} - {simulation_title}",
         fontsize=14,
     )
 

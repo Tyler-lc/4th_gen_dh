@@ -650,8 +650,15 @@ for rows, columns in df_sensitivity_parameters.iterrows():
     )
 
     # Plot the LCOH and the NPV of the DH operator as a function of the sensitivity parameter
+    simulation_title = "HT Scenario"
     lcoh_operator_NPV(
-        values, lcoh_dhg, lcoh_hp, npv_operator, analysis_type, simulation
+        values,
+        lcoh_dhg,
+        lcoh_hp,
+        npv_operator,
+        analysis_type,
+        simulation,
+        simulation_title,
     )
 
     # First get all building types from any of the DataFrames
@@ -672,6 +679,7 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         values,
         analysis_type,
         simulation,
+        simulation_title,
     )
     plot_savings_operator_comparison(
         avg_savings_data, npv_operator, all_npv_data, values, analysis_type, simulation
