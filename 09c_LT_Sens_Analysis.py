@@ -691,90 +691,18 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         avg_savings_data, npv_operator, all_npv_data, values, analysis_type, simulation
     )
 
+    # let's save the data for the sensitivity analysis:
+    main_path = (
+        f"sensitivity_analysis/{simulation}/{analysis_type}/data/multitple_graphs"
+    )
+    os.makedirs(main_path, exist_ok=True)
+    avg_savings_data_nfa.to_csv(f"{main_path}/avg_savings_data_nfa.csv")
+    npv_operator_df = pd.DataFrame(npv_operator)
+    npv_operator_df.to_csv(f"{main_path}/npv_operator.csv")
+    for key in all_npv_data.keys():
+        all_npv_data[key].to_csv(f"{main_path}/all_npv_data_{key}.csv")
+
+    values_df = pd.DataFrame(values)
+    values_df.to_csv(f"{main_path}/values.csv")
+
 print("done")
-
-
-# planning to discontinue this plot. We have a better one.
-# # Create line plot
-#     plt.figure(figsize=(12, 8))
-#     for building_type in avg_savings_data.columns:
-#         plt.plot(
-#             values, avg_savings_data[building_type], marker="o", label=building_type
-#         )
-
-#     plt.title(f"Average NPV Savings by Building Type vs {analysis_type}", fontsize=16)
-#     plt.xlabel(f"{analysis_type}", fontsize=14)
-#     plt.ylabel("Average NPV Savings (€)", fontsize=14)
-#     plt.legend(bbox_to_anchor=(1.05, 1), loc="upper left", fontsize=12)
-#     plt.grid(True, linestyle="--", alpha=0.7)
-#     plt.tight_layout()
-#     plt.savefig(
-#         f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_average_savings_sensitivity.png",
-#         bbox_inches="tight",
-#     )
-#     plt.close()
-
-
-### Planning to discontinue this other plot as well. I am not sure I need it anymore.
-# # In the max_COP analysis section, add detailed component plotting
-#     if num_analysis == 4:  # max COP analysis
-#         # First figure with LCOH, NPV, and COP plots
-#         fig1, axes = plt.subplots(1, 3, figsize=(15, 5), dpi=100)
-
-#         # LCOH components
-#         axes[0].plot(values, lcoh_dhg, label="LCOH DHG")
-#         axes[0].plot(values, lcoh_hp, label="LCOH HP")
-#         axes[0].set_xlabel("Max COP")
-#         axes[0].set_ylabel("LCOH (€/kWh)")
-#         axes[0].set_title("LCOH Components")
-#         axes[0].legend()
-
-#         # Operator NPV
-#         axes[1].plot(values, npv_operator, label="DH Operator NPV", color="green")
-#         axes[1].set_xlabel("Max COP")
-#         axes[1].set_ylabel("NPV (€)")
-#         axes[1].set_title("DH Operator NPV")
-#         axes[1].legend()
-
-#         # Average COP achieved
-#         axes[2].plot(values, actual_cops, label="Actual Average COP", color="orange")
-#         axes[2].set_xlabel("Max COP")
-#         axes[2].set_ylabel("Average COP")
-#         axes[2].set_title("Actual Average COP Achieved")
-#         axes[2].legend()
-
-#         # Adjust spacing between subplots
-#         plt.subplots_adjust(wspace=0.3)
-
-#         # Save first figure
-#         fig1.savefig(
-#             f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_detailed_analysis_part1.png",
-#             dpi=100,
-#         )
-#         plt.close(fig1)
-
-#         # Second figure for building type NPV
-#         fig2 = plt.figure(figsize=(10, 6), dpi=100)
-#         ax = fig2.add_subplot(111)
-
-#         for building_type in avg_savings_data.columns:
-#             ax.plot(
-#                 values,
-#                 avg_savings_data[building_type],
-#                 marker="o",
-#                 label=building_type,
-#                 linewidth=1,
-#             )
-
-#         ax.set_xlabel("Max COP")
-#         ax.set_ylabel("NPV Savings (€)")
-#         ax.set_title("NPV Savings by Building Type")
-#         ax.legend(loc="center left", bbox_to_anchor=(1.02, 0.5))
-
-#         # Save second figure
-#         fig2.savefig(
-#             f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_detailed_analysis_part2.png",
-#             bbox_inches="tight",
-#             dpi=100,
-#         )
-#         plt.close(fig2)

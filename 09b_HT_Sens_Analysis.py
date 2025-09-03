@@ -685,6 +685,20 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         avg_savings_data, npv_operator, all_npv_data, values, analysis_type, simulation
     )
 
+    # let's save the data for the sensitivity analysis:
+    main_path = (
+        f"sensitivity_analysis/{simulation}/{analysis_type}/data/multitple_graphs"
+    )
+    os.makedirs(main_path, exist_ok=True)
+    avg_savings_data_nfa.to_csv(f"{main_path}/avg_savings_data_nfa.csv")
+    npv_operator_df = pd.DataFrame(npv_operator)
+    npv_operator_df.to_csv(f"{main_path}/npv_operator.csv")
+    for key in all_npv_data.keys():
+        all_npv_data[key].to_csv(f"{main_path}/all_npv_data_{key}.csv")
+
+    values_df = pd.DataFrame(values)
+    values_df.to_csv(f"{main_path}/values.csv")
+
     # Print some statistics for reference
 
 
