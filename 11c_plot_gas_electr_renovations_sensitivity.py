@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 from pathlib import Path
-from scipy.interpolate import griddata
 
 ### first let's import all the data from the csv files
 
@@ -115,15 +114,44 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
                 )
                 continue
 
-            X, Y = np.meshgrid(df_el_mults, df_gas_mults)
+            # Extend grid to include points from 0 to help contours reach the origin
+            extended_el_mults = [0.0] + df_el_mults
+            extended_gas_mults = [0.0] + df_gas_mults
+
+            X, Y = np.meshgrid(extended_el_mults, extended_gas_mults)
+
             # Pivot table is a robust way to create the Z matrix
             pivot = df.pivot_table(
                 index="gas_multiplier",
                 columns="electricity_multiplier",
                 values="average_savings",
             )
-            # Reindex to match the sorted lists used for meshgrid
-            Z = pivot.reindex(index=df_gas_mults, columns=df_el_mults).values
+
+            # Create extended Z matrix with extrapolated values at boundaries
+            Z_original = pivot.reindex(index=df_gas_mults, columns=df_el_mults).values
+
+            # Create extended matrix
+            Z = np.zeros((len(extended_gas_mults), len(extended_el_mults)))
+            Z[1:, 1:] = Z_original  # Fill in original data
+
+            # Extrapolate to boundary: assume linear relationship continues
+            # For gas=0, use the trend from the first two gas values
+            if len(df_gas_mults) >= 2:
+                gas_slope = (Z_original[1, :] - Z_original[0, :]) / (
+                    df_gas_mults[1] - df_gas_mults[0]
+                )
+                Z[0, 1:] = Z_original[0, :] - gas_slope * df_gas_mults[0]
+
+            # For electricity=0, use the trend from the first two electricity values
+            if len(df_el_mults) >= 2:
+                el_slope = (Z_original[:, 1] - Z_original[:, 0]) / (
+                    df_el_mults[1] - df_el_mults[0]
+                )
+                Z[1:, 0] = Z_original[:, 0] - el_slope * df_el_mults[0]
+
+            # Corner point (0,0) - average of the two extrapolations
+            if len(df_gas_mults) >= 2 and len(df_el_mults) >= 2:
+                Z[0, 0] = (Z[0, 1] + Z[1, 0]) / 2
 
         except Exception as e:
             print(f"Error preparing grid for {label}: {e}. Skipping.")
@@ -138,7 +166,7 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
             cs = ax.contour(
                 X,
                 Y,
-                Z,  # Use this dataset's specific grid
+                Z,  # Use extended grid with extrapolated boundary values
                 levels=[0],
                 colors=[color],
                 linestyles=[linestyle],
@@ -199,16 +227,46 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
                 )
                 continue
 
-            X_lt, Y_lt = np.meshgrid(df_el_mults_lt, df_gas_mults_lt)
+            # Extend grid to include points from 0 to help contours reach the origin
+            extended_el_mults_lt = [0.0] + df_el_mults_lt
+            extended_gas_mults_lt = [0.0] + df_gas_mults_lt
+
+            X_lt, Y_lt = np.meshgrid(extended_el_mults_lt, extended_gas_mults_lt)
+
             # Pivot table for Z_lt
             pivot_lt = df_subset.pivot_table(
                 index="gas_multiplier",
                 columns="electricity_multiplier",
                 values="average_savings",
             )
-            Z_lt = pivot_lt.reindex(
+
+            # Create extended Z matrix with extrapolated values at boundaries
+            Z_lt_original = pivot_lt.reindex(
                 index=df_gas_mults_lt, columns=df_el_mults_lt
             ).values
+
+            # Create extended matrix
+            Z_lt = np.zeros((len(extended_gas_mults_lt), len(extended_el_mults_lt)))
+            Z_lt[1:, 1:] = Z_lt_original  # Fill in original data
+
+            # Extrapolate to boundary: assume linear relationship continues
+            # For gas=0, use the trend from the first two gas values
+            if len(df_gas_mults_lt) >= 2:
+                gas_slope_lt = (Z_lt_original[1, :] - Z_lt_original[0, :]) / (
+                    df_gas_mults_lt[1] - df_gas_mults_lt[0]
+                )
+                Z_lt[0, 1:] = Z_lt_original[0, :] - gas_slope_lt * df_gas_mults_lt[0]
+
+            # For electricity=0, use the trend from the first two electricity values
+            if len(df_el_mults_lt) >= 2:
+                el_slope_lt = (Z_lt_original[:, 1] - Z_lt_original[:, 0]) / (
+                    df_el_mults_lt[1] - df_el_mults_lt[0]
+                )
+                Z_lt[1:, 0] = Z_lt_original[:, 0] - el_slope_lt * df_el_mults_lt[0]
+
+            # Corner point (0,0) - average of the two extrapolations
+            if len(df_gas_mults_lt) >= 2 and len(df_el_mults_lt) >= 2:
+                Z_lt[0, 0] = (Z_lt[0, 1] + Z_lt[1, 0]) / 2
 
         except Exception as e:
             print(f"Error preparing grid for LT (reno={reno_mult:.2f}): {e}. Skipping.")
@@ -227,7 +285,7 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
             cs_lt = ax.contour(
                 X_lt,
                 Y_lt,
-                Z_lt,
+                Z_lt,  # Use extended grid with extrapolated boundary values
                 levels=[0],  # Still level 0
                 colors=[lt_base_color],  # Keep color as a list element
                 linestyles=[linestyle_for_this_contour],
