@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import glob
 from pathlib import Path
+from scipy.interpolate import griddata
 
 ### first let's import all the data from the csv files
 
@@ -250,70 +251,68 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
             )
 
     # --- Final Plot Customization ---
-    ax.set_xlabel("Electricity Price Multiplier", fontsize=16)
-    ax.set_ylabel("Gas Price Multiplier", fontsize=16)
-    ax.set_title("Break-even Lines Comparison", fontsize=18)
-    ax.tick_params(axis="both", labelsize=12)
+    ax.set_xlabel("Electricity Price Multiplier", fontsize=20)
+    ax.set_ylabel("Gas Price Multiplier", fontsize=20)
+    ax.set_title("Break-even Lines Comparison", fontsize=24)
+    ax.tick_params(axis="both", labelsize=16)
     ax.grid(True, linestyle="--", alpha=0.5)
 
-    # Determine plot limits based on all data points to ensure consistency
-    all_el = (
-        df_booster["electricity_multiplier"].tolist()
-        + df_ht["electricity_multiplier"].tolist()
-        + df_lt_combined["electricity_multiplier"].tolist()
-    )
-    all_gas = (
-        df_booster["gas_multiplier"].tolist()
-        + df_ht["gas_multiplier"].tolist()
-        + df_lt_combined["gas_multiplier"].tolist()
-    )
-    if all_el and all_gas:  # Set limits only if data exists
-        ax.set_xlim(min(all_el), max(all_el))
-        ax.set_ylim(min(all_gas), max(all_gas))
+    # Set axis limits to maximum of 3
+    ax.set_xlim(0, 3)
+    ax.set_ylim(0, 3)
 
     # --- Place Legend ---
     ax.legend(
         handles=legend_elements,
-        fontsize=9,
+        fontsize=12,
         title="Scenarios",
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1),
+        title_fontsize=14,
+        loc="lower right",
     )
 
-    # --- Adjust subplot to make room ---
-    fig.subplots_adjust(right=0.75)
-
-    # --- Prepare Save Path ---
+    # --- Prepare Save Paths ---
     save_filename = "combined_price_reno_sensitivity_contour_v2.png"
-    save_path = base_path / save_filename
-    absolute_save_path = save_path.resolve()
-    print(f"Attempting to save figure to: {absolute_save_path}")
+    alt_path = Path(
+        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/Other computers/My laptop/Documents/phd thesis/Possible papers/District Heating Comparison/paper_git/4th-Gen-Paper/figure"
+    )
 
-    # --- Ensure Directory Exists ---
-    try:
-        base_path.mkdir(parents=True, exist_ok=True)
-        print(f"Ensured directory exists: {base_path}")
-    except Exception as e:
-        print(f"Error creating directory {base_path}: {e}")
-        plt.close(fig)
-        return
+    # Define multiple save paths
+    save_paths = [
+        base_path / save_filename,  # Original path: sensitivity_analysis/
+        alt_path / save_filename,  # Alternative path: plots/
+    ]
 
-    # --- Save Figure ---
-    try:
-        plt.savefig(
-            absolute_save_path,
-            bbox_inches="tight",  # Add back bbox_inches='tight'
-            dpi=300,
-        )
-        print(f"plt.savefig command executed for {absolute_save_path}")
-        if absolute_save_path.is_file():
-            print(f"Successfully saved figure: {absolute_save_path}")
-        else:
-            print(
-                f"!!! Failed to save figure: File not found after save command at {absolute_save_path}"
+    # --- Save Figure to Multiple Locations ---
+    for i, save_path in enumerate(save_paths, 1):
+        absolute_save_path = save_path.resolve()
+        print(f"Attempting to save figure to location {i}: {absolute_save_path}")
+
+        # Ensure directory exists for this path
+        try:
+            save_path.parent.mkdir(parents=True, exist_ok=True)
+            print(f"Ensured directory exists: {save_path.parent}")
+        except Exception as e:
+            print(f"Error creating directory {save_path.parent}: {e}")
+            continue  # Skip this path and try the next one
+
+        # Save figure to this path
+        try:
+            plt.savefig(
+                absolute_save_path,
+                bbox_inches="tight",
+                dpi=300,
             )
-    except Exception as e:
-        print(f"!!! Error during plt.savefig: {e}")
+            print(f"plt.savefig command executed for {absolute_save_path}")
+            if absolute_save_path.is_file():
+                print(
+                    f"Successfully saved figure to location {i}: {absolute_save_path}"
+                )
+            else:
+                print(
+                    f"!!! Failed to save figure to location {i}: File not found after save command at {absolute_save_path}"
+                )
+        except Exception as e:
+            print(f"!!! Error during plt.savefig to location {i}: {e}")
 
     plt.close(fig)
 
