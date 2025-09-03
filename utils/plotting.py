@@ -226,14 +226,15 @@ def nfa_savings_operator_comparison(
     analysis_type,
     simulation,
     simulation_title,
+    save=True,
 ):
 
     # Create figure and primary axis
     fig, ax1 = plt.subplots(figsize=(12, 8))
     analysis_type_title = analysis_type.replace("_", " ").title()
     # Plot average customer savings on primary axis (left) - convert to k€
-    ax1.set_xlabel(f"{analysis_type_title}", fontsize=12)
-    ax1.set_ylabel("Average Customer Savings (€/m2NFA)", color="tab:blue", fontsize=12)
+    ax1.set_xlabel(f"{analysis_type_title}", fontsize=18)
+    ax1.set_ylabel("Average Customer Savings (€/m2NFA)", color="tab:blue", fontsize=18)
 
     # Plot each building type's savings (converting to k€)
     colors = sns.color_palette("colorblind", n_colors=len(avg_savings_data_nfa.columns))
@@ -256,21 +257,25 @@ def nfa_savings_operator_comparison(
         )
     ax1.tick_params(axis="y", labelcolor="tab:blue")
     ax1.grid(True, linestyle="--", alpha=0.7)
+    ax1.tick_params(axis="both", which="major", labelsize=14)
+    ax1.tick_params(axis="both", which="minor", labelsize=14)
 
     # Create secondary axis (right) for DH operator NPV - convert to M€
     ax2 = ax1.twinx()
-    ax2.set_ylabel("DH Operator NPV (M€)", color="tab:red", fontsize=12)
+    ax2.set_ylabel("DH Operator NPV (M€)", color="tab:red", fontsize=18)
 
     # Convert operator NPV to M€
     npv_operator_millions = np.array(npv_operator) / 1000000
 
     ax2.plot(values, npv_operator_millions, "r-", linewidth=3, label="DH Operator NPV")
     ax2.tick_params(axis="y", labelcolor="tab:red")
+    ax2.tick_params(axis="both", which="major", labelsize=14)
+    ax2.tick_params(axis="both", which="minor", labelsize=14)
 
     # Add title
     plt.title(
         f"DH Operator NPV and Customers' savings\nSensitivity to {analysis_type_title} - {simulation_title}",
-        fontsize=14,
+        fontsize=24,
     )
 
     # Combine legends from both axes
@@ -281,14 +286,16 @@ def nfa_savings_operator_comparison(
         labels1 + labels2,
         loc="center left",
         bbox_to_anchor=(1.15, 0.5),
-        fontsize=10,
+        fontsize=16,
+        title_fontsize=22,
     )
 
     # Adjust layout and save
     plt.tight_layout()
-    plt.savefig(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_operator_vs_building_savings_nfa.png",
-        bbox_inches="tight",
-    )
+    if save:
+        plt.savefig(
+            f"sensitivity_analysis/{simulation}/{analysis_type}/plots/{analysis_type}_operator_vs_building_savings_nfa.png",
+            bbox_inches="tight",
+        )
 
     plt.close()
