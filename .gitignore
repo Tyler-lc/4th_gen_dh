@@ -196,3 +196,12 @@ sensitivity_analysis/unrenovated/supply_temperature/data/supply_temperature_60.0
 sensitivity_analysis/unrenovated/supply_temperature/data/supply_temperature_65.0.csv
 sensitivity_analysis/unrenovated/supply_temperature/data/supply_temperature_70.0.csv
 .DS_Store
+dhw_characteristics.csv
+dhw_explanation.aux
+dhw_explanation.fdb_latexmk
+dhw_explanation.fls
+dhw_explanation.log
+dhw_explanation.pdf
+dhw_explanation.synctex.gz
+dhw_explanation.tex
+dhw_system_characteristics.csv
