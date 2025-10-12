@@ -38,24 +38,59 @@ values_renovated = average_specific_ued_renovated.values
 
 width = 0.35  # Bar width
 x = np.arange(len(labels))  # Label locations
-fig, ax = plt.subplots(figsize=(10, 6))
+fig, ax = plt.subplots(figsize=(12, 7))  # Increased size to accommodate labels better
 
-# Plot unrenovated bars
-rects1 = ax.bar(x - width / 2, values_unrenovated, width, label="Unrenovated")
+# Define monochromatic colorblind-friendly colors using different shades of blue
+monochromatic_colors = {
+    "unrenovated": "#2C5282",  # Dark blue - for unrenovated (higher values)
+    "renovated": "#90CDF4",  # Light blue - for renovated (lower values)
+}
+
+# Plot unrenovated bars with hatching for additional distinction
+rects1 = ax.bar(
+    x - width / 2,
+    values_unrenovated,
+    width,
+    label="Unrenovated",
+    color=monochromatic_colors["unrenovated"],
+    edgecolor="black",
+    linewidth=0.5,
+    hatch="///",  # Add diagonal hatching pattern
+)
 
 # Plot renovated bars
-rects2 = ax.bar(x + width / 2, values_renovated, width, label="Renovated")
+rects2 = ax.bar(
+    x + width / 2,
+    values_renovated,
+    width,
+    label="Renovated",
+    color=monochromatic_colors["renovated"],
+    edgecolor="black",
+    linewidth=0.5,
+)
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel("Average Specific UED (kWh/m²a)")
-ax.set_title("Average Specific UED by Building Type and Renovation Status")
+ax.set_ylabel("Average Specific UED (kWh/m²a)", fontsize=16)
+
+
+# ax.set_title("Average Specific UED by Building Type and Renovation Status")
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
 ax.legend()
+plt.yticks(fontsize=14)
 
+plt.xticks(rotation=45, ha="right", fontsize=16)  # Rotate labels to prevent overlap
 fig.tight_layout()
-plt.xticks(rotation=45, ha="right")  # Rotate labels to prevent overlap
-plt.savefig("plots/buildingstock_demand_pre_post_renovation.png", dpi=300)
+
+# Save with bbox_inches='tight' to prevent label cutoff
+plt.savefig(
+    "plots/buildingstock_demand_pre_post_renovation.png", dpi=300, bbox_inches="tight"
+)
+plt.savefig(
+    "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/Other computers/My laptop/Documents/phd thesis/Possible papers/District Heating Comparison/paper_git/4th-Gen-Paper/figure/buildingstock_demand_pre_post_renovation.png",
+    dpi=300,
+    bbox_inches="tight",
+)
 
 
 number_not_renovated = renovated_buildingstock.groupby("building_usage")[

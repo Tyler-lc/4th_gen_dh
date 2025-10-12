@@ -201,11 +201,11 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
 
     # Add main title
     analysis_type_title = analysis_type.replace("_", " ").title()
-    plt.suptitle(
-        f"DH Operator NPV and Customer Savings\nSensitivity to {analysis_type_title}",
-        fontsize=26,
-        y=0.98,
-    )
+    # plt.suptitle(
+    #     f"DH Operator NPV and Customer Savings\nSensitivity to {analysis_type_title}",
+    #     fontsize=26,
+    #     y=0.98,
+    # )
 
     # Adjust layout
     plt.tight_layout()

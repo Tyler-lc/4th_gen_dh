@@ -311,7 +311,7 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
     # --- Final Plot Customization ---
     ax.set_xlabel("Electricity Price Multiplier", fontsize=20)
     ax.set_ylabel("Gas Price Multiplier", fontsize=20)
-    ax.set_title("Break-even Lines Comparison", fontsize=24)
+    # ax.set_title("Break-even Lines Comparison", fontsize=24)
     ax.tick_params(axis="both", labelsize=16)
     ax.grid(True, linestyle="--", alpha=0.5)
 
