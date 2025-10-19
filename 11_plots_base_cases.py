@@ -15,8 +15,8 @@ booster_savings = pd.read_csv(
 )
 
 # Add scenario column to each dataframe
-unrenovated_savings["scenario"] = "High Temperature"
-renovated_savings["scenario"] = "Low Temperature"
+unrenovated_savings["scenario"] = "HT"
+renovated_savings["scenario"] = "LT + Reno"
 booster_savings["scenario"] = "Booster"
 
 # Combine the dataframes
@@ -63,7 +63,7 @@ def plot_npv_savings(combined_data, title, scenario):
 
 plot_npv_savings(
     combined_data,
-    "NPV Savings Distribution by Building Type and Scenario",
+    "",
     "all_scenarios",
 )
 
