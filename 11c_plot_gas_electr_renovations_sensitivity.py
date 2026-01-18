@@ -358,7 +358,7 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
             plt.savefig(
                 absolute_save_path,
                 bbox_inches="tight",
-                dpi=300,
+                dpi=1000,
             )
             print(f"plt.savefig command executed for {absolute_save_path}")
             if absolute_save_path.is_file():

@@ -31,6 +31,8 @@ import numpy as np
 from utils.plotting import nfa_savings_operator_comparison
 import glob
 
+output_dpi = 1000
+
 
 def flatten_list(list_of_lists):
     flat_list = []
@@ -214,7 +216,7 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
     output_file = (
         f"sensitivity_analysis/combined_{analysis_type}_base_sensitivities.png"
     )
-    plt.savefig(output_file, bbox_inches="tight", dpi=300)
+    plt.savefig(output_file, bbox_inches="tight", dpi=output_dpi)
     print(f"Combined plot saved to: {output_file}")
 
     plt.show()

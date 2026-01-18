@@ -84,11 +84,11 @@ fig.tight_layout()
 
 # Save with bbox_inches='tight' to prevent label cutoff
 plt.savefig(
-    "plots/buildingstock_demand_pre_post_renovation.png", dpi=300, bbox_inches="tight"
+    "plots/buildingstock_demand_pre_post_renovation.png", dpi=1000, bbox_inches="tight"
 )
 plt.savefig(
     "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/Other computers/My laptop/Documents/phd thesis/Possible papers/District Heating Comparison/paper_git/4th-Gen-Paper/figure/buildingstock_demand_pre_post_renovation.png",
-    dpi=300,
+    dpi=1000,
     bbox_inches="tight",
 )
 

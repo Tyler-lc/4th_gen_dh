@@ -57,7 +57,7 @@ def plot_npv_savings(combined_data, title, scenario):
     plt.legend(fontsize=24)  # Increased from 20
 
     plt.tight_layout()
-    plt.savefig(f"plots/comparison_all_scenarios_{scenario}.png")
+    plt.savefig(f"plots/comparison_all_scenarios_{scenario}.png", dpi=1000)
     plt.close()
 
 
