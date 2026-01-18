@@ -839,6 +839,8 @@ parameters = {
     "supply_temperature_grid": supply_temperature_grid,
     "npv_dh_operator": npv_dh,
     "lcoh_booster": lcoh_booster,
+    "lcoh_dhg": LCOH_dhg,
+    "lcoh_large_scale_hp": LCOH_HP,
     "price_heat_eurokwh_residential": price_heat_eurokwh_residential,
     "price_heat_eurokwh_non_residential": price_heat_eurokwh_non_residential,
     "operator_selling_price": operator_selling_price,
