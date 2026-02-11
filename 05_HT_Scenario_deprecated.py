@@ -34,7 +34,7 @@ from costs.renovation_costs import (
 ###################################################################################
 
 path_unrenovated_area = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/area_results.csv"
+    "building_analysis/results/unrenovated_whole_buildingstock/area_results_unrenovated.csv"
 )
 areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
 areas_demand.index = pd.to_datetime(areas_demand.index)
@@ -256,7 +256,7 @@ building_interest_rate = 0.05
 
 # import the data with the unrenovated buildingstock
 unrenovated_buildingstock_path = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
 )
 
 unrenovated_buildingstock = gpd.read_parquet(unrenovated_buildingstock_path)

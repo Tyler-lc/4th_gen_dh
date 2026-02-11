@@ -614,7 +614,7 @@ if __name__ == "__main__":
     size = "whole_buildingstock"
 
     path_load_results = (
-        f"../building_analysis/results/{sim}_{size}/buildingstock_results.parquet"
+        f"../building_analysis/results/{sim}_{size}/buildingstock_results_{sim}.parquet"
     )
     gdf_buildingstock_results = gpd.read_parquet(path_load_results)
 

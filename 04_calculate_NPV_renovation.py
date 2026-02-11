@@ -56,13 +56,13 @@ generate_savings = False
 if generate_savings:
     # import the data with the renovation measures
     renovated_buildingstock_path = Path(
-        "building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+        "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
     )
     gdf_renovated = gpd.read_parquet(renovated_buildingstock_path)
 
     # import the data with the unrenovated buildingstock
     unrenovated_buildingstock_path = Path(
-        "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+        "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
     )
     gdf_unrenovated = gpd.read_parquet(unrenovated_buildingstock_path)
 
@@ -86,10 +86,10 @@ savings_df = pd.read_csv("costs/energy_savings_renovated.csv", index_col=0)
 # the energy prices are in euros per kWh. But they also change according to user type and annual energy demand.
 # so we take the energy consumption data from the buildingstock results we have already calculated
 unrenovated_buildingstock_path = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
 )
 renovated_buildingstock_path = Path(
-    "building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+    "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
 )
 renovated_buildingstock = pd.read_parquet(renovated_buildingstock_path)
 unrenovated_buildingstock = pd.read_parquet(unrenovated_buildingstock_path)

@@ -21,7 +21,7 @@ n_supply_list = [
 ]
 
 ### define sinks in the area
-buildingstock_path = "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+buildingstock_path = "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
 buildingstock = gpd.read_parquet(buildingstock_path)
 
 print("calculating space heating max \n")

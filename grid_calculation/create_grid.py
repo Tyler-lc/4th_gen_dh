@@ -140,7 +140,7 @@ plt.show()
 
 # Load the building data
 buildingstock = gpd.read_parquet(
-    "../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+    "../building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
 )
 building_polygons = buildingstock[["geometry"]]
 building_polygons.crs = 25832

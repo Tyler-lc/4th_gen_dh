@@ -15,7 +15,7 @@ from building_analysis.building_generator import apply_renovations, need_insulat
 
 
 # first we load the energy demand data that we generated in the calculate_energy_demand.py script
-path_load_results = "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+path_load_results = "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
 gdf_buildingstock_results = gpd.read_parquet(path_load_results)
 
 # from https://doi.org/10.1016/j.enbuild.2024.114324 we know that to accept low-temperature heating
@@ -228,13 +228,13 @@ while gdf_buildingstock_results["needs_insulation"].sum() > 0:
 
 # now we can save the results to a file
 gdf_buildingstock_results.to_parquet(
-    "building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+    "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
 )
 
-area_results_urenovated_path = (
-    "building_analysis/results/unrenovated_whole_buildingstock/area_results.csv"
+area_results_unrenovated_path = (
+    "building_analysis/results/unrenovated_whole_buildingstock/area_results_unrenovated.csv"
 )
-area_results_unrenovated = pd.read_csv(area_results_urenovated_path, index_col=0)
+area_results_unrenovated = pd.read_csv(area_results_unrenovated_path, index_col=0)
 area_results_unrenovated.index = pd.to_datetime(area_results_unrenovated.index)
 
 area_results["dhw_energy"] = area_results_unrenovated["dhw_energy"]

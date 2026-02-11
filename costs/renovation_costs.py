@@ -469,13 +469,13 @@ if __name__ == "__main__":
 
     # # import the data with the renovation measures
     # renovated_buildingstock_path = Path(
-    #     "../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+    #     "../building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
     # )
     # gdf_renovated = gpd.read_parquet(renovated_buildingstock_path)
 
     # # import the data with the unrenovated buildingstock
     # unrenovated_buildingstock_path = Path(
-    #     "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+    #     "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
     # )
     # gdf_unrenovated = gpd.read_parquet(unrenovated_buildingstock_path)
 
@@ -493,11 +493,11 @@ if __name__ == "__main__":
     # and annual energy demand.
     # so we take the energy consumption data from the buildingstock results we have already calculated
     unrenovated_buildingstock_path = Path(
-        "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results.parquet"
+        "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
     )
     unrenovated_buildingstock = pd.read_parquet(unrenovated_buildingstock_path)
     renovated_buildingstock_path = Path(
-        "../building_analysis/results/renovated_whole_buildingstock/buildingstock_renovated_results.parquet"
+        "../building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
     )
     renovated_buildingstock = pd.read_parquet(renovated_buildingstock_path)
     # set the first column as the index. read_parquet does not have index_col function
