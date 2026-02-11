@@ -8,9 +8,18 @@ Research tool for analyzing **4th Generation District Heating** feasibility in F
 
 ## Environment
 
-- **Python 3.9** with virtualenv at `.venv/`
-- Activate: `source .venv/bin/activate`
+- **Python 3.9** with conda environment `dh_sim`
+- Activate: `conda activate dh_sim`
+- Run commands: `eval "$(/opt/anaconda3/bin/conda shell.bash hook)" && conda activate dh_sim && <command>`
 - Key dependencies: pandas, geopandas, numpy, matplotlib, seaborn, networkx, osmnx, shapely, pyomo, gurobipy, numpy_financial
+- Dev dependencies: pytest (see `requirements-dev.txt`)
+
+## Testing
+
+- **Golden baseline**: `tests/golden_baseline.json` captures shape, stats, and MD5 hashes of all result files
+- **Regenerate baseline**: `python tests/capture_golden_baseline.py`
+- **Run tests**: `pytest` (from project root)
+- **Test markers**: `@pytest.mark.regression`, `@pytest.mark.equivalence`, `@pytest.mark.smoke`, `@pytest.mark.slow`
 
 ## Running the Pipeline
 
