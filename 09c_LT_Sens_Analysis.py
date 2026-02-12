@@ -68,7 +68,7 @@ def sensitivity_analysis(
             "simulation_type must be 'renovated', 'unrenovated' or 'booster'"
         )
     if simulation_type == "renovated":
-        supply_temperature = 55
+        supply_temperature = 50
         n_heat_pumps = 2
     #############################################################################################
     # In this scenario we compare the NPV of the customer when they do not renovate and use gas

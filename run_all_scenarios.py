@@ -14,8 +14,12 @@ scripts_to_run = [
     "10d_LT_scenarios_gas_vs_electicity_vs_rencosts.py",
     "11_plots_base_cases.py",
     "11b_plot_gas_electr_sensitivity.py",
+    "11c_plot_gas_electr_renovations_sensitivity.py",
+    "11d_plot_sensitivities_base.py",
     "12_buildingstock_analysis.py",
     "13_DH_parameters.py",
+    "14_NFA_calculation.py",
+    "15_iwu_renovation_costs_plot.py",
 ]
 
 # Run each script in sequence
@@ -26,7 +30,7 @@ for script in scripts_to_run:
         print(f"Successfully completed {script}")
     except subprocess.CalledProcessError as e:
         print(f"Error running {script}: {e}")
-        break  # Optional: stop if one script fails
+        # break  # Optional: stop if one script fails
     print("-" * 90)
 
 print("All scripts completed")

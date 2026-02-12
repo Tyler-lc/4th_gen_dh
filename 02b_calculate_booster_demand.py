@@ -100,7 +100,7 @@ sim = "booster"
 size = "whole_buildingstock"
 mask = get_mask(size, res_mask)  # type:ignore
 
-dir_space_heating = f"building_analysis/results/{sim}_{size}_{t_grid}/space_heating"
+dir_space_heating = f"building_analysis/results/{sim}_{size}/space_heating"
 os.makedirs(dir_space_heating, exist_ok=True)
 
 
@@ -119,12 +119,12 @@ gdf_buildingstock_results["peak_demand_on_dh_grid [kW]"] = 0.0
 ### we also need to create a new file to store the heat pump electricity demand
 ### along with the folder path
 booster_space_heating_path = (
-    f"building_analysis/results/{sim}_{size}_{t_grid}/space_heating_{sim}_{t_grid}"
+    f"building_analysis/results/{sim}_{size}/space_heating_{sim}"
 )
 os.makedirs(booster_space_heating_path, exist_ok=True)
 
 booster_dhw_path = (
-    f"building_analysis/results/{sim}_{size}_{t_grid}/dhw_energy_{sim}_{t_grid}"
+    f"building_analysis/results/{sim}_{size}/dhw_energy_{sim}"
 )
 os.makedirs(booster_dhw_path, exist_ok=True)
 
@@ -235,12 +235,12 @@ for idx, row in tqdm(
         dh_grid_demand.sum()
     )
 
-    temp_df.to_csv(f"{booster_space_heating_path}/{building_id}_{sim}_{t_grid}.csv")
+    temp_df.to_csv(f"{booster_space_heating_path}/{building_id}_{sim}.csv")
 
     ### also we need to be able to possibly recover these data later on.
     ### so we will store the path to the csv files in the gdf_buildingstock_results
     gdf_buildingstock_results.loc[idx, "booster_path"] = (
-        f"{booster_space_heating_path}/{building_id}_{sim}_{t_grid}.csv"
+        f"{booster_space_heating_path}/{building_id}_{sim}.csv"
     )
     gdf_buildingstock_results.loc[idx, "total_heat_supplied_booster [kWh]"] = (
         heat_by_booster.sum()
@@ -258,10 +258,10 @@ for idx, row in tqdm(
 
 # now we can save the results to a file
 gdf_buildingstock_results.to_parquet(
-    f"building_analysis/results/{sim}_{size}_{t_grid}/buildingstock_{sim}_{size}_{t_grid}_results.parquet"
+    f"building_analysis/results/{sim}_{size}/buildingstock_{sim}_{size}_results.parquet"
 )
 
-area_results_booster_path = f"building_analysis/results/{sim}_{size}_{t_grid}/area_results_{sim}_{size}_{t_grid}.csv"
+area_results_booster_path = f"building_analysis/results/{sim}_{size}/area_results_{sim}_{size}.csv"
 
 area_results = pd.DataFrame(
     columns=[
@@ -280,10 +280,10 @@ area_results["area dhw energy demand [kWh]"] = area_dhw_energy.sum(axis=1)
 area_results["area dhw volume demand [l]"] = area_dhw_volume.sum(axis=1)
 
 folder_area_results_path = (
-    f"building_analysis/results/{sim}_{size}_{t_grid}/area_results"
+    f"building_analysis/results/{sim}_{size}/area_results"
 )
 os.makedirs(folder_area_results_path, exist_ok=True)
 
-area_results_booster_path = f"building_analysis/results/{sim}_{size}_{t_grid}/area_results/area_results_{sim}_{size}_{t_grid}.csv"
+area_results_booster_path = f"building_analysis/results/{sim}_{size}/area_results/area_results_{sim}_{size}.csv"
 
 area_results.to_csv(area_results_booster_path)

@@ -31,18 +31,9 @@ buildingstock["dhw_energy_path"] = buildingstock["dhw_energy_path"].str.replace(
     "\\", "/"
 )
 buildingstock = buildingstock[buildingstock["NFA"] >= 30]
-print("calculating space heating max \n")
-buildingstock["space_heating_cap"] = buildings_capacity(
-    buildingstock, "space_heating_path"
-)
 
-print("calculating dhw max \n")
-buildingstock["dhw_cap"] = buildings_capacity(buildingstock, "dhw_energy_path")
-
-print("calculating total capacity \n")
-buildingstock["capacity"] = (
-    buildingstock["space_heating_cap"] + buildingstock["dhw_cap"]
-)
+print("using pre-computed peak_demand_on_dh_grid for capacity \n")
+buildingstock["capacity"] = buildingstock["peak_demand_on_dh_grid [kW]"]
 
 n_demand_list = buildings_to_centroids(
     buildingstock, crs_origin="EPSG:25832", crs_target="EPSG:4326"

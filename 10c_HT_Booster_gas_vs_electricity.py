@@ -31,7 +31,7 @@ grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
 # do this.
 def sensitivity_analysis_booster(
     simulation_type: str,
-    supply_temperature: Union[float, int] = 90,
+    supply_temperature: Union[float, int] = 50,
     approach_temperature: Union[float, int] = 5,
     margin: float = 0,
     taxation: float = 0.07,

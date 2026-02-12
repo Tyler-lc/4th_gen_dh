@@ -24,13 +24,13 @@ def carnot_cop(
     """
     COP = pd.DataFrame()
     T_hot = T_hot + 273.15 + approach_temperature
-    T_cold = T_cold + 273.15 + approach_temperature
+    T_cold = T_cold + 273.15 - approach_temperature
     COP["hot"] = T_hot
     COP["cold"] = T_cold
     COP["COP_hourly"] = COP["hot"] / (COP["hot"] - COP["cold"]) * carnot_efficiency
 
     # Limit the COP to a maximum value of 4
-    COP = COP.clip(upper=COP_max)
+    COP["COP_hourly"] = COP["COP_hourly"].clip(upper=COP_max)
 
     return COP["COP_hourly"]
 

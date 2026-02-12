@@ -914,10 +914,9 @@ def create_savings_contour(all_npv_data, df_combinations):
     plt.close()
 
 
-# Call the function with your data
-create_savings_scatter_plot(all_npv_data, df_combinations)
-create_savings_heatmap(all_npv_data, df_combinations)
-create_savings_contour(all_npv_data, df_combinations)
+# NOTE: create_savings_scatter_plot, create_savings_heatmap, create_savings_contour
+# are 2D plotting functions that do not handle the renovation_cost_multiplier dimension.
+# They are not called here. The important output is export_mfh_data (used by 11c).
 
 
 def export_mfh_data(all_npv_data, df_combinations, simulation, analysis_type):
@@ -1009,6 +1008,5 @@ def create_mfh_contour(all_npv_data, df_combinations):
     plt.close()
 
 
-# Replace or add to the existing plotting calls
+# Export aggregated MFH savings data (used by 11c)
 mfh_data = export_mfh_data(all_npv_data, df_combinations, simulation, analysis_type)
-create_mfh_contour(all_npv_data, df_combinations)
