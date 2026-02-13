@@ -1,3 +1,14 @@
+## Results Comparability Warning (2025-02-12)
+
+**Booster scenario results before and after commit `78747d2` (branch `publication-ready`) are NOT comparable.** Three bugs were fixed:
+1. Grid capacity was oversized — used full SH+DHW peak instead of reduced demand after boosters (`Q_grid = Q_total * (1 - 1/COP)`), leading to oversized pipes.
+2. `02b` output paths had a `_50` suffix that `08` and `03` didn't expect, so they read stale data computed at the old `t_grid=55`.
+3. `09c_LT_Sens_Analysis.py` used `supply_temperature=55` instead of `50` (base LT scenario value).
+
+All booster outputs (buildingstock, grid, LCOH, sensitivities, plots) were regenerated. Do not compare current results with any results produced before this commit.
+
+---
+
 As of 28/05/2024 I think the code is quite optimized now. May need some further little adjustment, but it seems to be running fast and quite precisely.
 
 ## Next steps

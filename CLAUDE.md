@@ -104,3 +104,13 @@ QGIS Building Data + Weather Data
 - Lorentz COP is preferred over Carnot for heat pump calculations (more accurate)
 - Plots for publication have titles removed (recent commit convention)
 - Stochastic elements: person generation uses random wake/sleep times and occupancy probabilities — results vary between runs
+
+## Important Notes on Results Comparability
+
+**Booster scenario results before and after commit `78747d2` (2025-02-12, branch `publication-ready`) are NOT comparable.** That commit fixed three interrelated bugs:
+
+1. **Grid capacity oversized**: `03_booster_grid_calculation.py` used full thermal demand (SH + DHW peak) instead of the reduced grid demand after boosters (`Q_grid = Q_total * (1 - 1/COP)`). This resulted in oversized pipes.
+2. **Stale data at wrong grid temperature**: `02b` output paths included a temperature suffix (`_50`) that downstream scripts (`08`, `03`) did not expect, so they consumed stale data computed at the old `t_grid=55`.
+3. **LT sensitivity temperature mismatch**: `09c_LT_Sens_Analysis.py` used `supply_temperature=55` instead of `50` (the base LT scenario value).
+
+All booster scenario outputs (buildingstock parquet, grid optimization, LCOH, sensitivity analyses, plots) were regenerated after these fixes.
