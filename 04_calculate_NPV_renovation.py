@@ -12,6 +12,11 @@ from costs.renovation_costs import (
     energy_savings,
     calculate_npv_savings,
 )
+from config import (
+    COSTS_DIR,
+    RESIDENTIAL_BUILDING_TYPES,
+    buildingstock_results_path,
+)
 
 ###################################################################################
 ###################################################################################
@@ -37,7 +42,7 @@ starting_energy_prices = {  # eurostat data
 
 
 # we also need (as usual) to set up the list of building codes considered residential:
-res_types = ["mfh", "sfh", "ab", "th"]
+res_types = RESIDENTIAL_BUILDING_TYPES
 
 
 # EUROSTAT provides energy prices according to the annual demand. We need to set the energy prices for each building
@@ -55,44 +60,32 @@ conversion_2020_2023 = (
 generate_savings = False
 if generate_savings:
     # import the data with the renovation measures
-    renovated_buildingstock_path = Path(
-        "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
-    )
-    gdf_renovated = gpd.read_parquet(renovated_buildingstock_path)
+    gdf_renovated = gpd.read_parquet(buildingstock_results_path("renovated"))
 
     # import the data with the unrenovated buildingstock
-    unrenovated_buildingstock_path = Path(
-        "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
-    )
-    gdf_unrenovated = gpd.read_parquet(unrenovated_buildingstock_path)
+    gdf_unrenovated = gpd.read_parquet(buildingstock_results_path("unrenovated"))
 
     renovation_costs = renovation_costs_iwu(gdf_renovated, conversion_2020_2023)
-    renovation_costs.to_csv("costs/renovation_costs.csv")
+    renovation_costs.to_csv(COSTS_DIR / "renovation_costs.csv")
 
     savings_df = energy_savings(gdf_renovated, gdf_unrenovated, rel_path=False)
-    savings_df.to_csv("costs/energy_savings_renovated.csv")
+    savings_df.to_csv(COSTS_DIR / "energy_savings_renovated.csv")
 
 ##################### Load results about Energy Savings (if already calculated)  #####################
 
 # set the paths to the data
-renovation_costs_path = Path("costs/renovation_costs.csv")
-energy_savings_path = Path("costs/energy_savings_renovated.csv")
+renovation_costs_path = COSTS_DIR / "renovation_costs.csv"
+energy_savings_path = COSTS_DIR / "energy_savings_renovated.csv"
 
 # Load the data in DataFrames for further manipulation
-renovation_costs = pd.read_csv("costs/renovation_costs.csv")
-savings_df = pd.read_csv("costs/energy_savings_renovated.csv", index_col=0)
+renovation_costs = pd.read_csv(renovation_costs_path)
+savings_df = pd.read_csv(energy_savings_path, index_col=0)
 
 
 # the energy prices are in euros per kWh. But they also change according to user type and annual energy demand.
 # so we take the energy consumption data from the buildingstock results we have already calculated
-unrenovated_buildingstock_path = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
-)
-renovated_buildingstock_path = Path(
-    "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
-)
-renovated_buildingstock = pd.read_parquet(renovated_buildingstock_path)
-unrenovated_buildingstock = pd.read_parquet(unrenovated_buildingstock_path)
+renovated_buildingstock = pd.read_parquet(buildingstock_results_path("renovated"))
+unrenovated_buildingstock = pd.read_parquet(buildingstock_results_path("unrenovated"))
 
 # gather the energy consumption data in a single DF for ease of use
 year_consumption = pd.DataFrame(
@@ -160,4 +153,4 @@ npv_data = calculate_npv_savings(
     npv_data, energy_costs_unrenovated, energy_costs_renovated, n_years, interest_rate
 )
 
-npv_data.to_csv("costs/npv_data_renovated_gas.csv")
+npv_data.to_csv(COSTS_DIR / "npv_data_renovated_gas.csv")

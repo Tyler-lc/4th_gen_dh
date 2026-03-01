@@ -9,6 +9,15 @@ from building_analysis.building_generator import (
     assign_people_id,
 )
 from utils.building_utilities import process_data
+from config import (
+    QGIS_DATA_PATH,
+    AGE_DISTRIBUTION_PATH,
+    CEILING_HEIGHTS_PATH,
+    U_VALUES_PATH,
+    BUILDINGSTOCK_PATH,
+    MAXIMUM_PEOPLE,
+    RESIDENTIAL_BUILDING_TYPES,
+)
 
 # as there is some randomness built-in to the generation of the buildings, we set the seed here for consistency
 np.random.seed(42)
@@ -16,17 +25,14 @@ np.random.seed(42)
 # first we need to process the QGIS data
 # we need to set up the path to the QGIS data, the age distribution of the buildings, and the ceiling heights distribution
 # as well as a list of the acronyms used to identify the residential buildings
-path_qgis_data = "building_analysis/building_generator_data/frankfurt_v3.parquet"
-age_distr_path = "building_analysis/building_generator_data/buildings_age.csv"
-ceilings_heights_path = "building_analysis/building_generator_data/ceiling_heights.csv"
-age_distr_df = pd.read_csv(age_distr_path)
-ceiling_heights_df = pd.read_csv(ceilings_heights_path)
-res_types = ["mfh", "th", "ab", "sfh"]
+age_distr_df = pd.read_csv(AGE_DISTRIBUTION_PATH)
+ceiling_heights_df = pd.read_csv(CEILING_HEIGHTS_PATH)
+res_types = RESIDENTIAL_BUILDING_TYPES
 file_type = "parquet"
 
 # now we process the data to get a useful input to be used in the building_generator function
 geometric_data = process_data(
-    path_qgis_data,
+    str(QGIS_DATA_PATH),
     file_type,
     age_distr_df,
     ceiling_heights_df,
@@ -37,15 +43,14 @@ geometric_data = process_data(
 # needed to create the buildingstock. This gdf will be used in the Building class to calculate the useful energy demand
 # First we need to set the path where the u-values for all the archetypes are stored. This should be a csv
 # then we use the iterator_generate_buildings function to generate the buildings.
-u_values_path = "building_analysis/building_generator_data/archetype_u_values.csv"
 buildingstock = iterator_generate_buildings(
-    geometric_data, u_values_path, convert_wkb=True, randomization_factor=0.01
+    geometric_data, str(U_VALUES_PATH), convert_wkb=True, randomization_factor=0.01
 )
 
 # once we have generated the buildingstock we can add people to the building, since this requires us to know the total
 # GFA of the area we analyze. So we need to first generate  the buildingstock. Now we can append information about people
 # We need to first calculate the number of people per Gross Floor Area. We assume there are 9500 people in the area
-buildingstock["n_people"] = people_in_building(buildingstock, res_types, 9500)
+buildingstock["n_people"] = people_in_building(buildingstock, res_types, MAXIMUM_PEOPLE)
 buildingstock["people_id"] = assign_people_id(buildingstock, res_types)
 
 # making a dataframe is actually for data exploration with datawrangler in VS code. It is actually not necessary
@@ -67,12 +72,10 @@ buildingstock = buildingstock[columns]
 
 
 # now we can save the buildingstock data to a file. We will save it as a parquet file
-buildingstock.to_parquet("building_analysis/buildingstock/buildingstock.parquet")
+buildingstock.to_parquet(BUILDINGSTOCK_PATH)
 
 # now we can open the file to check that everything is fine
-buildingstock_from_parquet = gpd.read_parquet(
-    "building_analysis/buildingstock/buildingstock.parquet"
-)
+buildingstock_from_parquet = gpd.read_parquet(BUILDINGSTOCK_PATH)
 are_equal = buildingstock_from_parquet.equals(buildingstock)
 print(f" is the crs the same? {buildingstock.crs == buildingstock_from_parquet.crs}")
 print(

@@ -6,7 +6,7 @@ import warnings
 
 
 class Person:
-    def __init__(self, building_id, person_id, start_year="01/01/2019"):
+    def __init__(self, building_id, person_id, start_year="01/01/2019", seed=None):
         """This class generates a person with a specific age and building id.
         In this class we generate DHW and Occupancy profile. In this case occupancy is defined as the probability of
         being at home and awake. We do consider sleeping time as occupancy = 0.
@@ -15,7 +15,15 @@ class Person:
          at a certain time. [Schlaf gut, Deutschland - TK-Schlafstudie 2017]
          DHW is generated based on the occupancy profile.
          It also changes based on the ages of the people
+
+        Parameters
+        ----------
+        seed : int, optional
+            If provided, creates a dedicated RandomState for reproducible
+            results.  When *None* (default) ``np.random`` is used, preserving
+            the original stochastic behaviour.
         """
+        self.rng = np.random.RandomState(seed) if seed is not None else np.random
         self.building_id = building_id
         self.person_id = person_id
         self.workday_wakeup_category = self.assign_wakeup_category(workday=True)
@@ -42,7 +50,7 @@ class Person:
         categories = ["0-5", "5-6", "6-7", "7-8", "8-9", "9 and later"]
         probs = wakeup_probs["workday"] if workday else wakeup_probs["free day"]
         probs = [p / sum(probs) for p in probs]  # Normalize probabilities
-        return np.random.choice(categories, p=probs)
+        return self.rng.choice(categories, p=probs)
 
     def assign_sleep_category(self, wakeup_category, workday=True):
         """Assign sleep category based on the wake-up category."""
@@ -96,9 +104,9 @@ class Person:
 
         # Parameters for the second Gaussian distribution
         time_afternoon = [14, 15, 16, 17, 18, 19, 20]
-        mean_2 = np.random.choice(time_afternoon)  # Late afternoon peak mean
+        mean_2 = self.rng.choice(time_afternoon)  # Late afternoon peak mean
         std_dev_2 = 4  # Late afternoon peak standard deviation
-        weight_2 = np.random.uniform(
+        weight_2 = self.rng.uniform(
             min_probability, 0.6
         )  # Weight for the late afternoon peak
 
@@ -142,7 +150,7 @@ class Person:
         freedays_mask = ~workdays_mask
 
         # Generate random values for the entire DataFrame
-        random_values = np.random.rand(len(occupancy_df))
+        random_values = self.rng.rand(len(occupancy_df))
 
         # Create the initial occupancy profile based on the minimum probability
         occupancy_df.loc[workdays_mask, "occupancy"] = np.where(
@@ -171,8 +179,8 @@ class Person:
         ).date
 
         # Precompute shower and bath probabilities
-        shower_prob = np.random.uniform(size=len(days)) < 0.7
-        bath_prob = np.random.uniform(size=len(days)) < 0.044
+        shower_prob = self.rng.uniform(size=len(days)) < 0.7
+        bath_prob = self.rng.uniform(size=len(days)) < 0.044
 
         for i, day in enumerate(days):
             day_mask = occupancy_mask.loc[occupancy_mask.index.date == day]
@@ -181,40 +189,40 @@ class Person:
 
             # Shower
             if shower_prob[i]:
-                shower_lt = max(np.random.normal(loc=170, scale=40), 40)
-                morning_shower = np.random.choice([True, False])
+                shower_lt = max(self.rng.normal(loc=170, scale=40), 40)
+                morning_shower = self.rng.choice([True, False])
                 morning_mask = (day_mask.index.hour < 12) & day_mask
 
                 if morning_shower and morning_mask.any():
-                    draw_times = np.random.choice(
+                    draw_times = self.rng.choice(
                         day_mask.index[morning_mask], size=1, replace=False
                     )
                     dhw_df.loc[draw_times, "shower"] += shower_lt
                 else:
                     evening_mask = (day_mask.index.hour >= 12) & day_mask
                     if evening_mask.any():
-                        draw_times = np.random.choice(
+                        draw_times = self.rng.choice(
                             day_mask.index[evening_mask], size=1, replace=False
                         )
                         dhw_df.loc[draw_times, "shower"] += shower_lt
 
             # Bath
             if bath_prob[i]:
-                bath_lt = max(np.random.normal(115, 5), 100)
-                draw_times = np.random.choice(day_mask.index, size=1, replace=False)
+                bath_lt = max(self.rng.normal(115, 5), 100)
+                draw_times = self.rng.choice(day_mask.index, size=1, replace=False)
                 dhw_df.loc[draw_times, "bath"] += bath_lt
 
             # Hand washing and cooking water usage
-            n_handwash = min(np.random.randint(1, 5), day_mask.sum())
-            handwash_water = np.random.uniform(0.25, 1.5)
-            draw_times = np.random.choice(
+            n_handwash = min(self.rng.randint(1, 5), day_mask.sum())
+            handwash_water = self.rng.uniform(0.25, 1.5)
+            draw_times = self.rng.choice(
                 day_mask.index, size=n_handwash, replace=False
             )
             dhw_df.loc[draw_times, "handwash"] += handwash_water
 
-            n_cooking = min(np.random.randint(0, 3), day_mask.sum())
-            cooking_lt = np.random.uniform(0.25, 10)
-            draw_times = np.random.choice(day_mask.index, size=n_cooking, replace=False)
+            n_cooking = min(self.rng.randint(0, 3), day_mask.sum())
+            cooking_lt = self.rng.uniform(0.25, 10)
+            draw_times = self.rng.choice(day_mask.index, size=n_cooking, replace=False)
             dhw_df.loc[draw_times, "cooking"] += cooking_lt
 
         self.dhw_year = dhw_df

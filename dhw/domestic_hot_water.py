@@ -8,10 +8,14 @@ def dhw_profile(
     min_draws,
     min_lt,
     max_lt,
+    rng=None,
     **kwargs
 ):
     import numpy as np
     from utils import misc
+
+    if rng is None:
+        rng = np.random
 
     if kwargs:
         occupancy_distribution = kwargs.get(
@@ -26,24 +30,24 @@ def dhw_profile(
         min_lt = kwargs.get("min_lt", min_lt)
         max_lt = kwargs.get("max_lt", max_lt)
 
-    regular_draw_amount = np.random.uniform(min_lt, max_lt, size=active_hours)
+    regular_draw_amount = rng.uniform(min_lt, max_lt, size=active_hours)
 
     # Generate total daily water draw. It is randomised based on the randomisation factor selected above.
-    daily_amount += np.random.uniform(-random_factor, random_factor) * daily_amount
+    daily_amount += rng.uniform(-random_factor, random_factor) * daily_amount
 
     # Generate time at which draw happens. This line insures that the draw timing only
     # occurs when someone is at home
     draw_times = (
-        np.random.randint(2, size=occupancy_distribution.shape) * occupancy_distribution
+        rng.randint(2, size=occupancy_distribution.shape) * occupancy_distribution
     )
     # print(np.count_nonzero(draw_times))
     if np.count_nonzero(draw_times) < min_draws:
-        draw_times = misc.safe_min_ones(occupancy_distribution, draw_times, min_draws)
+        draw_times = misc.safe_min_ones(occupancy_distribution, draw_times, min_draws, rng=rng)
 
     # this randomises when the large amount of water (shower or bath) occurs during
     # the day. It can only happen when the person is at home or awake.
-    time_large = np.random.choice(np.nonzero(draw_times)[0])
-    amount_large = np.random.randint(min_large, max_large)
+    time_large = rng.choice(np.nonzero(draw_times)[0])
+    amount_large = rng.randint(min_large, max_large)
 
     # the first line puts the amount of dhw at the correct time defined by "draw_times".
     # The second line will take the randomly chosen hour to have a shower and put that amount of water there

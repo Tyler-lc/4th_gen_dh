@@ -240,7 +240,7 @@ def define_building_type(gdf: gpd.GeoDataFrame) -> pd.Series:
 
 
 def define_building_age(
-    gdf: gpd.GeoDataFrame, age_distr: pd.DataFrame, res_types: List[str], verbose=False
+    gdf: gpd.GeoDataFrame, age_distr: pd.DataFrame, res_types: List[str], verbose=False, rng=None
 ) -> pd.Series:
     """
     This function defines the age of the buildings. The age is randomly assigned to the buildings
@@ -254,13 +254,16 @@ def define_building_age(
     :param verbose: If True, prints the number of buildings assigned to each building type (default: False)
     :return: Series containing the age of all the buildings.
     """
+    if rng is None:
+        rng = np.random
+
     # Create a series to store the age of the buildings
     defined_age = pd.Series(index=gdf.index, dtype="object")
 
     df = pd.DataFrame(columns=["random_numbers"])
     df["building_usage"] = gdf["building_usage"]
     # df["random_numbers"] = random_assignment(gdf)
-    df["random_numbers"] = np.random.uniform(low=0.0, high=1, size=len(df))
+    df["random_numbers"] = rng.uniform(low=0.0, high=1, size=len(df))
     df["age_code"] = None
 
     # Define building types
@@ -338,16 +341,19 @@ def assign_ceiling_height(
     return ceiling_height
 
 
-def random_assignment(gdf: gpd.GeoDataFrame):
+def random_assignment(gdf: gpd.GeoDataFrame, rng=None):
     """assigns a randomly generated number to each building type in the GeoDataFrame.
     :param gdf: GeoDataFrame containing the building data with columns 'building_use'"""
+
+    if rng is None:
+        rng = np.random
 
     building_types_list = gdf["building_usage"].unique()
     random_numbers = pd.Series(index=gdf.index, dtype="object")
 
     for buildings in building_types_list:
         mask = gdf["building_usage"] == buildings
-        random_numbers[mask] = np.random.uniform(low=0.0, high=1, size=len(gdf[mask]))
+        random_numbers[mask] = rng.uniform(low=0.0, high=1, size=len(gdf[mask]))
 
     return random_numbers
 
@@ -482,11 +488,6 @@ if __name__ == "__main__":
     import sys
 
     np.random.seed(42)
-
-    # insure we can import the qgis_utils module
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    parent_dir = os.path.dirname(current_dir)
-    sys.path.append(parent_dir)
 
     path_parquet = "../building_analysis/building_generator_data/frankfurt_v3.parquet"
     abs_path = os.path.abspath(os.path.join(os.path.dirname(__file__), path_parquet))

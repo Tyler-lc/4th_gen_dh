@@ -10,30 +10,32 @@ from tqdm import tqdm
 from building_analysis.Building import Building
 from Person.Person import Person
 from utils.misc import get_mask
+from config import (
+    BUILDINGSTOCK_PATH,
+    DHW_PROFILES_DIR,
+    RESIDENTIAL_BUILDING_TYPES,
+    YEAR_START,
+    weather_data_path,
+    soil_temperature_path,
+    results_dir,
+    buildingstock_results_path,
+    area_results_path,
+)
 
 # first we load the buildingstock data that we generated in the create_buildingstock.py script
-buildingstock_path = "building_analysis/buildingstock/buildingstock.parquet"
-gdf_buildingstock = gpd.read_parquet(buildingstock_path)
+gdf_buildingstock = gpd.read_parquet(BUILDINGSTOCK_PATH)
 
 # we now create a new geodataframe that will contain the results of the energy demand calculations
 gdf_buildingstock_results = gdf_buildingstock.copy(deep=True)
 
 # let's get the irradiation data first
-city_name = "Frankfurt_Griesheim_Mitte"
-year_start = 2019
-year_end = 2019
-path_weather = f"irradiation_data/{city_name}_{year_start}_{year_end}/{city_name}_irradiation_data_{year_start}_{year_end}.csv"
+path_weather = weather_data_path()
 temperature = pd.read_csv(path_weather, usecols=["T2m"])
 irradiation = pd.read_csv(path_weather)
 irradiation = irradiation.filter(regex="G\(i\)")
 
 # now the soil temperature
-soil_temp_path = "irradiation_data/Frankfurt_Griesheim_Mitte_2019_2019/Frankfurt_Griesheim_Mitte_soil_temperature_2019_2019.csv"
-df_soil_temp = pd.read_csv(soil_temp_path)
-
-# we know the data for the soil temperature is lacking some data, so we will fill it with the interpolate
-soil_temp_path = "irradiation_data/Frankfurt_Griesheim_Mitte_2019_2019/Frankfurt_Griesheim_Mitte_soil_temperature_2019_2019.csv"
-df_soil_temp = pd.read_csv(soil_temp_path)
+df_soil_temp = pd.read_csv(soil_temperature_path())
 
 # missing data are represented by -99.9. So we replace them with NaN values. This allows fill by interpolation
 df_soil_temp.replace(-99.9, np.nan, inplace=True)
@@ -49,16 +51,16 @@ print(
 
 # we are also setting the inside temperature to be a bit variable. We set it to be 20 °C from 8 am to 10pm
 # and 17 °C anywhere else (mostly night time)
-time_index = pd.date_range(start="2019-01-01", periods=8760, freq="h")
+time_index = pd.date_range(start=f"{YEAR_START}-01-01", periods=8760, freq="h")
 inside_temp = pd.DataFrame(index=time_index)
 inside_temp["inside_temp"] = 20
 mask_heating = inside_temp.index.hour.isin(range(8, 22))
 inside_temp.loc[np.logical_not(mask_heating), "inside_temp"] = 17
 
 # setting up the folder where the dhw_profiles are stored
-dhw_volumes_folder = "building_analysis/dhw_profiles"
+dhw_volumes_folder = str(DHW_PROFILES_DIR)
 
-res_mask = gdf_buildingstock_results["building_usage"].isin(["sfh", "mfh", "ab", "th"])
+res_mask = gdf_buildingstock_results["building_usage"].isin(RESIDENTIAL_BUILDING_TYPES)
 
 # Initialize DataFrames for storing results
 space_heating_df = pd.DataFrame()
@@ -94,9 +96,10 @@ size = "whole_buildingstock"
 
 mask = get_mask(size, res_mask)
 
-dir_dhw_volumes = f"building_analysis/results/{sim}_{size}/dhw_volumes"
-dir_dhw_energy = f"building_analysis/results/{sim}_{size}/dhw_energy"
-dir_space_heating = f"building_analysis/results/{sim}_{size}/space_heating"
+_rd = results_dir(sim, size)
+dir_dhw_volumes = str(_rd / "dhw_volumes")
+dir_dhw_energy = str(_rd / "dhw_energy")
+dir_space_heating = str(_rd / "space_heating")
 
 directories = [dir_dhw_volumes, dir_dhw_energy, dir_space_heating]
 
@@ -124,7 +127,7 @@ for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows(), total=mask.sum(
         irradiation,
         df_soil_temp["V_TE0052"],
         inside_temp["inside_temp"],
-        year_start=2019,
+        year_start=YEAR_START,
     )
 
     building.thermal_balance()
@@ -176,11 +179,9 @@ for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows(), total=mask.sum(
     area_results["space_heating"] += space_heating_df.sum(axis=1)
 
 
-path_save_results = (
-    f"building_analysis/results/{sim}_{size}/buildingstock_results_{sim}.parquet"
-)
+path_save_results = str(buildingstock_results_path(sim, size))
 gdf_buildingstock_results.to_parquet(path_save_results)
 print(f"Results saved to {path_save_results}")
 
-path_area_results = f"building_analysis/results/{sim}_{size}/area_results_{sim}.csv"
+path_area_results = str(area_results_path(sim, size))
 area_results.to_csv(path_area_results)

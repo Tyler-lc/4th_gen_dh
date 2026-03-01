@@ -11,9 +11,6 @@ import copy
 import os
 import sys
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
 from utils.building_utilities import convert_angle_to_cardinal
 from building_analysis.Building import Building
 
@@ -44,6 +41,7 @@ def generate_building(
     random_factor: float = 0.15,  # 15% random factor for u-values
     convert_wkb: bool = True,  # convert the geometry from wkb to shapely. this allows usage in gdf
     verbose: bool = False,  # print warnings if data is missing when True
+    rng=None,  # optional numpy RandomState for reproducibility; defaults to np.random
 ) -> gpd.GeoDataFrame:
     """
     This function generates a building based on the provided parameters and u-value template.
@@ -70,6 +68,9 @@ def generate_building(
         gpd.GeoDataFrame: A GeoDataFrame containing the updated values for the building
     """
 
+    if rng is None:
+        rng = np.random
+
     building_usage = building_usage.lower()
     building_type = building_usage + str(age_code)
     # Read the U-values from the provided CSV path
@@ -93,11 +94,11 @@ def generate_building(
     #  acquire door's area from Tabula templates. Only surface we take from tabula data
     door_area = template_df["door_surface"].values[0]
 
-    roof_u_value *= 1 + np.random.uniform(-random_factor, random_factor)
-    wall_u_value *= 1 + np.random.uniform(-random_factor, random_factor)
-    floor_u_value *= 1 + np.random.uniform(-random_factor, random_factor)
-    window_u_value *= 1 + np.random.uniform(-random_factor, random_factor)
-    door_u_value *= 1 + np.random.uniform(-random_factor, random_factor)
+    roof_u_value *= 1 + rng.uniform(-random_factor, random_factor)
+    wall_u_value *= 1 + rng.uniform(-random_factor, random_factor)
+    floor_u_value *= 1 + rng.uniform(-random_factor, random_factor)
+    window_u_value *= 1 + rng.uniform(-random_factor, random_factor)
+    door_u_value *= 1 + rng.uniform(-random_factor, random_factor)
 
     # the number of sides with windows depends on the number of neighboring buildings
     # so the number of sides will be 4 - n_neighboring_buildings
@@ -558,11 +559,6 @@ if __name__ == "__main__":
     from shapely import wkb
     from tqdm import tqdm
 
-    # current_dir = os.path.dirname(os.path.abspath(__file__))
-    # parent_dir = os.path.dirname(current_dir)
-    # utils_dir = os.path.join(parent_dir, "utils")
-    # sys.path.append(utils_dir)
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
     from utils.building_utilities import process_data
 
     # import data from QGIS parquet file

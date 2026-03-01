@@ -12,11 +12,19 @@ from building_analysis.Building import Building
 from Person.Person import Person
 from utils.misc import get_mask
 from building_analysis.building_generator import apply_renovations, need_insulation
+from config import (
+    RESIDENTIAL_BUILDING_TYPES,
+    YEAR_START,
+    weather_data_path,
+    soil_temperature_path,
+    results_dir,
+    buildingstock_results_path,
+    area_results_path,
+)
 
 
 # first we load the energy demand data that we generated in the calculate_energy_demand.py script
-path_load_results = "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
-gdf_buildingstock_results = gpd.read_parquet(path_load_results)
+gdf_buildingstock_results = gpd.read_parquet(buildingstock_results_path("unrenovated"))
 
 # from https://doi.org/10.1016/j.enbuild.2024.114324 we know that to accept low-temperature heating
 # buildings must achieve a certain energy demand, according to their  type. This information thresholds are
@@ -37,26 +45,16 @@ print(
 # are alraedy efficient enough. So we will copy from the "unrenovated scenario" the data we need.
 
 # Define paths where unrenovated data is stored
-unrenovated_dhw_energy_path = (
-    "building_analysis/results/unrenovated_whole_buildingstock/dhw_energy"
-)
-unrenovated_dhw_volume_path = (
-    "building_analysis/results/unrenovated_whole_buildingstock/dhw_volumes"
-)
-unrenovated_space_heating_path = (
-    "building_analysis/results/unrenovated_whole_buildingstock/space_heating"
-)
+_unren = results_dir("unrenovated")
+unrenovated_dhw_energy_path = str(_unren / "dhw_energy")
+unrenovated_dhw_volume_path = str(_unren / "dhw_volumes")
+unrenovated_space_heating_path = str(_unren / "space_heating")
 
 # Define the paths where the renovated data will be stored
-renovated_dhw_energy_path = (
-    "building_analysis/results/renovated_whole_buildingstock/dhw_energy"
-)
-renovated_dhw_volume_path = (
-    "building_analysis/results/renovated_whole_buildingstock/dhw_volume"
-)
-renovated_space_heating_path = (
-    "building_analysis/results/renovated_whole_buildingstock/space_heating"
-)
+_ren = results_dir("renovated")
+renovated_dhw_energy_path = str(_ren / "dhw_energy")
+renovated_dhw_volume_path = str(_ren / "dhw_volume")
+renovated_space_heating_path = str(_ren / "space_heating")
 
 # Ensure the destination directories exist
 os.makedirs(renovated_dhw_energy_path, exist_ok=True)
@@ -103,12 +101,12 @@ for idx, row in gdf_buildingstock_results.iterrows():
 
 
 # setting up some hyperparameters and directories
-res_mask = gdf_buildingstock_results["building_usage"].isin(["sfh", "mfh", "ab", "th"])
+res_mask = gdf_buildingstock_results["building_usage"].isin(RESIDENTIAL_BUILDING_TYPES)
 sim = "renovated"
 size = "whole_buildingstock"
 mask = get_mask(size, res_mask)  # type:ignore
 
-dir_space_heating = f"building_analysis/results/{sim}_{size}/space_heating"
+dir_space_heating = str(results_dir(sim, size) / "space_heating")
 os.makedirs(dir_space_heating, exist_ok=True)
 
 # this is the initial insulation thickness. The renovation will add this thickness to the
@@ -120,17 +118,13 @@ incremental_insulation = 50  # mm
 
 
 # importing the weather data (temperature, irradiation, soil temperature)
-city_name = "Frankfurt_Griesheim_Mitte"
-year_start = 2019
-year_end = 2019
-path_weather = f"irradiation_data/{city_name}_{year_start}_{year_end}/{city_name}_irradiation_data_{year_start}_{year_end}.csv"
+path_weather = weather_data_path()
 temperature = pd.read_csv(path_weather, usecols=["T2m"])
 irradiation = pd.read_csv(path_weather)
 irradiation = irradiation.filter(regex="G\(i\)")
 
 # the soil temperature has some missing data. We will interpolate it
-soil_temp_path = "irradiation_data/Frankfurt_Griesheim_Mitte_2019_2019/Frankfurt_Griesheim_Mitte_soil_temperature_2019_2019.csv"
-df_soil_temp = pd.read_csv(soil_temp_path)
+df_soil_temp = pd.read_csv(soil_temperature_path())
 
 # missing data are represented by -99.9. So we replace them with NaN values. This allows fill by interpolation
 df_soil_temp.replace(-99.9, np.nan, inplace=True)
@@ -146,7 +140,7 @@ print(
 
 # we are also setting the inside temperature to be a bit variable. We set it to be 20 °C from 8 am to 10pm
 # and 17 °C anywhere else (basically night time)
-time_index = pd.date_range(start="2019-01-01", periods=8760, freq="h")
+time_index = pd.date_range(start=f"{YEAR_START}-01-01", periods=8760, freq="h")
 inside_temp = pd.DataFrame(index=time_index)
 inside_temp["inside_temp"] = 20
 mask_heating = inside_temp.index.hour.isin(range(8, 22))
@@ -189,7 +183,7 @@ while gdf_buildingstock_results["needs_insulation"].sum() > 0:
                 irradiation,
                 df_soil_temp["V_TE0052"],
                 inside_temp["inside_temp"],
-                year_start,
+                YEAR_START,
             )
             # perform calculation for useful space heating demand and saving it in a dataframe
             building.thermal_balance()
@@ -227,19 +221,12 @@ while gdf_buildingstock_results["needs_insulation"].sum() > 0:
     insulation_thickness += incremental_insulation
 
 # now we can save the results to a file
-gdf_buildingstock_results.to_parquet(
-    "building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
-)
+gdf_buildingstock_results.to_parquet(buildingstock_results_path("renovated"))
 
-area_results_unrenovated_path = (
-    "building_analysis/results/unrenovated_whole_buildingstock/area_results_unrenovated.csv"
-)
-area_results_unrenovated = pd.read_csv(area_results_unrenovated_path, index_col=0)
+area_results_unrenovated = pd.read_csv(area_results_path("unrenovated"), index_col=0)
 area_results_unrenovated.index = pd.to_datetime(area_results_unrenovated.index)
 
 area_results["dhw_energy"] = area_results_unrenovated["dhw_energy"]
 area_results["dhw_volume"] = area_results_unrenovated["dhw_volume"]
 
-area_results.to_csv(
-    f"building_analysis/results/renovated_whole_buildingstock/area_results_{sim}.csv"
-)
+area_results.to_csv(area_results_path(sim))

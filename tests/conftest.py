@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-PROJECT_ROOT = Path(__file__).parent.parent
+from config import PROJECT_ROOT
 GOLDEN_BASELINE_PATH = Path(__file__).parent / "golden_baseline.json"
 
 

@@ -18,7 +18,7 @@ class TestImports:
         from costs.heat_supply import calculate_lcoh
 
     def test_import_renovation_costs(self):
-        from costs.renovation_costs import calculate_npv
+        from costs.renovation_costs import npv
 
 
 @pytest.mark.smoke

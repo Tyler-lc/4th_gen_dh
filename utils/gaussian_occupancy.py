@@ -41,12 +41,15 @@ def occupancy_distribution(x=np.linspace(0, 23, 24), min_probability=0.05):
 # probabilities = occupancy_profile(x, 0.05)
 
 
-def generate_occupancy_profile(probabilities, min_hours, max_hours):
+def generate_occupancy_profile(probabilities, min_hours, max_hours, rng=None):
     """it generates the occupancy profile 24 hours at the time."""
     import numpy as np
 
+    if rng is None:
+        rng = np.random
+
     # Generate random values between 0 and 1
-    random_values = np.random.random(len(probabilities))
+    random_values = rng.random(len(probabilities))
 
     # Determine occupancy based on probabilities
     occupancy = np.where(random_values < probabilities, 1, 0)
@@ -54,7 +57,7 @@ def generate_occupancy_profile(probabilities, min_hours, max_hours):
     # Create random number between min_hours and max_hours to determine each day
     # the minimum amount of hours spent at home awake
 
-    min_occupancy = np.random.randint(min_hours, max_hours)
+    min_occupancy = rng.randint(min_hours, max_hours)
 
     # Ensure minimum occupancy of min_occupancy hours per day
     # total_hours = len(occupancy)
@@ -64,7 +67,7 @@ def generate_occupancy_profile(probabilities, min_hours, max_hours):
         available_indices = np.where(occupancy == 0)[0]
         if remaining_hours > len(available_indices):
             remaining_hours = len(available_indices)
-        selected_indices = np.random.choice(
+        selected_indices = rng.choice(
             available_indices, size=remaining_hours, replace=False
         )
         occupancy[selected_indices] = 1

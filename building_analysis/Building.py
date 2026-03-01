@@ -7,13 +7,6 @@ import os
 import sys
 from typing import Union
 
-# Get the directory of the current script. Withot this line the script can't import the Person class
-current_dir = os.path.dirname(os.path.abspath(__file__))
-
-# Get the parent directory
-parent_dir = os.path.dirname(current_dir)
-sys.path.append(parent_dir)
-
 from Person.Person import Person
 
 #       from ISEK_Integriertes_Städtebauliches_Entwicklungskonzept_für_Griesheim-Mitte_Stand_08_2019_.pdf
@@ -573,9 +566,6 @@ if __name__ == "__main__":
     import pandas as pd
     from pathlib import Path
 
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    # Ensure the parent directory is in the Python path
-    sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
     # from Databases.mysql_utils.mysql_utils import create_connection, fetch_data
 
     # import the weather and irradiation data

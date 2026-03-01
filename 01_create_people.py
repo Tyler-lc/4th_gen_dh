@@ -6,6 +6,12 @@ import logging
 from tqdm import tqdm
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from Person.Person import Person
+from config import (
+    BUILDINGSTOCK_PATH,
+    DHW_PROFILES_DIR,
+    MAXIMUM_PEOPLE,
+    RESIDENTIAL_BUILDING_TYPES,
+)
 
 # Set up logging
 log_file = "building_analysis.log"
@@ -18,19 +24,13 @@ logging.basicConfig(
 
 logging.info("Script started.")
 
-# Ensure the parent directory is in the Python path
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 # Load the building data
-buildings_path = "building_analysis/buildingstock/buildingstock.parquet"
-buildings_data = pd.read_parquet(buildings_path)
+buildings_data = pd.read_parquet(BUILDINGSTOCK_PATH)
 
 # Filter residential buildings and calculate the number of people per building
-res_mask = buildings_data["building_usage"].isin(["sfh", "mfh", "ab", "th"])
+res_mask = buildings_data["building_usage"].isin(RESIDENTIAL_BUILDING_TYPES)
 total_GFA = buildings_data[res_mask]["GFA"].sum()
-maximum_people = 9500
-people_per_GFA = maximum_people / total_GFA
+people_per_GFA = MAXIMUM_PEOPLE / total_GFA
 buildings_data.loc[res_mask, "n_people"] = round(buildings_data["GFA"] * people_per_GFA)
 buildings_data["n_people"] = (
     buildings_data["n_people"].fillna(0).infer_objects(copy=False)
@@ -50,8 +50,8 @@ def process_building(building):
             logging.info(f"Analyzing person {people} in building {full_id}.")
             person = Person(full_id, people)
             dhw_data = person.dhw_profile()
-            os.makedirs("building_analysis/dhw_profiles", exist_ok=True)
-            dhw_data.to_csv(f"building_analysis/dhw_profiles/{full_id}_{people}.csv")
+            os.makedirs(DHW_PROFILES_DIR, exist_ok=True)
+            dhw_data.to_csv(DHW_PROFILES_DIR / f"{full_id}_{people}.csv")
 
         return (full_id, n_people, "success")
     except Exception as e:

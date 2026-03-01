@@ -12,39 +12,45 @@ def df_index_timestamp(start_date="01/01/2021", periods=8760, frequency="1H"):
     return df
 
 
-def safe_min_ones(a, b, min_one):
+def safe_min_ones(a, b, min_one, rng=None):
     import numpy as np
 
-    """# this script takes a given array A and then generates a second array B of the same 
-    # size. The array B will always have value 0 where A is 0. The array B will have 
-    # a 50% chance of having a 1 or a 0 where A is 1. It also insures a minimum 
+    """# this script takes a given array A and then generates a second array B of the same
+    # size. The array B will always have value 0 where A is 0. The array B will have
+    # a 50% chance of having a 1 or a 0 where A is 1. It also insures a minimum
     # amount of 1 in array B """
+
+    if rng is None:
+        rng = np.random
 
     num_ones = np.count_nonzero(a)
 
     if num_ones < min_one:
         return a
     else:
-        indices = np.random.choice(np.where(a == 1)[0], size=num_ones, replace=False)
-        b[indices] = np.random.choice([0, 1], size=num_ones)
+        indices = rng.choice(np.where(a == 1)[0], size=num_ones, replace=False)
+        b[indices] = rng.choice([0, 1], size=num_ones)
         c = (b ^ 1) * a
 
         while np.count_nonzero(b) < min_one:
-            random_index = np.random.choice(np.where(c == 1)[0])
+            random_index = rng.choice(np.where(c == 1)[0])
             b[random_index] = 1
             c = (b ^ 1) * a
 
         return b
 
 
-def dhw_input_generator(occupancy_distribution):
+def dhw_input_generator(occupancy_distribution, rng=None):
     """is to quickly generate the inputs for the domestic hot water demand profile generator. Takes the occupancy
     distribution so to package the whole thing together nicely. Don't have to do it, it is just nice to have
     """
     import numpy as np
 
+    if rng is None:
+        rng = np.random
+
     daily_water_consumption = 100
-    randomisation_factor = np.random.uniform(0, 0.4)
+    randomisation_factor = rng.uniform(0, 0.4)
     active_hours = len(occupancy_distribution)
     min_large = 30
     max_large = 60
@@ -76,13 +82,16 @@ def calculate_dwellings(plot_area):
     pass
 
 
-def calculate_number_people(dwelling_area):
+def calculate_number_people(dwelling_area, rng=None):
     import math
     import numpy as np
 
+    if rng is None:
+        rng = np.random
+
     average = 4 / 100  # 4 people every 100 sqm
     # randomly varies the average amount of people by a maximum of 50%
-    random_modifier = np.random.randint(-50, 50) / 100
+    random_modifier = rng.randint(-50, 50) / 100
     # print(random_modifier)
     number_people = math.ceil(average * dwelling_area * (1 + random_modifier))
     return number_people
@@ -107,19 +116,23 @@ def is_weekend(date, weekend_days=[6, 7]):
         return False
 
 
-def select_random_hour(day: pd.DataFrame):
+def select_random_hour(day: pd.DataFrame, rng=None):
     """
     Select a random hour from a given day.
 
     Args:
         day (pd.DataFrame): A DataFrame with a datetime index.
+        rng: optional numpy RandomState for reproducibility; defaults to np.random
 
     Returns:
         pd.Timestamp: A random hour from the given day.
     """
     import numpy as np
 
-    return np.random.choice(day.index)
+    if rng is None:
+        rng = np.random
+
+    return rng.choice(day.index)
 
 
 import numpy as np
