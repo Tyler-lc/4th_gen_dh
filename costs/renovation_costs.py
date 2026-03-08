@@ -2,8 +2,6 @@ import pandas as pd
 import geopandas as gpd
 import numpy as np
 from tqdm import tqdm
-import warnings
-import numpy as np
 from typing import Union, List
 import numpy_financial as npf
 
@@ -460,8 +458,6 @@ def calculate_npv_savings(
 # so the useful_energy_demand should stay the esame across these two cases.
 
 if __name__ == "__main__":
-    import os
-    import sys
     import geopandas as gpd
     import pandas as pd
     import numpy as np

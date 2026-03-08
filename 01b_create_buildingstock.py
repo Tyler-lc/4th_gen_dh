@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 import geopandas as gpd
-import os
-import sys
 from building_analysis.building_generator import (
     iterator_generate_buildings,
     people_in_building,

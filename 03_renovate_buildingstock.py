@@ -3,7 +3,6 @@ import pandas as pd
 import geopandas as gpd
 from tqdm import tqdm
 import os
-import sys
 import shutil
 from multiprocessing import Pool
 from tqdm import tqdm

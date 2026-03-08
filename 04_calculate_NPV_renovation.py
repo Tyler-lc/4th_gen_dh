@@ -1,7 +1,6 @@
 import pandas as pd
 import geopandas as gpd
 import numpy as np
-from pathlib import Path
 from costs.renovation_costs import (
     renovation_costs_iwu,
     npv,

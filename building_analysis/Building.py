@@ -2,9 +2,7 @@ import numpy as np
 import pandas as pd
 import warnings
 import json
-import warnings
 import os
-import sys
 from typing import Union
 
 from Person.Person import Person

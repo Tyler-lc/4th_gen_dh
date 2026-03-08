@@ -1,12 +1,11 @@
 import geopandas as gpd
 import networkx as nx
 import matplotlib.pyplot as plt
-import haversine as hs
 import numpy as np
 import pandas as pd
 import osmnx as ox
 import momepy
-from shapely.geometry import Point, LineString
+from shapely.geometry import LineString
 
 from config import buildingstock_results_path
 

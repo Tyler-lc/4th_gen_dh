@@ -9,7 +9,6 @@ from tqdm import tqdm
 import copy
 
 import os
-import sys
 
 from utils.building_utilities import convert_angle_to_cardinal
 from building_analysis.Building import Building
