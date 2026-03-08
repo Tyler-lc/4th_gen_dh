@@ -7,8 +7,6 @@ import matplotlib.cm as cm
 import seaborn as sns
 from tqdm import tqdm
 import os
-from pathlib import Path
-import sys
 from typing import Union
 import itertools
 
@@ -25,6 +23,13 @@ from costs.renovation_costs import (
     renovation_costs_iwu,
 )
 from utils.misc import get_electricity_cost
+from config import (
+    grid_results_parquet,
+    area_results_path,
+    buildingstock_results_path,
+    weather_data_path,
+    sensitivity_results_dir,
+)
 
 
 def sensitivity_analysis(
@@ -81,7 +86,7 @@ def sensitivity_analysis(
     n_years_hp = 25  # for LCOH calculation
     heat_pump_lifetime = 25  # setting years until replacement
 
-    path_embers = f"grid_calculation/{simulation_type}_result_df.parquet"
+    path_embers = grid_results_parquet(simulation_type)
     ember_results = pd.read_parquet(path_embers)
     investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
@@ -104,9 +109,7 @@ def sensitivity_analysis(
 
     ## We need to import both the unrenovated and renovated buildingstock
 
-    path_area_data = Path(
-        f"building_analysis/results/{simulation_type}_whole_buildingstock/area_results_{simulation_type}.csv"
-    )
+    path_area_data = area_results_path(simulation_type)
     areas_demand = pd.read_csv(path_area_data, index_col=0)
     areas_demand.index = pd.to_datetime(areas_demand.index)
 
@@ -150,13 +153,7 @@ def sensitivity_analysis(
     # the COP of the heat pump is calculated as a function of the outside temperature using the Carnot formula
     # the source will be the outside air. Let's import the outside air temperature data
 
-    area_name = "Frankfurt_Griesheim_Mitte"
-    year_start = 2019
-    year_end = 2019
-
-    path_outside_air = Path(
-        f"irradiation_data/{area_name}_{year_start}_{year_end}/{area_name}_irradiation_data_{year_start}_{year_end}.csv"
-    )
+    path_outside_air = weather_data_path()
     outside_temp = pd.read_csv(path_outside_air, usecols=["T2m"])
     outside_temp.index = areas_demand.index
 
@@ -353,9 +350,7 @@ def sensitivity_analysis(
     # import the data with the renovated buildingstock
     # and now let's import the unrenovated buildingstock
     # print("Importing buildingstock data")
-    buildingstock_path = Path(
-        f"building_analysis/results/{simulation_type}_whole_buildingstock/buildingstock_results_{simulation_type}.parquet"
-    )
+    buildingstock_path = buildingstock_results_path(simulation_type)
 
     buildingstock = gpd.read_parquet(buildingstock_path)
     buildingstock = buildingstock[buildingstock["NFA"] >= 30]
@@ -651,8 +646,9 @@ if simulation == "unrenovated":
 elif simulation == "renovated":
     n_heat_pumps = 2
     supply_temperature = 50
-os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True)
-os.makedirs(f"sensitivity_analysis/{simulation}/{analysis_type}/plots", exist_ok=True)
+_sens_dir = sensitivity_results_dir(simulation, analysis_type)
+os.makedirs(_sens_dir / "data", exist_ok=True)
+os.makedirs(_sens_dir / "plots", exist_ok=True)
 el_multiplier = np.array([0.1, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 5.0])
 gas_multiplier = np.array([0.1, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 5.0])
 renovation_cost_multiplier = np.linspace(0, 1, 11)
@@ -702,7 +698,7 @@ for rows, columns in tqdm(df_combinations.iterrows(), total=len(df_combinations)
 
     # Save individual NPV data
     df_npv.to_csv(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/data/{analysis_type}_gas{gas_multiplier:.2f}_el{electricity_multiplier:.2f}_reno{renovation_multiplier:.2f}.csv"
+        _sens_dir / "data" / f"{analysis_type}_gas{gas_multiplier:.2f}_el{electricity_multiplier:.2f}_reno{renovation_multiplier:.2f}.csv"
     )
 
 
@@ -792,7 +788,7 @@ def create_savings_scatter_plot(all_npv_data, df_combinations):
 
     # Save plot
     plt.savefig(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/price_sensitivity_scatter.png",
+        _sens_dir / "plots" / "price_sensitivity_scatter.png",
         bbox_inches="tight",
         dpi=300,
     )
@@ -856,7 +852,7 @@ def create_savings_heatmap(all_npv_data, df_combinations):
 
     plt.tight_layout()
     plt.savefig(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/price_sensitivity_heatmap.png",
+        _sens_dir / "plots" / "price_sensitivity_heatmap.png",
         bbox_inches="tight",
         dpi=300,
     )
@@ -907,7 +903,7 @@ def create_savings_contour(all_npv_data, df_combinations):
 
     plt.tight_layout()
     plt.savefig(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/price_sensitivity_contour.png",
+        _sens_dir / "plots" / "price_sensitivity_contour.png",
         bbox_inches="tight",
         dpi=300,
     )
@@ -956,12 +952,11 @@ def export_mfh_data(all_npv_data, df_combinations, simulation, analysis_type):
         }
     )
 
-    os.makedirs(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/data", exist_ok=True
-    )
+    _export_dir = sensitivity_results_dir(simulation, analysis_type)
+    os.makedirs(_export_dir / "data", exist_ok=True)
     # Export to CSV
     results_df.to_csv(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/data/mfh_savings_analysis.csv",
+        _export_dir / "data" / "mfh_savings_analysis.csv",
         index=False,
     )
     return results_df
@@ -1001,7 +996,7 @@ def create_mfh_contour(all_npv_data, df_combinations):
 
     plt.tight_layout()
     plt.savefig(
-        f"sensitivity_analysis/{simulation}/{analysis_type}/plots/mfh_price_sensitivity_contour.png",
+        _sens_dir / "plots" / "mfh_price_sensitivity_contour.png",
         bbox_inches="tight",
         dpi=300,
     )

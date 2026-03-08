@@ -8,6 +8,8 @@ import osmnx as ox
 import momepy
 from shapely.geometry import Point, LineString
 
+from config import buildingstock_results_path
+
 # Load the street data
 street_layout = gpd.read_file("streets_only_clean_length_25832.gpkg")
 street_layout.crs = "EPSG:25832"
@@ -139,9 +141,7 @@ ax.set_title("Simplified Graph")
 plt.show()
 
 # Load the building data
-buildingstock = gpd.read_parquet(
-    "../building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
-)
+buildingstock = gpd.read_parquet(buildingstock_results_path("renovated"))
 building_polygons = buildingstock[["geometry"]]
 building_polygons.crs = 25832
 building_centroids = building_polygons.centroid

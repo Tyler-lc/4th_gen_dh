@@ -67,6 +67,49 @@ def soil_temperature_path() -> Path:
     return IRRADIATION_DIR / folder / filename
 
 
-def grid_results_path(scenario: str) -> Path:
-    """Return path to grid-calculation results for a scenario."""
-    return GRID_CALCULATION_DIR / "results" / scenario
+def grid_results_parquet(scenario: str) -> Path:
+    """Return path to the grid-optimisation result parquet for a scenario.
+
+    Example: ``grid_calculation/unrenovated_result_df.parquet``
+    """
+    return GRID_CALCULATION_DIR / f"{scenario}_result_df.parquet"
+
+
+# ── Booster-specific paths (different naming convention) ─────────────
+def booster_buildingstock_results_path(size: str = "whole_buildingstock") -> Path:
+    """Return path to the booster buildingstock results parquet.
+
+    Booster uses ``buildingstock_booster_{size}_results.parquet`` instead of
+    the ``buildingstock_results_booster.parquet`` pattern used by other scenarios.
+    """
+    return results_dir("booster", size) / f"buildingstock_booster_{size}_results.parquet"
+
+
+def booster_area_results_path(size: str = "whole_buildingstock") -> Path:
+    """Return path to the booster area-results CSV.
+
+    Booster nests area results in a subdirectory:
+    ``area_results/area_results_booster_{size}.csv``
+    """
+    return results_dir("booster", size) / "area_results" / f"area_results_booster_{size}.csv"
+
+
+# ── Sensitivity analysis paths ───────────────────────────────────────
+SENSITIVITY_PARAMS_PATH = SENSITIVITY_DIR / "sensitivity_analysis_parameters.xlsx"
+
+
+def sensitivity_results_dir(scenario: str, analysis_type: str) -> Path:
+    """Return ``sensitivity_analysis/<scenario>/<analysis_type>/``."""
+    return SENSITIVITY_DIR / scenario / analysis_type
+
+
+def grid_results_sensitivity_parquet(scenario: str, supply_temperature: int) -> Path:
+    """Return path to a sensitivity grid-optimisation parquet.
+
+    Example: ``grid_calculation/sensitivity_analysis/booster/50/booster_result_df_50.parquet``
+    """
+    return (
+        GRID_CALCULATION_DIR / "sensitivity_analysis" / scenario
+        / str(supply_temperature)
+        / f"booster_result_df_{supply_temperature}.parquet"
+    )

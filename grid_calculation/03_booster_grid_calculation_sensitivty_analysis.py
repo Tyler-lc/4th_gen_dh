@@ -10,8 +10,8 @@ from shapely.ops import transform
 from shapely.geometry import Point, LineString, Polygon
 import folium
 from folium.plugins import MarkerCluster
-import os
 
+from config import RESULTS_DIR, GRID_CALCULATION_DIR
 from grid_utils import buildings_to_centroids, buildings_capacity
 
 grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
@@ -23,7 +23,7 @@ for flow_temp in grid_temperatures:
     ]
 
     ### define sinks in the area
-    buildingstock_path = f"../building_analysis/results/sensitivity_analysis/booster/booster_whole_buildingstock_{flow_temp}/buildingstock_booster_whole_buildingstock_{flow_temp}_results.parquet"
+    buildingstock_path = RESULTS_DIR / "sensitivity_analysis" / "booster" / f"booster_whole_buildingstock_{flow_temp}" / f"buildingstock_booster_whole_buildingstock_{flow_temp}_results.parquet"
     buildingstock = gpd.read_parquet(buildingstock_path)
 
     buildingstock["space_heating_path"] = buildingstock[
@@ -1705,9 +1705,9 @@ for flow_temp in grid_temperatures:
     from IPython.display import IFrame
 
     # Save the map
-    dir_output = f"sensitivity_analysis/booster/{flow_temp}"
-    os.makedirs(dir_output, exist_ok=True)
-    m.save(f"{dir_output}/booster_map_sensitivity_analysis_{flow_temp}.html")
-    result_df.to_parquet(f"{dir_output}/booster_result_df_{flow_temp}.parquet")
+    dir_output = GRID_CALCULATION_DIR / "sensitivity_analysis" / "booster" / str(flow_temp)
+    dir_output.mkdir(parents=True, exist_ok=True)
+    m.save(str(dir_output / f"booster_map_sensitivity_analysis_{flow_temp}.html"))
+    result_df.to_parquet(str(dir_output / f"booster_result_df_{flow_temp}.parquet"))
 
     print("\n map and results saved \n")

@@ -31,6 +31,8 @@ import numpy as np
 from utils.plotting import nfa_savings_operator_comparison
 import glob
 
+from config import SENSITIVITY_DIR, sensitivity_results_dir
+
 output_dpi = 1000
 
 
@@ -43,11 +45,11 @@ def flatten_list(list_of_lists):
 
 def import_data(analysis_type, simulation):
     main_path = (
-        f"sensitivity_analysis/{simulation}/{analysis_type}/data/multitple_graphs"
+        sensitivity_results_dir(simulation, analysis_type) / "data" / "multitple_graphs"
     )
 
     all_npv_data = {}
-    all_npv_files = glob.glob(f"{main_path}/all_npv_data_*.csv")
+    all_npv_files = glob.glob(str(main_path / "all_npv_data_*.csv"))
     all_npv_files.sort()
     keys = []
     for files in all_npv_files:
@@ -57,16 +59,16 @@ def import_data(analysis_type, simulation):
 
     for key in keys:
         all_npv_data[key] = pd.read_csv(
-            f"{main_path}/all_npv_data_{key}.csv", index_col=0
+            main_path / f"all_npv_data_{key}.csv", index_col=0
         )
 
     avg_savings_data_nfa = pd.read_csv(
-        f"{main_path}/avg_savings_data_nfa.csv", index_col=0
+        main_path / "avg_savings_data_nfa.csv", index_col=0
     )
-    npv_operator_df = pd.read_csv(f"{main_path}/npv_operator.csv", index_col=0)
+    npv_operator_df = pd.read_csv(main_path / "npv_operator.csv", index_col=0)
     npv_operator = npv_operator_df.values.tolist()
     npv_operator = flatten_list(npv_operator)
-    values_df = pd.read_csv(f"{main_path}/values.csv", index_col=0)
+    values_df = pd.read_csv(main_path / "values.csv", index_col=0)
     values = values_df.values.tolist()
     values = flatten_list(values)
 
@@ -214,7 +216,7 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
 
     # Save the combined plot
     output_file = (
-        f"sensitivity_analysis/combined_{analysis_type}_base_sensitivities.png"
+        SENSITIVITY_DIR / f"combined_{analysis_type}_base_sensitivities.png"
     )
     plt.savefig(output_file, bbox_inches="tight", dpi=output_dpi)
     print(f"Combined plot saved to: {output_file}")
@@ -231,13 +233,13 @@ if __name__ == "__main__":
     # Check what analysis types have multitple_graphs data available
     available_analyses = []
     for scenario in ["unrenovated", "renovated", "booster"]:
-        scenario_path = f"sensitivity_analysis/{scenario}"
-        if os.path.exists(scenario_path):
+        scenario_path = SENSITIVITY_DIR / scenario
+        if scenario_path.exists():
             for analysis_dir in os.listdir(scenario_path):
                 multitple_graphs_path = (
-                    f"{scenario_path}/{analysis_dir}/data/multitple_graphs"
+                    scenario_path / analysis_dir / "data" / "multitple_graphs"
                 )
-                if os.path.exists(multitple_graphs_path):
+                if multitple_graphs_path.exists():
                     if analysis_dir not in available_analyses:
                         available_analyses.append(analysis_dir)
 

@@ -3,15 +3,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+from config import PLOTS_DIR
+
 # import all the npv data from the csv files
 unrenovated_savings = pd.read_csv(
-    "plots/HighTemperature/data_exports_1_dhg_lifetime_50/npv_data.csv"
+    PLOTS_DIR / "HighTemperature" / "data_exports_1_dhg_lifetime_50" / "npv_data.csv"
 )
 renovated_savings = pd.read_csv(
-    "plots/LowTemperature/data_exports_1_dhg_lifetime_50/npv_data.csv"
+    PLOTS_DIR / "LowTemperature" / "data_exports_1_dhg_lifetime_50" / "npv_data.csv"
 )
 booster_savings = pd.read_csv(
-    "plots/booster/data_exports_1_dhg_lifetime_50/npv_data.csv"
+    PLOTS_DIR / "booster" / "data_exports_1_dhg_lifetime_50" / "npv_data.csv"
 )
 
 # Add scenario column to each dataframe
@@ -57,7 +59,7 @@ def plot_npv_savings(combined_data, title, scenario):
     plt.legend(fontsize=24)  # Increased from 20
 
     plt.tight_layout()
-    plt.savefig(f"plots/comparison_all_scenarios_{scenario}.png", dpi=1000)
+    plt.savefig(PLOTS_DIR / f"comparison_all_scenarios_{scenario}.png", dpi=1000)
     plt.close()
 
 

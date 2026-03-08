@@ -11,7 +11,7 @@ from shapely.geometry import Point, LineString, Polygon
 import folium
 from folium.plugins import MarkerCluster
 
-
+from config import buildingstock_results_path, GRID_CALCULATION_DIR
 from grid_utils import buildings_to_centroids, buildings_capacity
 
 ####### Define supply nodes
@@ -21,8 +21,7 @@ n_supply_list = [
 ]
 
 ### define sinks in the area
-buildingstock_path = "../building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
-buildingstock = gpd.read_parquet(buildingstock_path)
+buildingstock = gpd.read_parquet(buildingstock_results_path("unrenovated"))
 
 print("calculating space heating max \n")
 buildingstock["space_heating_cap"] = buildings_capacity(
@@ -1675,8 +1674,8 @@ m
 from IPython.display import IFrame
 
 # Save the map
-m.save("unrenovated_map.html")
+m.save(str(GRID_CALCULATION_DIR / "unrenovated_map.html"))
 
-result_df.to_parquet("unrenovated_result_df.parquet")
+result_df.to_parquet(str(GRID_CALCULATION_DIR / "unrenovated_result_df.parquet"))
 
 print("map and result_df saved")

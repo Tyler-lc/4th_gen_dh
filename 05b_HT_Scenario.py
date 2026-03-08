@@ -7,9 +7,13 @@ import seaborn as sns
 from tqdm import tqdm
 import os
 
-from pathlib import Path
-import sys
-
+from config import (
+    PLOTS_DIR,
+    grid_results_parquet,
+    area_results_path,
+    buildingstock_results_path,
+    weather_data_path,
+)
 from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
@@ -50,7 +54,7 @@ ir_hp = 0.05  # interest rate for the heat pump
 heat_pump_lifetime = 25  # setting years until replacement
 
 
-path_embers = f"grid_calculation/unrenovated_result_df.parquet"
+path_embers = grid_results_parquet("unrenovated")
 ember_results = pd.read_parquet(path_embers)
 investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
@@ -83,9 +87,7 @@ res_types = ["mfh", "sfh", "ab", "th"]
 
 ## We need to import both the unrenovated and renovated buildingstock
 
-path_unrenovated_area = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/area_results_unrenovated.csv"
-)
+path_unrenovated_area = area_results_path("unrenovated")
 areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
 areas_demand.index = pd.to_datetime(areas_demand.index)
 
@@ -128,13 +130,7 @@ capacity_single_hp = estimated_capacity / n_heat_pumps * safety_factor / 1000  #
 # the COP of the heat pump is calculated as a function of the outside temperature using the Carnot formula
 # the source will be the outside air. Let's import the outside air temperature data
 
-area_name = "Frankfurt_Griesheim_Mitte"
-year_start = 2019
-year_end = 2019
-
-path_outside_air = Path(
-    f"irradiation_data/{area_name}_{year_start}_{year_end}/{area_name}_irradiation_data_{year_start}_{year_end}.csv"
-)
+path_outside_air = weather_data_path()
 outside_temp = pd.read_csv(path_outside_air, usecols=["T2m"])
 outside_temp.index = areas_demand.index
 
@@ -313,9 +309,7 @@ operator_selling_price = {
 # import the data with the renovated buildingstock
 # and now let's import the unrenovated buildingstock
 
-unrenovated_buildingstock_path = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
-)
+unrenovated_buildingstock_path = buildingstock_results_path("unrenovated")
 
 unrenovated_buildingstock = gpd.read_parquet(unrenovated_buildingstock_path)
 unrenovated_buildingstock = unrenovated_buildingstock[
@@ -473,9 +467,9 @@ plt.xticks(rotation=45)
 plt.tight_layout()
 # plt.show()
 plt.tight_layout()
-os.makedirs(f"plots/HighTemperature/", exist_ok=True)
+os.makedirs(PLOTS_DIR / "HighTemperature", exist_ok=True)
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR / "HighTemperature" / f"HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -496,7 +490,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR / "HighTemperature" / f"HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -537,7 +531,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR / "HighTemperature" / f"HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -558,7 +552,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR / "HighTemperature" / f"HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -586,7 +580,7 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR / "HighTemperature" / f"HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -605,7 +599,7 @@ bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_AverageSavings_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR / "HighTemperature" / f"HighTemperature_AverageSavings_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -624,11 +618,11 @@ plt.xlabel("Building Type")
 plt.ylabel("NPV Savings (€)")
 
 os.makedirs(
-    f"plots/HighTemperature/data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}",
+    PLOTS_DIR / "HighTemperature" / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}",
     exist_ok=True,
 )
 npv_data.to_csv(
-    f"plots/HighTemperature/data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}/npv_data_high_temperature.csv"
+    PLOTS_DIR / "HighTemperature" / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}" / "npv_data_high_temperature.csv"
 )
 # bar plot with box plot overlayed.
 plt.figure(figsize=(12, 8))
@@ -725,15 +719,15 @@ print(f"NPV of the District Heating Operator: {npv_dh}")
 
 # Create export directory if it doesn't exist
 export_path = (
-    f"plots/HighTemperature/data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}"
+    PLOTS_DIR / "HighTemperature" / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}"
 )
 os.makedirs(export_path, exist_ok=True)
 
 # Export DataFrames and data
-npv_data.to_csv(f"{export_path}/npv_data.csv")
-merged_data.to_csv(f"{export_path}/merged_data.csv")
-avg_savings.to_csv(f"{export_path}/average_savings_by_building_type.csv")
-avg_npv_per_nfa.to_csv(f"{export_path}/average_npv_per_nfa_by_building_type.csv")
+npv_data.to_csv(export_path / "npv_data.csv")
+merged_data.to_csv(export_path / "merged_data.csv")
+avg_savings.to_csv(export_path / "average_savings_by_building_type.csv")
+avg_npv_per_nfa.to_csv(export_path / "average_npv_per_nfa_by_building_type.csv")
 
 # Export key parameters and results as JSON
 import json
@@ -756,7 +750,7 @@ parameters = {
     "total_grid_inv_costs": investment_costs_dhg,
 }
 
-with open(f"{export_path}/parameters.json", "w") as f:
+with open(export_path / "parameters.json", "w") as f:
     json.dump(parameters, f, indent=4)
 
 
@@ -788,7 +782,7 @@ plt.title("Building Specific Energy Use Demand")
 
 plt.tight_layout()
 plt.savefig(
-    f"plots/HighTemperature/HighTemperature_specific_ued_dhg_lifetime_{dhg_lifetime}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR / "HighTemperature" / f"HighTemperature_specific_ued_dhg_lifetime_{dhg_lifetime}_dhg_lifetime_{dhg_lifetime}.png"
 )
 
 # n_columns = 3

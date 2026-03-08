@@ -11,7 +11,7 @@ from shapely.geometry import Point, LineString, Polygon
 import folium
 from folium.plugins import MarkerCluster
 
-
+from config import buildingstock_results_path, GRID_CALCULATION_DIR
 from grid_utils import buildings_to_centroids, buildings_capacity
 
 ####### Define supply nodes
@@ -21,8 +21,7 @@ n_supply_list = [
 ]
 
 ### define sinks in the area
-buildingstock_path = "../building_analysis/results/renovated_whole_buildingstock/buildingstock_results_renovated.parquet"
-buildingstock = gpd.read_parquet(buildingstock_path)
+buildingstock = gpd.read_parquet(buildingstock_results_path("renovated"))
 
 ### replace the path backslash with forward slash
 buildingstock["space_heating_path"] = buildingstock["space_heating_path"].str.replace(
@@ -1711,6 +1710,6 @@ m
 from IPython.display import IFrame
 
 # Save the map
-m.save("renovated_map.html")
-result_df.to_parquet("renovated_result_df.parquet")
+m.save(str(GRID_CALCULATION_DIR / "renovated_map.html"))
+result_df.to_parquet(str(GRID_CALCULATION_DIR / "renovated_result_df.parquet"))
 print("map and result_df saved")

@@ -1,15 +1,12 @@
 import pandas as pd
 import geopandas as gpd
 import numpy as np
-from pathlib import Path
 import matplotlib.pyplot as plt
 
+from config import PLOTS_DIR, buildingstock_results_path
 from costs.renovation_costs import renovation_costs_iwu
 
-unrenovated_buildingstock_path = Path(
-    "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
-)
-unrenovated_buildingstock = gpd.read_parquet(unrenovated_buildingstock_path)
+unrenovated_buildingstock = gpd.read_parquet(buildingstock_results_path("unrenovated"))
 unrenovated_buildingstock = unrenovated_buildingstock[
     unrenovated_buildingstock["NFA"] >= 30
 ]
@@ -42,8 +39,7 @@ from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 
 # Load the buildingstock results with geometry
-buildingstock_path = "building_analysis/results/unrenovated_whole_buildingstock/buildingstock_results_unrenovated.parquet"
-gdf = gpd.read_parquet(buildingstock_path)
+gdf = gpd.read_parquet(buildingstock_results_path("unrenovated"))
 
 # Filter out buildings with very small NFA (noise)
 gdf = gdf[gdf["NFA"] >= 30]

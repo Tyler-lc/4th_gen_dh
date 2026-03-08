@@ -6,10 +6,15 @@ import matplotlib.dates as mdates
 import seaborn as sns
 from tqdm import tqdm
 import os
-from pathlib import Path
-import sys
 from typing import Union
 
+from config import (
+    RESULTS_DIR,
+    SENSITIVITY_PARAMS_PATH,
+    grid_results_sensitivity_parquet,
+    sensitivity_results_dir,
+    weather_data_path,
+)
 from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
@@ -78,7 +83,7 @@ def sensitivity_analysis_booster(
     #############################################################################################
 
     ### import EMBERS data to assess grid losses and total investment costs
-    path_embers = f"grid_calculation/sensitivity_analysis/{simulation_type}/{supply_temperature}/booster_result_df_{supply_temperature}.parquet"
+    path_embers = grid_results_sensitivity_parquet(simulation_type, supply_temperature)
     embers_data = pd.read_parquet(path_embers)
 
     # margin, taxation and reduction_factor are now arguments of the function
@@ -120,8 +125,11 @@ def sensitivity_analysis_booster(
 
     ## We need to import both the unrenovated and renovated buildingstock
 
-    path_unrenovated_area = Path(
-        f"building_analysis/results//sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/area_results_{supply_temperature}/area_results_{simulation_type}_whole_buildingstock_{supply_temperature}.csv"
+    path_unrenovated_area = (
+        RESULTS_DIR / "sensitivity_analysis" / simulation_type
+        / f"{simulation_type}_whole_buildingstock_{supply_temperature}"
+        / f"area_results_{supply_temperature}"
+        / f"area_results_{simulation_type}_whole_buildingstock_{supply_temperature}.csv"
     )
     areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
     areas_demand.index = pd.to_datetime(areas_demand.index)
@@ -133,7 +141,11 @@ def sensitivity_analysis_booster(
 
     # we need the buildingstock data to calculate the investment costs of the booster heat pumps
     # TODO: check whether the pathing is correct or not
-    path_booster_buildingstock = f"building_analysis/results/sensitivity_analysis/{simulation_type}/{simulation_type}_whole_buildingstock_{supply_temperature}/buildingstock_{simulation_type}_whole_buildingstock_{supply_temperature}_results.parquet"
+    path_booster_buildingstock = (
+        RESULTS_DIR / "sensitivity_analysis" / simulation_type
+        / f"{simulation_type}_whole_buildingstock_{supply_temperature}"
+        / f"buildingstock_{simulation_type}_whole_buildingstock_{supply_temperature}_results.parquet"
+    )
     booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
     booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
 
@@ -183,13 +195,7 @@ def sensitivity_analysis_booster(
     # the COP of the heat pump is calculated as a function of the outside temperature using the Carnot formula
     # the source will be the outside air. Let's import the outside air temperature data
 
-    area_name = "Frankfurt_Griesheim_Mitte"
-    year_start = 2019
-    year_end = 2019
-
-    path_outside_air = Path(
-        f"irradiation_data/{area_name}_{year_start}_{year_end}/{area_name}_irradiation_data_{year_start}_{year_end}.csv"
-    )
+    path_outside_air = weather_data_path()
     outside_temp = pd.read_csv(path_outside_air, usecols=["T2m"])
     outside_temp.index = areas_demand.index
 
@@ -706,25 +712,16 @@ simulation = "booster"
 n_heat_pumps = 2
 supply_temperature = 50
 
-df_sensitivity_parameters = pd.read_excel(
-    "sensitivity_analysis/sensitivity_analysis_parameters.xlsx"
-)
+df_sensitivity_parameters = pd.read_excel(SENSITIVITY_PARAMS_PATH)
 df_sensitivity_parameters.set_index("num_analysis", inplace=True)
 
 
 for num_analysis, row in df_sensitivity_parameters.iterrows():
     print(f"num_analysis: {num_analysis}")
-    os.makedirs(
-        f"sensitivity_analysis/{simulation}/{row['analysis_type']}", exist_ok=True
-    )
-    os.makedirs(
-        f"sensitivity_analysis/{simulation}/{row['analysis_type']}/plots",
-        exist_ok=True,
-    )
-    os.makedirs(
-        f"sensitivity_analysis/{simulation}/{row['analysis_type']}/data",
-        exist_ok=True,
-    )
+    sens_dir = sensitivity_results_dir(simulation, row['analysis_type'])
+    os.makedirs(sens_dir, exist_ok=True)
+    os.makedirs(sens_dir / "plots", exist_ok=True)
+    os.makedirs(sens_dir / "data", exist_ok=True)
     df_npv = pd.DataFrame()
 
     ###### we will create a loop for the analysis
@@ -844,7 +841,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
 
         # Save individual NPV data
         df_npv.to_csv(
-            f"sensitivity_analysis/{simulation}/{row['analysis_type']}/data/supply_temperature_{value}C.csv"
+            sens_dir / "data" / f"supply_temperature_{value}C.csv"
         )
 
     from utils.plotting import (
@@ -880,7 +877,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
 
     # Save the figure
     plt.savefig(
-        f"sensitivity_analysis/{simulation}/{row['analysis_type']}/plots/lcoh_vs_{analysis_type}.png"
+        sens_dir / "plots" / f"lcoh_vs_{analysis_type}.png"
     )
     plt.close()
 
@@ -910,18 +907,16 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
     )
 
     # let's save the data for the sensitivity analysis:
-    main_path = (
-        f"sensitivity_analysis/{simulation}/{analysis_type}/data/multitple_graphs"
-    )
+    main_path = sens_dir / "data" / "multitple_graphs"
     os.makedirs(main_path, exist_ok=True)
-    avg_savings_data_nfa.to_csv(f"{main_path}/avg_savings_data_nfa.csv")
+    avg_savings_data_nfa.to_csv(main_path / "avg_savings_data_nfa.csv")
     npv_operator_df = pd.DataFrame(npv_operator)
-    npv_operator_df.to_csv(f"{main_path}/npv_operator.csv")
+    npv_operator_df.to_csv(main_path / "npv_operator.csv")
     for key in all_npv_data.keys():
-        all_npv_data[key].to_csv(f"{main_path}/all_npv_data_{key}.csv")
+        all_npv_data[key].to_csv(main_path / f"all_npv_data_{key}.csv")
     keys_df = pd.DataFrame(all_npv_data.keys())
     values_df = pd.DataFrame(values)
-    values_df.to_csv(f"{main_path}/values.csv")
+    values_df.to_csv(main_path / "values.csv")
 
 
 print("done")

@@ -1,18 +1,20 @@
 import pandas as pd
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 
+from config import SENSITIVITY_DIR, sensitivity_results_dir
+
 ### first let's import all the data from the csv files
 
-base_path = "sensitivity_analysis"
 path_booster = (
-    f"{base_path}/booster/combined_electicity_gas/data/mfh_savings_analysis.csv"
+    sensitivity_results_dir("booster", "combined_electicity_gas") / "data" / "mfh_savings_analysis.csv"
 )
 path_ht = (
-    f"{base_path}/unrenovated/combined_electicity_gas/data/mfh_savings_analysis.csv"
+    sensitivity_results_dir("unrenovated", "combined_electicity_gas") / "data" / "mfh_savings_analysis.csv"
 )
-path_lt = f"{base_path}/renovated/combined_electicity_gas/data/mfh_savings_analysis.csv"
+path_lt = (
+    sensitivity_results_dir("renovated", "combined_electicity_gas") / "data" / "mfh_savings_analysis.csv"
+)
 
 ### now let's import the data:
 
@@ -75,7 +77,7 @@ def create_combined_contour(df_booster, df_ht, df_lt):
 
     plt.tight_layout()
     plt.savefig(
-        "sensitivity_analysis/combined_price_sensitivity_contour.png",
+        SENSITIVITY_DIR / "combined_price_sensitivity_contour.png",
         bbox_inches="tight",
         dpi=300,
     )

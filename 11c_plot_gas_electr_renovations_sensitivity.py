@@ -1,25 +1,21 @@
 import pandas as pd
-import os
 import matplotlib.pyplot as plt
 import numpy as np
 import glob
 from pathlib import Path
 
+from config import SENSITIVITY_DIR, sensitivity_results_dir
+
 ### first let's import all the data from the csv files
 
-base_path = Path("sensitivity_analysis")
 analysis_type_lt = "combined_electicity_gas_renovation_costs"
 analysis_type_other = "combined_electicity_gas"
 
 path_booster_agg = (
-    base_path / "booster" / analysis_type_other / "data" / "mfh_savings_analysis.csv"
+    sensitivity_results_dir("booster", analysis_type_other) / "data" / "mfh_savings_analysis.csv"
 )
 path_ht_agg = (
-    base_path
-    / "unrenovated"
-    / analysis_type_other
-    / "data"
-    / "mfh_savings_analysis.csv"
+    sensitivity_results_dir("unrenovated", analysis_type_other) / "data" / "mfh_savings_analysis.csv"
 )
 
 df_booster = pd.read_csv(path_booster_agg)
@@ -30,7 +26,7 @@ print(f"HT DF shape: {df_ht.shape}")
 print(f"Booster NaNs in savings: {df_booster['average_savings'].isna().sum()}")
 print(f"HT NaNs in savings: {df_ht['average_savings'].isna().sum()}")
 
-lt_data_path = base_path / "renovated" / analysis_type_lt / "data"
+lt_data_path = sensitivity_results_dir("renovated", analysis_type_lt) / "data"
 all_lt_files = glob.glob(str(lt_data_path / f"{analysis_type_lt}_gas*_el*_reno*.csv"))
 
 if not all_lt_files:
@@ -336,7 +332,7 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
 
     # Define multiple save paths
     save_paths = [
-        base_path / save_filename,  # Original path: sensitivity_analysis/
+        SENSITIVITY_DIR / save_filename,  # Original path: sensitivity_analysis/
         alt_path / save_filename,  # Alternative path: plots/
     ]
 

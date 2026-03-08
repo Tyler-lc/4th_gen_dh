@@ -11,6 +11,8 @@ matplotlib.use("Agg")  # Use non-interactive backend
 import numpy as np
 import matplotlib.pyplot as plt
 
+from config import PLOTS_DIR
+
 # Insulation thickness range: 1 cm to 25 cm
 thickness_cm = np.arange(1, 26, 1)  # 1 to 25 cm
 
@@ -104,10 +106,10 @@ ax.text(
 )
 
 plt.tight_layout()
-plt.savefig("plots/iwu_renovation_costs_per_sqm.png", dpi=300, bbox_inches="tight")
+plt.savefig(PLOTS_DIR / "iwu_renovation_costs_per_sqm.png", dpi=300, bbox_inches="tight")
 plt.close()
 
-print("Plot saved to: plots/iwu_renovation_costs_per_sqm.png")
+print(f"Plot saved to: {PLOTS_DIR / 'iwu_renovation_costs_per_sqm.png'}")
 
 # Print a summary table
 print("\n" + "=" * 60)
