@@ -94,6 +94,31 @@ def booster_area_results_path(size: str = "whole_buildingstock") -> Path:
     return results_dir("booster", size) / "area_results" / f"area_results_booster_{size}.csv"
 
 
+# ── Scenario temperature parameters ───────────────────────────────────
+SCENARIO_TEMPERATURES = {
+    "unrenovated": {"supply": 90, "return": 65},   # HT
+    "renovated":   {"supply": 50, "return": 25},    # LT
+    "booster":     {"supply": 50, "return": 25},    # Booster
+}
+
+# ── Pipe material roughness [m] ──────────────────────────────────────
+PIPE_ROUGHNESS = {
+    "steel_new":  0.045e-3,    # 0.045 mm — new pre-insulated DH pipe
+    "steel_aged": 0.5e-3,      # 0.5 mm — aged/corroded steel
+    "pvc_pe":     0.007e-3,    # 0.007 mm — PVC / polyethylene
+    "copper":     0.0015e-3,   # 0.0015 mm
+}
+DEFAULT_PIPE_MATERIAL = "steel_new"
+
+# ── Pump parameters ──────────────────────────────────────────────────
+PUMP_EFFICIENCY_ELECTRIC = 0.90    # motor efficiency
+PUMP_EFFICIENCY_HYDRAULIC = 0.80   # pump hydraulic efficiency
+K_BEND_90 = 0.3                    # long-radius 90-degree bend, standard DH
+ANNUAL_HOURS = 8760                # hours/year (consistent with scenario scripts)
+
+# ── Pumping losses output ────────────────────────────────────────────
+PUMPING_LOSSES_DIR = PROJECT_ROOT / "pumping_losses"
+
 # ── Sensitivity analysis paths ───────────────────────────────────────
 SENSITIVITY_PARAMS_PATH = SENSITIVITY_DIR / "sensitivity_analysis_parameters.xlsx"
 
