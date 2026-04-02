@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 import os
 
-from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
+from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh, compute_ouc_residual
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
 from costs.renovation_costs import (
@@ -60,7 +60,7 @@ ember_results = pd.read_parquet(path_embers)
 investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
 dhg_lifetime = 50  # years
-percent_residual_value = 0.4
+percent_residual_value = compute_ouc_residual(0.05, npv_years=25, lcoh_years=50)
 # investment_costs_dhg = 16.25  # from thermos with LT option
 ir_dhg = 0.05
 
@@ -196,8 +196,17 @@ total_electricity_cost = (
 )  # Million euros
 total_var_oem_hp = single_var_oem_hp * n_heat_pumps
 total_fixed_oem_hp = single_fix_oem * n_heat_pumps * capacity_single_hp
-yearly_heat_supplied = areas_demand["delivered_energy"].sum() / 1000  # MW
-heat_supplied_df = pd.DataFrame(  ## In this case we are using the heat supplied in the Grid, not the delivered heat
+# Load building stock early for LCOH denominator consistency with revenue basis.
+# The NFA >= 30 filter must be applied before computing billable heat.
+renovated_buildingstock_path = buildingstock_results_path("renovated")
+renovated_buildingstock = gpd.read_parquet(renovated_buildingstock_path)
+renovated_buildingstock = renovated_buildingstock[renovated_buildingstock["NFA"] >= 30]
+yearly_heat_supplied = (
+    renovated_buildingstock["yearly_dhw_energy"]
+    + renovated_buildingstock["yearly_space_heating"]
+).sum() / efficiency_he / 1000  # MWh
+
+heat_supplied_df = pd.DataFrame(
     {"Heat Supplied (MW)": [yearly_heat_supplied] * n_years_hp}
 )
 
@@ -254,6 +263,9 @@ price_heat_eurokwh_non_residential_VAT = (
     (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
 )
 
+# Operator revenue price: excludes VAT (pass-through to government, not operator income)
+price_heat_ex_vat = (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
+
 
 ### We decide to set the price of the heat supplied to the customer depending on the energy demand of the customer.
 ### We will use the R2 and NR2 as the lowest (which should be price_heat_eurokwh_residential and price_heat_eurokwh_non_residential)ù
@@ -285,13 +297,14 @@ hp_energy_prices = {
     "nr2": price_heat_eurokwh_non_residential / ratios["nr2"],
 }
 
+# Operator revenue excludes VAT — VAT is collected on behalf of government
 operator_selling_price = {
-    "r0": price_heat_eurokwh_residential / ratios["r0"],
-    "r1": price_heat_eurokwh_residential / ratios["r1"],
-    "r2": price_heat_eurokwh_residential / ratios["r2"],
-    "nr0": price_heat_eurokwh_non_residential_VAT / ratios["nr0"],
-    "nr1": price_heat_eurokwh_non_residential_VAT / ratios["nr1"],
-    "nr2": price_heat_eurokwh_non_residential_VAT / ratios["nr2"],
+    "r0": price_heat_ex_vat / ratios["r0"],
+    "r1": price_heat_ex_vat / ratios["r1"],
+    "r2": price_heat_ex_vat / ratios["r2"],
+    "nr0": price_heat_ex_vat / ratios["nr0"],
+    "nr1": price_heat_ex_vat / ratios["nr1"],
+    "nr2": price_heat_ex_vat / ratios["nr2"],
 }
 
 ###################################################################################
@@ -307,11 +320,7 @@ operator_selling_price = {
 ## Let's define a couple of parameteres first
 
 
-# import the data with the renovated buildingstock
-renovated_buildingstock_path = buildingstock_results_path("renovated")
-
-renovated_buildingstock = gpd.read_parquet(renovated_buildingstock_path)
-renovated_buildingstock = renovated_buildingstock[renovated_buildingstock["NFA"] >= 30]
+# renovated_buildingstock already loaded above (before LCOH section)
 
 
 # and now let's import the unrenovated buildingstock
@@ -702,6 +711,9 @@ parameters = {
     "gas_prices": gas_energy_prices,
     "total_hp_inv_costs": total_installation_costs,
     "total_grid_inv_costs": investment_costs_dhg,
+    "total_heat_from_lshp_kwh": float(areas_demand["hourly heat generated in Large HP [kWh]"].sum()),
+    "total_electricity_lshp_kwh": float(P_el.sum()),
+    "SCOP_lshp": float(areas_demand["hourly heat generated in Large HP [kWh]"].sum() / P_el.sum()),
 }
 
 with open(export_path / "parameters.json", "w") as f:

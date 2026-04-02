@@ -7,7 +7,7 @@ from tqdm import tqdm
 import os
 from typing import Union
 import itertools
-from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
+from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh, compute_ouc_residual
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
 from costs.renovation_costs import (
@@ -43,7 +43,7 @@ def sensitivity_analysis_booster(
     oversizing_factor: float = 1.2,
     n_heat_pumps: int = 3,
     dhg_lifetime: int = 25,
-    percent_residual_value: float = 0.4,
+    percent_residual_value: float = compute_ouc_residual(0.05, npv_years=25, lcoh_years=50),
     inv_cost_multiplier: Union[float, int] = 1,
     electricity_cost_multiplier: float = 1,
     gas_cost_multiplier: Union[float, int] = 1,
@@ -272,9 +272,10 @@ def sensitivity_analysis_booster(
     )  # Million euros
     total_var_oem_large_hp = single_var_oem_hp * n_heat_pumps
     total_fixed_oem_large_hp = single_fix_oem * n_heat_pumps * capacity_single_hp
-    yearly_heat_supplied_large_hp = (
-        areas_demand["hourly heat generated in Large HP [kWh]"].sum() / 1000
-    )  # MW
+    # Compute from filtered building stock for consistency with revenue basis
+    _total_grid_demand = booster_buildingstock["total_demand_on_grid [kWh]"].sum()
+    _delivered_to_boosters = _total_grid_demand / efficiency_he
+    yearly_heat_supplied_large_hp = (_delivered_to_boosters + total_energy_losses) / 1000  # MWh
     heat_supplied_df_large_hp = pd.DataFrame(  ## In this case we are using the heat supplied in the Grid, not the delivered heat
         {"Heat Supplied (MWh)": [yearly_heat_supplied_large_hp] * n_years_hp}
     )
@@ -461,13 +462,13 @@ def sensitivity_analysis_booster(
         n_years_hp,
     )
     lcoh_heat_grid_boosters = calculate_future_values(
-        {"heat from grid": (LCOH_HP + LCOH_dhg) * total_heat_supplied_by_dhg},
+        {"heat from grid": (LCOH_HP + LCOH_dhg) * yearly_heat_supplied_large_hp * 1000},
         n_years_hp,
     )
     lcoh_total_heat_generated_boosters = calculate_future_values(
         {
-            "heat_generated": booster_buildingstock["yearly_space_heating"].sum()
-            + booster_buildingstock["yearly_dhw_energy"].sum()
+            "heat_generated": (booster_buildingstock["yearly_space_heating"].sum()
+            + booster_buildingstock["yearly_dhw_energy"].sum()) / efficiency_he
         },
         n_years_hp,
     )
@@ -505,13 +506,17 @@ def sensitivity_analysis_booster(
         (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
     )
 
+    # Operator revenue price: excludes VAT (pass-through to government, not operator income)
+    price_heat_ex_vat = (lcoh_booster) * (1 + margin) * reduction_factor
+
+    # Operator revenue excludes VAT — VAT is collected on behalf of government
     operator_selling_price = {
-        "r0": price_heat_eurokwh_residential / ratios["r0"],
-        "r1": price_heat_eurokwh_residential / ratios["r1"],
-        "r2": price_heat_eurokwh_residential / ratios["r2"],
-        "nr0": price_heat_eurokwh_non_residential_VAT / ratios["nr0"],
-        "nr1": price_heat_eurokwh_non_residential_VAT / ratios["nr1"],
-        "nr2": price_heat_eurokwh_non_residential_VAT / ratios["nr2"],
+        "r0": price_heat_ex_vat / ratios["r0"],
+        "r1": price_heat_ex_vat / ratios["r1"],
+        "r2": price_heat_ex_vat / ratios["r2"],
+        "nr0": price_heat_ex_vat / ratios["nr0"],
+        "nr1": price_heat_ex_vat / ratios["nr1"],
+        "nr2": price_heat_ex_vat / ratios["nr2"],
     }
 
     ### But NON residential customers do not pay VAT.

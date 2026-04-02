@@ -16,7 +16,7 @@ from config import (
     weather_data_path,
     sensitivity_results_dir,
 )
-from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh
+from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh, compute_ouc_residual
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
 from costs.renovation_costs import (
@@ -41,7 +41,7 @@ def sensitivity_analysis(
     oversizing_factor: float = 1.2,
     n_heat_pumps: int = 3,
     dhg_lifetime=50,  # years
-    percent_residual_value: float = 0.4,  # percentage residual value of the DHG
+    percent_residual_value: float = compute_ouc_residual(0.05, npv_years=25, lcoh_years=50),
     inv_cost_multiplier: Union[float, int] = 1,
     electricity_cost_multiplier: float = 1,
     gas_cost_multiplier: Union[float, int] = 1,
@@ -229,7 +229,13 @@ def sensitivity_analysis(
     )  # Million euros
     total_var_oem_hp = single_var_oem_hp * n_heat_pumps
     total_fixed_oem_hp = single_fix_oem * n_heat_pumps * capacity_single_hp
-    yearly_heat_supplied = areas_demand["delivered_energy"].sum() / 1000  # MW
+    # Compute from filtered building stock for consistency with revenue basis
+    buildingstock_path = buildingstock_results_path(simulation_type)
+    buildingstock = gpd.read_parquet(buildingstock_path)
+    buildingstock = buildingstock[buildingstock["NFA"] >= 30]
+    yearly_heat_supplied = (
+        buildingstock["yearly_dhw_energy"] + buildingstock["yearly_space_heating"]
+    ).sum() / efficiency_he / 1000  # MWh
     heat_supplied_df = pd.DataFrame(  ## In this case we are using the heat supplied in the Grid, not the delivered heat
         {"Heat Supplied (MW)": [yearly_heat_supplied] * n_years_hp}
     )
@@ -289,6 +295,9 @@ def sensitivity_analysis(
         (LCOH_HP + LCOH_dhg) * (1 + margin) * (1 + taxation) * reduction_factor
     )
 
+    # Operator revenue price: excludes VAT (pass-through to government, not operator income)
+    price_heat_ex_vat = (LCOH_HP + LCOH_dhg) * (1 + margin) * reduction_factor
+
     ### We decide to set the price of the heat supplied to the customer depending on the energy demand of the customer.
     ### We will use the R2 and NR2 as the lowest (which should be price_heat_eurokwh_residential and price_heat_eurokwh_non_residential)ù
     ### All the other demand categories will have a price higher than those. The difference in prices will be based on the same ratio already
@@ -322,13 +331,14 @@ def sensitivity_analysis(
         "nr2": price_heat_eurokwh_non_residential / ratios["nr2"],
     }
 
+    # Operator revenue excludes VAT — VAT is collected on behalf of government
     operator_selling_price = {
-        "r0": price_heat_eurokwh_residential / ratios["r0"],
-        "r1": price_heat_eurokwh_residential / ratios["r1"],
-        "r2": price_heat_eurokwh_residential / ratios["r2"],
-        "nr0": price_heat_eurokwh_non_residential_VAT / ratios["nr0"],
-        "nr1": price_heat_eurokwh_non_residential_VAT / ratios["nr1"],
-        "nr2": price_heat_eurokwh_non_residential_VAT / ratios["nr2"],
+        "r0": price_heat_ex_vat / ratios["r0"],
+        "r1": price_heat_ex_vat / ratios["r1"],
+        "r2": price_heat_ex_vat / ratios["r2"],
+        "nr0": price_heat_ex_vat / ratios["nr0"],
+        "nr1": price_heat_ex_vat / ratios["nr1"],
+        "nr2": price_heat_ex_vat / ratios["nr2"],
     }
 
     ###################################################################################
@@ -345,10 +355,7 @@ def sensitivity_analysis(
     # import the data with the renovated buildingstock
     # and now let's import the unrenovated buildingstock
 
-    buildingstock_path = buildingstock_results_path(simulation_type)
-
-    buildingstock = gpd.read_parquet(buildingstock_path)
-    buildingstock = buildingstock[buildingstock["NFA"] >= 30]
+    # buildingstock already loaded above (before LCOH section)
     year_consumption = pd.DataFrame(
         {
             "full_id": buildingstock["full_id"],
