@@ -140,7 +140,7 @@ def calculate_lcoh(
     years = fixed_om_series.index
     for t in years:
         # discount_factor = (1 + discount_rate) ** (t + 1)
-        discount_factor = (1 + discount_rate) ** (t)
+        discount_factor = (1 + discount_rate) ** (t + 1)
         # Sum the discounted costs
         numerator += (
             fixed_om_series.iloc[t, 0]
@@ -156,6 +156,24 @@ def calculate_lcoh(
 
     lcoh = numerator / denominator
     return lcoh
+
+
+def compute_ouc_residual(discount_rate, npv_years, lcoh_years):
+    """Compute the Outstanding Unrecovered Capital as a fraction of DHG investment.
+
+    When LCOH is amortised over a longer horizon (lcoh_years) than the NPV
+    evaluation period (npv_years), the operator under-recovers on the
+    investment. The OUC is the remaining capital, expressed as an undiscounted
+    fraction of the original investment at year ``npv_years``.
+
+    Returns a fraction (e.g. 0.77) to be used in place of percent_residual_value.
+    """
+    r = discount_rate
+    pv_lcoh = sum(1 / (1 + r) ** (t + 1) for t in range(lcoh_years))
+    pv_npv = sum(1 / (1 + r) ** (t + 1) for t in range(npv_years))
+    recovery_fraction = pv_npv / pv_lcoh
+    ouc_pv = 1 - recovery_fraction
+    return ouc_pv * (1 + r) ** npv_years
 
 
 def calculate_revenues(delivered_heat_demand, heat_prices):
