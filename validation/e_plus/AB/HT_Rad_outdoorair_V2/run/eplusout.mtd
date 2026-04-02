@@ -1,0 +1,1374 @@
+
+ Meters for 60,BASEMENT:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:BASEMENT [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:BASEMENT [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 133,BASEMENT:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:BASEMENT [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:BASEMENT [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 173,NORTH1.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH1.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH1.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 198,NORTH1.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH1.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH1.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 214,NORTH1.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH1.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH1.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 239,NORTH1.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH1.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH1.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 255,NORTH2.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH2.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH2.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 280,NORTH2.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH2.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH2.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 296,NORTH2.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH2.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH2.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 321,NORTH2.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH2.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH2.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 337,NORTH3.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH3.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH3.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 362,NORTH3.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH3.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH3.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 378,NORTH3.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH3.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH3.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 403,NORTH3.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH3.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH3.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 419,NORTH4.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH4.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH4.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 444,NORTH4.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH4.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH4.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 460,NORTH4.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH4.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH4.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 485,NORTH4.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH4.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH4.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 501,NORTH5.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH5.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH5.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 526,NORTH5.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH5.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH5.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 542,NORTH5.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH5.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH5.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 567,NORTH5.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH5.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH5.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 583,NORTH6.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH6.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH6.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 608,NORTH6.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH6.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH6.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 624,NORTH6.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH6.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:NORTH6.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 649,NORTH6.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:NORTH6.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:NORTH6.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 665,SOUTH1.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH1.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH1.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 690,SOUTH1.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH1.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH1.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 706,SOUTH1.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH1.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH1.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 731,SOUTH1.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH1.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH1.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 747,SOUTH2.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH2.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH2.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 772,SOUTH2.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH2.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH2.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 788,SOUTH2.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH2.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH2.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 813,SOUTH2.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH2.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH2.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 829,SOUTH3.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH3.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH3.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 854,SOUTH3.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH3.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH3.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 870,SOUTH3.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH3.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH3.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 895,SOUTH3.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH3.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH3.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 911,SOUTH4.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH4.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH4.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 936,SOUTH4.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH4.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH4.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 952,SOUTH4.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH4.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH4.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 977,SOUTH4.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH4.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH4.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 993,SOUTH5.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH5.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH5.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 1018,SOUTH5.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH5.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH5.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 1034,SOUTH5.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH5.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH5.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 1059,SOUTH5.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH5.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH5.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 1075,SOUTH6.1:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH6.1 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH6.1 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 1100,SOUTH6.1:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH6.1 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH6.1 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 1116,SOUTH6.2:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH6.2 [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:SOUTH6.2 [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 1141,SOUTH6.2:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:SOUTH6.2 [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:SOUTH6.2 [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 1157,STAIRCASE:Zone Air System Sensible Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:STAIRCASE [J]
+  OnMeter=Heating:EnergyTransfer [J]
+  OnMeter=Heating:EnergyTransfer:Zone:STAIRCASE [J]
+  OnMeter=General:Heating:EnergyTransfer [J]
+
+ Meters for 1182,STAIRCASE:Zone Air System Sensible Cooling Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:Building [J]
+  OnMeter=EnergyTransfer:Zone:STAIRCASE [J]
+  OnMeter=Cooling:EnergyTransfer [J]
+  OnMeter=Cooling:EnergyTransfer:Zone:STAIRCASE [J]
+  OnMeter=General:Cooling:EnergyTransfer [J]
+
+ Meters for 1199,N1.1 - 3302:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1224,N1.1 - 3302:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1262,N1.2 - 3302:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1263,N1.2 - 3302:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1265,N2.1 - 3303:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1266,N2.1 - 3303:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1268,N2.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1269,N2.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1271,N3.1 - 3303:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1272,N3.1 - 3303:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1274,N3.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1275,N3.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1277,N4.1 - 3303:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1278,N4.1 - 3303:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1280,N4.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1281,N4.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1283,N5.1 - 3303:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1284,N5.1 - 3303:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1286,N5.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1287,N5.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1289,N6.1 - 4771:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1290,N6.1 - 4771:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1292,N6.2 - 4771:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1293,N6.2 - 4771:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1295,S1.1 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1296,S1.1 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1298,S1.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1299,S1.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1301,S2.1 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1302,S2.1 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1304,S2.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1305,S2.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1307,S3.1 -2936 1:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1308,S3.1 -2936 1:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1310,S3.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1311,S3.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1313,S4.1 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1314,S4.1 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1316,S4.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1317,S4.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1319,S5.1 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1320,S5.1 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1322,S5.2 - 2937:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1323,S5.2 - 2937:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1325,S6.1 - 4771:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1326,S6.1 - 4771:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1328,S6.2 - 4771:Baseboard Total Heating Energy [J]
+  OnMeter=EnergyTransfer:Facility [J]
+  OnMeter=EnergyTransfer:HVAC [J]
+  OnMeter=Baseboard:EnergyTransfer [J]
+
+ Meters for 1329,S6.2 - 4771:Baseboard Hot Water Energy [J]
+  OnMeter=PlantLoopHeatingDemand:Facility [J]
+  OnMeter=PlantLoopHeatingDemand:HVAC [J]
+  OnMeter=Baseboard:PlantLoopHeatingDemand [J]
+
+ Meters for 1330,VAR SPD FAN:Fan Electricity Energy [J]
+  OnMeter=Electricity:Facility [J]
+  OnMeter=Electricity:HVAC [J]
+  OnMeter=Fans:Electricity [J]
+  OnMeter=General:Fans:Electricity [J]
+
+ Meters for 1379,VAR SPD FAN 1:Fan Electricity Energy [J]
+  OnMeter=Electricity:Facility [J]
+  OnMeter=Electricity:HVAC [J]
+  OnMeter=Fans:Electricity [J]
+  OnMeter=General:Fans:Electricity [J]
+
+ Meters for 1380,DISTRICT HEATING:District Heating Hot Water Energy [J]
+  OnMeter=DistrictHeating:Facility [J]
+  OnMeter=DistrictHeating:Plant [J]
+  OnMeter=Heating:DistrictHeating [J]
+  OnMeter=General:Heating:DistrictHeating [J]
+
+ Meters for 1429,PUMP VARIABLE SPEED 1:Pump Electricity Energy [J]
+  OnMeter=Electricity:Facility [J]
+  OnMeter=Electricity:Plant [J]
+  OnMeter=Pumps:Electricity [J]
+  OnMeter=General:Pumps:Electricity [J]
+
+ Meters for 1816,Site:Environmental Impact Total N2O Emissions Carbon Equivalent Mass [kg]
+  OnMeter=Carbon Equivalent:Facility [kg]
+  OnMeter=CarbonEquivalentEmissions:Carbon Equivalent [kg]
+
+ Meters for 1841,Site:Environmental Impact Total CH4 Emissions Carbon Equivalent Mass [kg]
+  OnMeter=Carbon Equivalent:Facility [kg]
+  OnMeter=CarbonEquivalentEmissions:Carbon Equivalent [kg]
+
+ Meters for 1842,Site:Environmental Impact Total CO2 Emissions Carbon Equivalent Mass [kg]
+  OnMeter=Carbon Equivalent:Facility [kg]
+  OnMeter=CarbonEquivalentEmissions:Carbon Equivalent [kg]
+
+ For Meter=EnergyTransfer:Facility [J], ResourceType=EnergyTransfer, contents are:
+  BASEMENT:Zone Air System Sensible Heating Energy
+  BASEMENT:Zone Air System Sensible Cooling Energy
+  NORTH1.1:Zone Air System Sensible Heating Energy
+  NORTH1.1:Zone Air System Sensible Cooling Energy
+  NORTH1.2:Zone Air System Sensible Heating Energy
+  NORTH1.2:Zone Air System Sensible Cooling Energy
+  NORTH2.1:Zone Air System Sensible Heating Energy
+  NORTH2.1:Zone Air System Sensible Cooling Energy
+  NORTH2.2:Zone Air System Sensible Heating Energy
+  NORTH2.2:Zone Air System Sensible Cooling Energy
+  NORTH3.1:Zone Air System Sensible Heating Energy
+  NORTH3.1:Zone Air System Sensible Cooling Energy
+  NORTH3.2:Zone Air System Sensible Heating Energy
+  NORTH3.2:Zone Air System Sensible Cooling Energy
+  NORTH4.1:Zone Air System Sensible Heating Energy
+  NORTH4.1:Zone Air System Sensible Cooling Energy
+  NORTH4.2:Zone Air System Sensible Heating Energy
+  NORTH4.2:Zone Air System Sensible Cooling Energy
+  NORTH5.1:Zone Air System Sensible Heating Energy
+  NORTH5.1:Zone Air System Sensible Cooling Energy
+  NORTH5.2:Zone Air System Sensible Heating Energy
+  NORTH5.2:Zone Air System Sensible Cooling Energy
+  NORTH6.1:Zone Air System Sensible Heating Energy
+  NORTH6.1:Zone Air System Sensible Cooling Energy
+  NORTH6.2:Zone Air System Sensible Heating Energy
+  NORTH6.2:Zone Air System Sensible Cooling Energy
+  SOUTH1.1:Zone Air System Sensible Heating Energy
+  SOUTH1.1:Zone Air System Sensible Cooling Energy
+  SOUTH1.2:Zone Air System Sensible Heating Energy
+  SOUTH1.2:Zone Air System Sensible Cooling Energy
+  SOUTH2.1:Zone Air System Sensible Heating Energy
+  SOUTH2.1:Zone Air System Sensible Cooling Energy
+  SOUTH2.2:Zone Air System Sensible Heating Energy
+  SOUTH2.2:Zone Air System Sensible Cooling Energy
+  SOUTH3.1:Zone Air System Sensible Heating Energy
+  SOUTH3.1:Zone Air System Sensible Cooling Energy
+  SOUTH3.2:Zone Air System Sensible Heating Energy
+  SOUTH3.2:Zone Air System Sensible Cooling Energy
+  SOUTH4.1:Zone Air System Sensible Heating Energy
+  SOUTH4.1:Zone Air System Sensible Cooling Energy
+  SOUTH4.2:Zone Air System Sensible Heating Energy
+  SOUTH4.2:Zone Air System Sensible Cooling Energy
+  SOUTH5.1:Zone Air System Sensible Heating Energy
+  SOUTH5.1:Zone Air System Sensible Cooling Energy
+  SOUTH5.2:Zone Air System Sensible Heating Energy
+  SOUTH5.2:Zone Air System Sensible Cooling Energy
+  SOUTH6.1:Zone Air System Sensible Heating Energy
+  SOUTH6.1:Zone Air System Sensible Cooling Energy
+  SOUTH6.2:Zone Air System Sensible Heating Energy
+  SOUTH6.2:Zone Air System Sensible Cooling Energy
+  STAIRCASE:Zone Air System Sensible Heating Energy
+  STAIRCASE:Zone Air System Sensible Cooling Energy
+  N1.1 - 3302:Baseboard Total Heating Energy
+  N1.2 - 3302:Baseboard Total Heating Energy
+  N2.1 - 3303:Baseboard Total Heating Energy
+  N2.2 - 2937:Baseboard Total Heating Energy
+  N3.1 - 3303:Baseboard Total Heating Energy
+  N3.2 - 2937:Baseboard Total Heating Energy
+  N4.1 - 3303:Baseboard Total Heating Energy
+  N4.2 - 2937:Baseboard Total Heating Energy
+  N5.1 - 3303:Baseboard Total Heating Energy
+  N5.2 - 2937:Baseboard Total Heating Energy
+  N6.1 - 4771:Baseboard Total Heating Energy
+  N6.2 - 4771:Baseboard Total Heating Energy
+  S1.1 - 2937:Baseboard Total Heating Energy
+  S1.2 - 2937:Baseboard Total Heating Energy
+  S2.1 - 2937:Baseboard Total Heating Energy
+  S2.2 - 2937:Baseboard Total Heating Energy
+  S3.1 -2936 1:Baseboard Total Heating Energy
+  S3.2 - 2937:Baseboard Total Heating Energy
+  S4.1 - 2937:Baseboard Total Heating Energy
+  S4.2 - 2937:Baseboard Total Heating Energy
+  S5.1 - 2937:Baseboard Total Heating Energy
+  S5.2 - 2937:Baseboard Total Heating Energy
+  S6.1 - 4771:Baseboard Total Heating Energy
+  S6.2 - 4771:Baseboard Total Heating Energy
+
+ For Meter=EnergyTransfer:Building [J], ResourceType=EnergyTransfer, Group=Building, contents are:
+  BASEMENT:Zone Air System Sensible Heating Energy
+  BASEMENT:Zone Air System Sensible Cooling Energy
+  NORTH1.1:Zone Air System Sensible Heating Energy
+  NORTH1.1:Zone Air System Sensible Cooling Energy
+  NORTH1.2:Zone Air System Sensible Heating Energy
+  NORTH1.2:Zone Air System Sensible Cooling Energy
+  NORTH2.1:Zone Air System Sensible Heating Energy
+  NORTH2.1:Zone Air System Sensible Cooling Energy
+  NORTH2.2:Zone Air System Sensible Heating Energy
+  NORTH2.2:Zone Air System Sensible Cooling Energy
+  NORTH3.1:Zone Air System Sensible Heating Energy
+  NORTH3.1:Zone Air System Sensible Cooling Energy
+  NORTH3.2:Zone Air System Sensible Heating Energy
+  NORTH3.2:Zone Air System Sensible Cooling Energy
+  NORTH4.1:Zone Air System Sensible Heating Energy
+  NORTH4.1:Zone Air System Sensible Cooling Energy
+  NORTH4.2:Zone Air System Sensible Heating Energy
+  NORTH4.2:Zone Air System Sensible Cooling Energy
+  NORTH5.1:Zone Air System Sensible Heating Energy
+  NORTH5.1:Zone Air System Sensible Cooling Energy
+  NORTH5.2:Zone Air System Sensible Heating Energy
+  NORTH5.2:Zone Air System Sensible Cooling Energy
+  NORTH6.1:Zone Air System Sensible Heating Energy
+  NORTH6.1:Zone Air System Sensible Cooling Energy
+  NORTH6.2:Zone Air System Sensible Heating Energy
+  NORTH6.2:Zone Air System Sensible Cooling Energy
+  SOUTH1.1:Zone Air System Sensible Heating Energy
+  SOUTH1.1:Zone Air System Sensible Cooling Energy
+  SOUTH1.2:Zone Air System Sensible Heating Energy
+  SOUTH1.2:Zone Air System Sensible Cooling Energy
+  SOUTH2.1:Zone Air System Sensible Heating Energy
+  SOUTH2.1:Zone Air System Sensible Cooling Energy
+  SOUTH2.2:Zone Air System Sensible Heating Energy
+  SOUTH2.2:Zone Air System Sensible Cooling Energy
+  SOUTH3.1:Zone Air System Sensible Heating Energy
+  SOUTH3.1:Zone Air System Sensible Cooling Energy
+  SOUTH3.2:Zone Air System Sensible Heating Energy
+  SOUTH3.2:Zone Air System Sensible Cooling Energy
+  SOUTH4.1:Zone Air System Sensible Heating Energy
+  SOUTH4.1:Zone Air System Sensible Cooling Energy
+  SOUTH4.2:Zone Air System Sensible Heating Energy
+  SOUTH4.2:Zone Air System Sensible Cooling Energy
+  SOUTH5.1:Zone Air System Sensible Heating Energy
+  SOUTH5.1:Zone Air System Sensible Cooling Energy
+  SOUTH5.2:Zone Air System Sensible Heating Energy
+  SOUTH5.2:Zone Air System Sensible Cooling Energy
+  SOUTH6.1:Zone Air System Sensible Heating Energy
+  SOUTH6.1:Zone Air System Sensible Cooling Energy
+  SOUTH6.2:Zone Air System Sensible Heating Energy
+  SOUTH6.2:Zone Air System Sensible Cooling Energy
+  STAIRCASE:Zone Air System Sensible Heating Energy
+  STAIRCASE:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:BASEMENT [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  BASEMENT:Zone Air System Sensible Heating Energy
+  BASEMENT:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer [J], ResourceType=EnergyTransfer, EndUse=Heating, contents are:
+  BASEMENT:Zone Air System Sensible Heating Energy
+  NORTH1.1:Zone Air System Sensible Heating Energy
+  NORTH1.2:Zone Air System Sensible Heating Energy
+  NORTH2.1:Zone Air System Sensible Heating Energy
+  NORTH2.2:Zone Air System Sensible Heating Energy
+  NORTH3.1:Zone Air System Sensible Heating Energy
+  NORTH3.2:Zone Air System Sensible Heating Energy
+  NORTH4.1:Zone Air System Sensible Heating Energy
+  NORTH4.2:Zone Air System Sensible Heating Energy
+  NORTH5.1:Zone Air System Sensible Heating Energy
+  NORTH5.2:Zone Air System Sensible Heating Energy
+  NORTH6.1:Zone Air System Sensible Heating Energy
+  NORTH6.2:Zone Air System Sensible Heating Energy
+  SOUTH1.1:Zone Air System Sensible Heating Energy
+  SOUTH1.2:Zone Air System Sensible Heating Energy
+  SOUTH2.1:Zone Air System Sensible Heating Energy
+  SOUTH2.2:Zone Air System Sensible Heating Energy
+  SOUTH3.1:Zone Air System Sensible Heating Energy
+  SOUTH3.2:Zone Air System Sensible Heating Energy
+  SOUTH4.1:Zone Air System Sensible Heating Energy
+  SOUTH4.2:Zone Air System Sensible Heating Energy
+  SOUTH5.1:Zone Air System Sensible Heating Energy
+  SOUTH5.2:Zone Air System Sensible Heating Energy
+  SOUTH6.1:Zone Air System Sensible Heating Energy
+  SOUTH6.2:Zone Air System Sensible Heating Energy
+  STAIRCASE:Zone Air System Sensible Heating Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:BASEMENT [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  BASEMENT:Zone Air System Sensible Heating Energy
+
+ For Meter=General:Heating:EnergyTransfer [J], ResourceType=EnergyTransfer, EndUse=Heating, contents are:
+  BASEMENT:Zone Air System Sensible Heating Energy
+  NORTH1.1:Zone Air System Sensible Heating Energy
+  NORTH1.2:Zone Air System Sensible Heating Energy
+  NORTH2.1:Zone Air System Sensible Heating Energy
+  NORTH2.2:Zone Air System Sensible Heating Energy
+  NORTH3.1:Zone Air System Sensible Heating Energy
+  NORTH3.2:Zone Air System Sensible Heating Energy
+  NORTH4.1:Zone Air System Sensible Heating Energy
+  NORTH4.2:Zone Air System Sensible Heating Energy
+  NORTH5.1:Zone Air System Sensible Heating Energy
+  NORTH5.2:Zone Air System Sensible Heating Energy
+  NORTH6.1:Zone Air System Sensible Heating Energy
+  NORTH6.2:Zone Air System Sensible Heating Energy
+  SOUTH1.1:Zone Air System Sensible Heating Energy
+  SOUTH1.2:Zone Air System Sensible Heating Energy
+  SOUTH2.1:Zone Air System Sensible Heating Energy
+  SOUTH2.2:Zone Air System Sensible Heating Energy
+  SOUTH3.1:Zone Air System Sensible Heating Energy
+  SOUTH3.2:Zone Air System Sensible Heating Energy
+  SOUTH4.1:Zone Air System Sensible Heating Energy
+  SOUTH4.2:Zone Air System Sensible Heating Energy
+  SOUTH5.1:Zone Air System Sensible Heating Energy
+  SOUTH5.2:Zone Air System Sensible Heating Energy
+  SOUTH6.1:Zone Air System Sensible Heating Energy
+  SOUTH6.2:Zone Air System Sensible Heating Energy
+  STAIRCASE:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer [J], ResourceType=EnergyTransfer, EndUse=Cooling, contents are:
+  BASEMENT:Zone Air System Sensible Cooling Energy
+  NORTH1.1:Zone Air System Sensible Cooling Energy
+  NORTH1.2:Zone Air System Sensible Cooling Energy
+  NORTH2.1:Zone Air System Sensible Cooling Energy
+  NORTH2.2:Zone Air System Sensible Cooling Energy
+  NORTH3.1:Zone Air System Sensible Cooling Energy
+  NORTH3.2:Zone Air System Sensible Cooling Energy
+  NORTH4.1:Zone Air System Sensible Cooling Energy
+  NORTH4.2:Zone Air System Sensible Cooling Energy
+  NORTH5.1:Zone Air System Sensible Cooling Energy
+  NORTH5.2:Zone Air System Sensible Cooling Energy
+  NORTH6.1:Zone Air System Sensible Cooling Energy
+  NORTH6.2:Zone Air System Sensible Cooling Energy
+  SOUTH1.1:Zone Air System Sensible Cooling Energy
+  SOUTH1.2:Zone Air System Sensible Cooling Energy
+  SOUTH2.1:Zone Air System Sensible Cooling Energy
+  SOUTH2.2:Zone Air System Sensible Cooling Energy
+  SOUTH3.1:Zone Air System Sensible Cooling Energy
+  SOUTH3.2:Zone Air System Sensible Cooling Energy
+  SOUTH4.1:Zone Air System Sensible Cooling Energy
+  SOUTH4.2:Zone Air System Sensible Cooling Energy
+  SOUTH5.1:Zone Air System Sensible Cooling Energy
+  SOUTH5.2:Zone Air System Sensible Cooling Energy
+  SOUTH6.1:Zone Air System Sensible Cooling Energy
+  SOUTH6.2:Zone Air System Sensible Cooling Energy
+  STAIRCASE:Zone Air System Sensible Cooling Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:BASEMENT [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  BASEMENT:Zone Air System Sensible Cooling Energy
+
+ For Meter=General:Cooling:EnergyTransfer [J], ResourceType=EnergyTransfer, EndUse=Cooling, contents are:
+  BASEMENT:Zone Air System Sensible Cooling Energy
+  NORTH1.1:Zone Air System Sensible Cooling Energy
+  NORTH1.2:Zone Air System Sensible Cooling Energy
+  NORTH2.1:Zone Air System Sensible Cooling Energy
+  NORTH2.2:Zone Air System Sensible Cooling Energy
+  NORTH3.1:Zone Air System Sensible Cooling Energy
+  NORTH3.2:Zone Air System Sensible Cooling Energy
+  NORTH4.1:Zone Air System Sensible Cooling Energy
+  NORTH4.2:Zone Air System Sensible Cooling Energy
+  NORTH5.1:Zone Air System Sensible Cooling Energy
+  NORTH5.2:Zone Air System Sensible Cooling Energy
+  NORTH6.1:Zone Air System Sensible Cooling Energy
+  NORTH6.2:Zone Air System Sensible Cooling Energy
+  SOUTH1.1:Zone Air System Sensible Cooling Energy
+  SOUTH1.2:Zone Air System Sensible Cooling Energy
+  SOUTH2.1:Zone Air System Sensible Cooling Energy
+  SOUTH2.2:Zone Air System Sensible Cooling Energy
+  SOUTH3.1:Zone Air System Sensible Cooling Energy
+  SOUTH3.2:Zone Air System Sensible Cooling Energy
+  SOUTH4.1:Zone Air System Sensible Cooling Energy
+  SOUTH4.2:Zone Air System Sensible Cooling Energy
+  SOUTH5.1:Zone Air System Sensible Cooling Energy
+  SOUTH5.2:Zone Air System Sensible Cooling Energy
+  SOUTH6.1:Zone Air System Sensible Cooling Energy
+  SOUTH6.2:Zone Air System Sensible Cooling Energy
+  STAIRCASE:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH1.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH1.1:Zone Air System Sensible Heating Energy
+  NORTH1.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH1.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH1.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH1.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH1.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH1.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH1.2:Zone Air System Sensible Heating Energy
+  NORTH1.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH1.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH1.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH1.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH1.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH2.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH2.1:Zone Air System Sensible Heating Energy
+  NORTH2.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH2.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH2.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH2.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH2.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH2.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH2.2:Zone Air System Sensible Heating Energy
+  NORTH2.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH2.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH2.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH2.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH2.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH3.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH3.1:Zone Air System Sensible Heating Energy
+  NORTH3.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH3.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH3.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH3.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH3.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH3.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH3.2:Zone Air System Sensible Heating Energy
+  NORTH3.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH3.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH3.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH3.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH3.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH4.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH4.1:Zone Air System Sensible Heating Energy
+  NORTH4.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH4.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH4.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH4.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH4.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH4.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH4.2:Zone Air System Sensible Heating Energy
+  NORTH4.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH4.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH4.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH4.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH4.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH5.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH5.1:Zone Air System Sensible Heating Energy
+  NORTH5.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH5.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH5.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH5.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH5.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH5.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH5.2:Zone Air System Sensible Heating Energy
+  NORTH5.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH5.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH5.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH5.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH5.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH6.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH6.1:Zone Air System Sensible Heating Energy
+  NORTH6.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH6.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH6.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH6.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH6.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:NORTH6.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  NORTH6.2:Zone Air System Sensible Heating Energy
+  NORTH6.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:NORTH6.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  NORTH6.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:NORTH6.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  NORTH6.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH1.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH1.1:Zone Air System Sensible Heating Energy
+  SOUTH1.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH1.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH1.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH1.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH1.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH1.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH1.2:Zone Air System Sensible Heating Energy
+  SOUTH1.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH1.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH1.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH1.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH1.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH2.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH2.1:Zone Air System Sensible Heating Energy
+  SOUTH2.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH2.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH2.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH2.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH2.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH2.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH2.2:Zone Air System Sensible Heating Energy
+  SOUTH2.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH2.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH2.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH2.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH2.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH3.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH3.1:Zone Air System Sensible Heating Energy
+  SOUTH3.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH3.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH3.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH3.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH3.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH3.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH3.2:Zone Air System Sensible Heating Energy
+  SOUTH3.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH3.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH3.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH3.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH3.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH4.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH4.1:Zone Air System Sensible Heating Energy
+  SOUTH4.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH4.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH4.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH4.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH4.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH4.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH4.2:Zone Air System Sensible Heating Energy
+  SOUTH4.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH4.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH4.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH4.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH4.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH5.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH5.1:Zone Air System Sensible Heating Energy
+  SOUTH5.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH5.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH5.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH5.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH5.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH5.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH5.2:Zone Air System Sensible Heating Energy
+  SOUTH5.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH5.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH5.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH5.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH5.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH6.1 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH6.1:Zone Air System Sensible Heating Energy
+  SOUTH6.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH6.1 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH6.1:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH6.1 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH6.1:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:SOUTH6.2 [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  SOUTH6.2:Zone Air System Sensible Heating Energy
+  SOUTH6.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:SOUTH6.2 [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  SOUTH6.2:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:SOUTH6.2 [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  SOUTH6.2:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:Zone:STAIRCASE [J], ResourceType=EnergyTransfer, Group=Zone, contents are:
+  STAIRCASE:Zone Air System Sensible Heating Energy
+  STAIRCASE:Zone Air System Sensible Cooling Energy
+
+ For Meter=Heating:EnergyTransfer:Zone:STAIRCASE [J], ResourceType=EnergyTransfer, EndUse=Heating, Group=Zone, contents are:
+  STAIRCASE:Zone Air System Sensible Heating Energy
+
+ For Meter=Cooling:EnergyTransfer:Zone:STAIRCASE [J], ResourceType=EnergyTransfer, EndUse=Cooling, Group=Zone, contents are:
+  STAIRCASE:Zone Air System Sensible Cooling Energy
+
+ For Meter=EnergyTransfer:HVAC [J], ResourceType=EnergyTransfer, Group=HVAC, contents are:
+  N1.1 - 3302:Baseboard Total Heating Energy
+  N1.2 - 3302:Baseboard Total Heating Energy
+  N2.1 - 3303:Baseboard Total Heating Energy
+  N2.2 - 2937:Baseboard Total Heating Energy
+  N3.1 - 3303:Baseboard Total Heating Energy
+  N3.2 - 2937:Baseboard Total Heating Energy
+  N4.1 - 3303:Baseboard Total Heating Energy
+  N4.2 - 2937:Baseboard Total Heating Energy
+  N5.1 - 3303:Baseboard Total Heating Energy
+  N5.2 - 2937:Baseboard Total Heating Energy
+  N6.1 - 4771:Baseboard Total Heating Energy
+  N6.2 - 4771:Baseboard Total Heating Energy
+  S1.1 - 2937:Baseboard Total Heating Energy
+  S1.2 - 2937:Baseboard Total Heating Energy
+  S2.1 - 2937:Baseboard Total Heating Energy
+  S2.2 - 2937:Baseboard Total Heating Energy
+  S3.1 -2936 1:Baseboard Total Heating Energy
+  S3.2 - 2937:Baseboard Total Heating Energy
+  S4.1 - 2937:Baseboard Total Heating Energy
+  S4.2 - 2937:Baseboard Total Heating Energy
+  S5.1 - 2937:Baseboard Total Heating Energy
+  S5.2 - 2937:Baseboard Total Heating Energy
+  S6.1 - 4771:Baseboard Total Heating Energy
+  S6.2 - 4771:Baseboard Total Heating Energy
+
+ For Meter=Baseboard:EnergyTransfer [J], ResourceType=EnergyTransfer, EndUse=Baseboard, contents are:
+  N1.1 - 3302:Baseboard Total Heating Energy
+  N1.2 - 3302:Baseboard Total Heating Energy
+  N2.1 - 3303:Baseboard Total Heating Energy
+  N2.2 - 2937:Baseboard Total Heating Energy
+  N3.1 - 3303:Baseboard Total Heating Energy
+  N3.2 - 2937:Baseboard Total Heating Energy
+  N4.1 - 3303:Baseboard Total Heating Energy
+  N4.2 - 2937:Baseboard Total Heating Energy
+  N5.1 - 3303:Baseboard Total Heating Energy
+  N5.2 - 2937:Baseboard Total Heating Energy
+  N6.1 - 4771:Baseboard Total Heating Energy
+  N6.2 - 4771:Baseboard Total Heating Energy
+  S1.1 - 2937:Baseboard Total Heating Energy
+  S1.2 - 2937:Baseboard Total Heating Energy
+  S2.1 - 2937:Baseboard Total Heating Energy
+  S2.2 - 2937:Baseboard Total Heating Energy
+  S3.1 -2936 1:Baseboard Total Heating Energy
+  S3.2 - 2937:Baseboard Total Heating Energy
+  S4.1 - 2937:Baseboard Total Heating Energy
+  S4.2 - 2937:Baseboard Total Heating Energy
+  S5.1 - 2937:Baseboard Total Heating Energy
+  S5.2 - 2937:Baseboard Total Heating Energy
+  S6.1 - 4771:Baseboard Total Heating Energy
+  S6.2 - 4771:Baseboard Total Heating Energy
+
+ For Meter=PlantLoopHeatingDemand:Facility [J], ResourceType=PlantLoopHeatingDemand, contents are:
+  N1.1 - 3302:Baseboard Hot Water Energy
+  N1.2 - 3302:Baseboard Hot Water Energy
+  N2.1 - 3303:Baseboard Hot Water Energy
+  N2.2 - 2937:Baseboard Hot Water Energy
+  N3.1 - 3303:Baseboard Hot Water Energy
+  N3.2 - 2937:Baseboard Hot Water Energy
+  N4.1 - 3303:Baseboard Hot Water Energy
+  N4.2 - 2937:Baseboard Hot Water Energy
+  N5.1 - 3303:Baseboard Hot Water Energy
+  N5.2 - 2937:Baseboard Hot Water Energy
+  N6.1 - 4771:Baseboard Hot Water Energy
+  N6.2 - 4771:Baseboard Hot Water Energy
+  S1.1 - 2937:Baseboard Hot Water Energy
+  S1.2 - 2937:Baseboard Hot Water Energy
+  S2.1 - 2937:Baseboard Hot Water Energy
+  S2.2 - 2937:Baseboard Hot Water Energy
+  S3.1 -2936 1:Baseboard Hot Water Energy
+  S3.2 - 2937:Baseboard Hot Water Energy
+  S4.1 - 2937:Baseboard Hot Water Energy
+  S4.2 - 2937:Baseboard Hot Water Energy
+  S5.1 - 2937:Baseboard Hot Water Energy
+  S5.2 - 2937:Baseboard Hot Water Energy
+  S6.1 - 4771:Baseboard Hot Water Energy
+  S6.2 - 4771:Baseboard Hot Water Energy
+
+ For Meter=PlantLoopHeatingDemand:HVAC [J], ResourceType=PlantLoopHeatingDemand, Group=HVAC, contents are:
+  N1.1 - 3302:Baseboard Hot Water Energy
+  N1.2 - 3302:Baseboard Hot Water Energy
+  N2.1 - 3303:Baseboard Hot Water Energy
+  N2.2 - 2937:Baseboard Hot Water Energy
+  N3.1 - 3303:Baseboard Hot Water Energy
+  N3.2 - 2937:Baseboard Hot Water Energy
+  N4.1 - 3303:Baseboard Hot Water Energy
+  N4.2 - 2937:Baseboard Hot Water Energy
+  N5.1 - 3303:Baseboard Hot Water Energy
+  N5.2 - 2937:Baseboard Hot Water Energy
+  N6.1 - 4771:Baseboard Hot Water Energy
+  N6.2 - 4771:Baseboard Hot Water Energy
+  S1.1 - 2937:Baseboard Hot Water Energy
+  S1.2 - 2937:Baseboard Hot Water Energy
+  S2.1 - 2937:Baseboard Hot Water Energy
+  S2.2 - 2937:Baseboard Hot Water Energy
+  S3.1 -2936 1:Baseboard Hot Water Energy
+  S3.2 - 2937:Baseboard Hot Water Energy
+  S4.1 - 2937:Baseboard Hot Water Energy
+  S4.2 - 2937:Baseboard Hot Water Energy
+  S5.1 - 2937:Baseboard Hot Water Energy
+  S5.2 - 2937:Baseboard Hot Water Energy
+  S6.1 - 4771:Baseboard Hot Water Energy
+  S6.2 - 4771:Baseboard Hot Water Energy
+
+ For Meter=Baseboard:PlantLoopHeatingDemand [J], ResourceType=PlantLoopHeatingDemand, EndUse=Baseboard, contents are:
+  N1.1 - 3302:Baseboard Hot Water Energy
+  N1.2 - 3302:Baseboard Hot Water Energy
+  N2.1 - 3303:Baseboard Hot Water Energy
+  N2.2 - 2937:Baseboard Hot Water Energy
+  N3.1 - 3303:Baseboard Hot Water Energy
+  N3.2 - 2937:Baseboard Hot Water Energy
+  N4.1 - 3303:Baseboard Hot Water Energy
+  N4.2 - 2937:Baseboard Hot Water Energy
+  N5.1 - 3303:Baseboard Hot Water Energy
+  N5.2 - 2937:Baseboard Hot Water Energy
+  N6.1 - 4771:Baseboard Hot Water Energy
+  N6.2 - 4771:Baseboard Hot Water Energy
+  S1.1 - 2937:Baseboard Hot Water Energy
+  S1.2 - 2937:Baseboard Hot Water Energy
+  S2.1 - 2937:Baseboard Hot Water Energy
+  S2.2 - 2937:Baseboard Hot Water Energy
+  S3.1 -2936 1:Baseboard Hot Water Energy
+  S3.2 - 2937:Baseboard Hot Water Energy
+  S4.1 - 2937:Baseboard Hot Water Energy
+  S4.2 - 2937:Baseboard Hot Water Energy
+  S5.1 - 2937:Baseboard Hot Water Energy
+  S5.2 - 2937:Baseboard Hot Water Energy
+  S6.1 - 4771:Baseboard Hot Water Energy
+  S6.2 - 4771:Baseboard Hot Water Energy
+
+ For Meter=Electricity:Facility [J], ResourceType=Electricity, contents are:
+  VAR SPD FAN:Fan Electricity Energy
+  VAR SPD FAN 1:Fan Electricity Energy
+  PUMP VARIABLE SPEED 1:Pump Electricity Energy
+
+ For Meter=Electricity:HVAC [J], ResourceType=Electricity, Group=HVAC, contents are:
+  VAR SPD FAN:Fan Electricity Energy
+  VAR SPD FAN 1:Fan Electricity Energy
+
+ For Meter=Fans:Electricity [J], ResourceType=Electricity, EndUse=Fans, contents are:
+  VAR SPD FAN:Fan Electricity Energy
+  VAR SPD FAN 1:Fan Electricity Energy
+
+ For Meter=General:Fans:Electricity [J], ResourceType=Electricity, EndUse=Fans, contents are:
+  VAR SPD FAN:Fan Electricity Energy
+  VAR SPD FAN 1:Fan Electricity Energy
+
+ For Meter=DistrictHeating:Facility [J], ResourceType=DistrictHeating, contents are:
+  DISTRICT HEATING:District Heating Hot Water Energy
+
+ For Meter=DistrictHeating:Plant [J], ResourceType=DistrictHeating, Group=Plant, contents are:
+  DISTRICT HEATING:District Heating Hot Water Energy
+
+ For Meter=Heating:DistrictHeating [J], ResourceType=DistrictHeating, EndUse=Heating, contents are:
+  DISTRICT HEATING:District Heating Hot Water Energy
+
+ For Meter=General:Heating:DistrictHeating [J], ResourceType=DistrictHeating, EndUse=Heating, contents are:
+  DISTRICT HEATING:District Heating Hot Water Energy
+
+ For Meter=Electricity:Plant [J], ResourceType=Electricity, Group=Plant, contents are:
+  PUMP VARIABLE SPEED 1:Pump Electricity Energy
+
+ For Meter=Pumps:Electricity [J], ResourceType=Electricity, EndUse=Pumps, contents are:
+  PUMP VARIABLE SPEED 1:Pump Electricity Energy
+
+ For Meter=General:Pumps:Electricity [J], ResourceType=Electricity, EndUse=Pumps, contents are:
+  PUMP VARIABLE SPEED 1:Pump Electricity Energy
+
+ For Meter=Carbon Equivalent:Facility [kg], ResourceType=Carbon Equivalent, contents are:
+  Site:Environmental Impact Total N2O Emissions Carbon Equivalent Mass
+  Site:Environmental Impact Total CH4 Emissions Carbon Equivalent Mass
+  Site:Environmental Impact Total CO2 Emissions Carbon Equivalent Mass
+
+ For Meter=CarbonEquivalentEmissions:Carbon Equivalent [kg], ResourceType=Carbon Equivalent, EndUse=CarbonEquivalentEmissions, contents are:
+  Site:Environmental Impact Total N2O Emissions Carbon Equivalent Mass
+  Site:Environmental Impact Total CH4 Emissions Carbon Equivalent Mass
+  Site:Environmental Impact Total CO2 Emissions Carbon Equivalent Mass

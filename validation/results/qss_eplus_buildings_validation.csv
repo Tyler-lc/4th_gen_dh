@@ -1,0 +1,5 @@
+building,label,qss_total_kwh,qss_specific_ued,qss_peak_kwh,NFA_m2
+AB 1945-1957 (ab3),AB_HT,169772.0,134.0,75.3,1267.0
+MFH 1945-1957 (mfh3),MFH3_HT,121724.0,220.5,49.7,552.0
+MFH 1969-1978 (mfh5),MFH5_HT,77597.0,142.6,34.2,544.0
+TH 1969-1978 (th5),TH5_HT,33923.0,196.3,13.9,173.0

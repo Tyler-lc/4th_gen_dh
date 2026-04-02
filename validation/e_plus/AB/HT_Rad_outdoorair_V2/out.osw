@@ -1,0 +1,1708 @@
+{
+   "completed_at" : "20221123T150602Z",
+   "completed_status" : "Success",
+   "created_at" : "20211006T102842Z",
+   "current_step" : 5,
+   "eplusout_err" : "Program Version,EnergyPlus, Version 9.4.0-998c4b761e, YMD=2022.11.23 16:01,\n   ** Warning ** ProcessScheduleInput: Schedule:Day:Interval=\"CHILLED_WATER_TEMPERATURE_DEFAULT\", Blank Schedule Type Limits Name input -- will not be validated.\n   ** Warning ** ProcessScheduleInput: Schedule:Day:Interval=\"CHILLED_WATER_TEMPERATURE_SUMMER_DESIGN_DAY\", Blank Schedule Type Limits Name input -- will not be validated.\n   ** Warning ** ProcessScheduleInput: Schedule:Day:Interval=\"CHILLED_WATER_TEMPERATURE_WINTER_DESIGN_DAY\", Blank Schedule Type Limits Name input -- will not be validated.\n   ** Warning ** ProcessScheduleInput: Schedule:Year=\"CHILLED_WATER_TEMPERATURE\", Blank Schedule Type Limits Name input -- will not be validated.\n   ** Warning ** ProcessScheduleInput: Schedule:Constant=\"ALWAYS OFF DISCRETE\", Blank Schedule Type Limits Name input -- will not be validated.\n   ** Warning ** ProcessScheduleInput: Schedule:Constant=\"ALWAYS ON CONTINUOUS\", Blank Schedule Type Limits Name input -- will not be validated.\n   ************* Beginning Zone Sizing Calculations\n   ** Warning ** GetHTSurfaceData: Surfaces with interface to Ground found but no \"Ground Temperatures\" were input.\n   **   ~~~   ** Found first in surface=SURFACE 37\n   **   ~~~   ** Defaults, constant throughout the year of (18.0) will be used.\n   ** Warning ** SetUpZoneSizingArrays: Requested Sizing for Zone=\"BASEMENT\", Zone has no thermostat (ref: ZoneControl:Thermostat, et al)\n   ** Warning ** SetUpZoneSizingArrays: Requested Sizing for Zone=\"STAIRCASE\", Zone has no thermostat (ref: ZoneControl:Thermostat, et al)\n   ** Warning ** Calculated design cooling load for zone=BASEMENT is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design heating load for zone=BASEMENT is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH1.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH1.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH2.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH2.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH3.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH3.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH4.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH4.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH5.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH5.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH6.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=NORTH6.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH1.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH1.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH2.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH2.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH3.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH3.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH4.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH4.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH5.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH5.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH6.1 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=SOUTH6.2 is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design cooling load for zone=STAIRCASE is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ** Warning ** Calculated design heating load for zone=STAIRCASE is zero.\n   **   ~~~   ** Check Sizing:Zone and ZoneControl:Thermostat inputs.\n   ************* Beginning System Sizing Calculations\n   ** Warning ** GetAirPathData: AirLoopHVAC=\"AIR LOOP HVAC 1\" has no Controllers.\n   ************* Beginning Plant Sizing Calculations\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N1.1 - 3302\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.05400E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 4.01245E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N1.2 - 3302\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.05400E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 4.01245E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N2.1 - 3303\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.05400E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 4.01245E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N2.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N3.1 - 3303\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.05400E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 4.01245E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N3.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N4.1 - 3303\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.05400E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 4.01245E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N4.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N5.1 - 3303\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.05400E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 4.01245E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N5.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N6.1 - 4771\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.52000E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 5.79630E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"N6.2 - 4771\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.52000E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 5.79630E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S1.1 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S1.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S2.1 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S2.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S3.1 -2936 1\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S3.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S4.1 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S4.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S5.1 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S5.2 - 2937\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 9.36000E-005 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 3.56770E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S6.1 - 4771\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.52000E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 5.79630E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ************* SizeHWBaseboard: Potential issue with equipment sizing for ZoneHVAC:Baseboard:RadiantConvective:Water=\"S6.2 - 4771\".\n   **   ~~~   ** User-Specified Maximum Water Flow Rate of 1.52000E-004 [m3/s]\n   **   ~~~   ** differs from Design Size Maximum Water Flow Rate of 5.79630E-005 [m3/s]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"BASEMENT\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH1.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH1.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH2.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH2.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH3.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH3.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH4.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH4.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH5.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH5.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH6.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"NORTH6.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH1.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH1.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH2.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH2.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH3.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH3.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH4.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH4.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH5.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH5.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH6.1\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"SOUTH6.2\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ** Warning ** GetOAControllerInputs: Controller:MechanicalVentilation=\"CONTROLLER MECHANICAL VENTILATION 1\n   **   ~~~   ** Cannot locate a matching DesignSpecification:ZoneAirDistribution object for Zone=\"STAIRCASE\".\n   **   ~~~   ** Using default zone air distribution effectiveness of 1.0 for heating and cooling.\n   ************* SizeDistrictHeating: Potential issue with equipment sizing for DISTRICT HEATING\n   **   ~~~   ** User-Specified Nominal Capacity of 1000000.00 [W]\n   **   ~~~   ** differs from Design Size Nominal Capacity of 214139.75 [W]\n   **   ~~~   ** This may, or may not, indicate mismatched component sizes.\n   **   ~~~   ** Verify that the value entered is intended and is consistent with other components.\n   ** Warning ** Output:Meter: invalid Key Name=\"NATURALGAS:FACILITY\" - not found.\n   ** Warning ** Output:Meter: invalid Key Name=\"DISTRICTCOOLING:FACILITY\" - not found.\n   ** Warning ** Output:Meter:MeterFileOnly: invalid Key Name=\"NATURALGAS:FACILITY\" - not found.\n   ** Warning ** Output:Meter:MeterFileOnly requested for \"Electricity:Facility\" (TimeStep), already on \"Output:Meter\". Will report to both eplusout.eso and eplusout.mtr\n   ************* Testing Individual Branch Integrity\n   ************* All Branches passed integrity testing\n   ************* Testing Individual Supply Air Path Integrity\n   ************* All Supply Air Paths passed integrity testing\n   ************* Testing Individual Return Air Path Integrity\n   ************* All Return Air Paths passed integrity testing\n   ************* No node connection errors were found.\n   ************* Beginning Simulation\n   ** Warning ** The resource referenced by LifeCycleCost:UsePriceEscalation= \"U.S. AVG  COMMERCIAL-ELECTRICITY\" has no energy cost. \n   **   ~~~   ** ... It is likely that the wrong resource is used. The resource should match the meter used in Utility:Tariff.\n   ** Warning ** The resource referenced by LifeCycleCost:UsePriceEscalation= \"U.S. AVG  COMMERCIAL-DISTILLATE OIL\" has no energy cost. \n   **   ~~~   ** ... It is likely that the wrong resource is used. The resource should match the meter used in Utility:Tariff.\n   ** Warning ** The resource referenced by LifeCycleCost:UsePriceEscalation= \"U.S. AVG  COMMERCIAL-RESIDUAL OIL\" has no energy cost. \n   **   ~~~   ** ... It is likely that the wrong resource is used. The resource should match the meter used in Utility:Tariff.\n   ** Warning ** The resource referenced by LifeCycleCost:UsePriceEscalation= \"U.S. AVG  COMMERCIAL-NATURAL GAS\" has no energy cost. \n   **   ~~~   ** ... It is likely that the wrong resource is used. The resource should match the meter used in Utility:Tariff.\n   ** Warning ** The resource referenced by LifeCycleCost:UsePriceEscalation= \"U.S. AVG  COMMERCIAL-COAL\" has no energy cost. \n   **   ~~~   ** ... It is likely that the wrong resource is used. The resource should match the meter used in Utility:Tariff.\n   ************* Simulation Error Summary *************\n   ** Warning ** The following Report Variables were requested but not generated -- check.rdd file\n   **   ~~~   ** Either the IDF did not contain these elements, the variable name is misspelled,\n   **   ~~~   ** or the requested variable is an advanced output which requires Output : Diagnostics, DisplayAdvancedReportVariables;\n   ************* Key=*, VarName=ZONE IDEAL LOADS ZONE TOTAL HEATING RATE, Frequency=Hourly\n   ************* Key=*, VarName=ZONE VENTILATION MASS FLOW RATE, Frequency=Hourly\n   ************* Key=*, VarName=ZONE IDEAL LOADS ZONE TOTAL HEATING ENERGY, Frequency=Hourly\n   ** Warning ** The following schedule names are \"Unused Schedules\".  These schedules are in the idf\n   **   ~~~   **  file but are never obtained by the simulation and therefore are NOT used.\n   ************* Schedule:Year or Schedule:Compact or Schedule:File or Schedule:Constant=CHILLED_WATER_TEMPERATURE\n   ************* Schedule:Year or Schedule:Compact or Schedule:File or Schedule:Constant=DECK_TEMPERATURE\n   ************* Schedule:Year or Schedule:Compact or Schedule:File or Schedule:Constant=ALWAYS OFF DISCRETE\n   ************* Schedule:Year or Schedule:Compact or Schedule:File or Schedule:Constant=ALWAYS ON CONTINUOUS\n   ** Warning ** The following week schedule names are \"Unused Schedules\".  These schedules are in the idf\n   **   ~~~   **  file but are never obtained by the simulation and therefore are NOT used.\n   ************* Schedule:Week:Daily or Schedule:Week:Compact=CHILLED_WATER_TEMPERATURE WEEK RULE - JAN1-DEC31\n   ************* Schedule:Week:Daily or Schedule:Week:Compact=DECK_TEMPERATURE WEEK RULE - JAN1-DEC31\n   ************* Schedule:Week:Daily or Schedule:Week:Compact=ALWAYS OFF DISCRETE_wk_\n   ************* Schedule:Week:Daily or Schedule:Week:Compact=ALWAYS ON CONTINUOUS_wk_\n   ** Warning ** The following day schedule names are \"Unused Schedules\".  These schedules are in the idf\n   **   ~~~   **  file but are never obtained by the simulation and therefore are NOT used.\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=CHILLED_WATER_TEMPERATURE_DEFAULT\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=CHILLED_WATER_TEMPERATURE_SUMMER_DESIGN_DAY\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=CHILLED_WATER_TEMPERATURE_WINTER_DESIGN_DAY\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=DECK_TEMPERATURE_DEFAULT\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=DECK_TEMPERATURE_SUMMER_DESIGN_DAY\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=DECK_TEMPERATURE_WINTER_DESIGN_DAY\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=ALWAYS OFF DISCRETE_dy_\n   ************* Schedule:Day:Hourly or Schedule:Day:Interval or Schedule:Day:List=ALWAYS ON CONTINUOUS_dy_\n   ************* EnergyPlus Warmup Error Summary. During Warmup: 0 Warning; 0 Severe Errors.\n   ************* EnergyPlus Sizing Error Summary. During Sizing: 38 Warning; 0 Severe Errors.\n   ************* EnergyPlus Completed Successfully-- 77 Warning; 0 Severe Errors; Elapsed Time=00hr 04min 31.76sec\n",
+   "file_paths" : 
+   [
+      "C:/Users/lucas/AppData/Local/Temp/osmodel-1669215444-0/resources/generated_files",
+      "./files",
+      "./weather",
+      "../../files",
+      "../../weather",
+      "./"
+   ],
+   "hash" : "A3F3DA4D",
+   "seed_file" : "../HT_Rad_outdoorair_V2.osm",
+   "started_at" : "20221123T150107Z",
+   "steps" : 
+   [
+      {
+         "arguments" : 
+         {
+            "variable_name" : "Zone Ideal Loads Zone Total Heating Energy"
+         },
+         "description" : "This measure adds an output variable at the requested reporting frequency.",
+         "measure_dir_name" : "Add Output Variable",
+         "modeler_description" : "The measure just passes in the string and does not validate that it is a proper variable name. It is up to the user to know this or to look at the .rdd file from a previous simulation run.",
+         "name" : "Ideal Loads Energy",
+         "result" : 
+         {
+            "completed_at" : "20221123T150107Z",
+            "measure_class_name" : "AddOutputVariable",
+            "measure_display_name" : "Add Output Variable",
+            "measure_name" : "add_output_variable",
+            "measure_taxonomy" : "Reporting.QAQC",
+            "measure_type" : "ModelMeasure",
+            "measure_uid" : "2a058afb-e349-49ae-a4bf-2c56a42b4352",
+            "measure_version_id" : "3eecceae-5a6f-4d69-ab65-567f9ffeb8b3",
+            "measure_version_modified" : "20200229T024320Z",
+            "measure_xml_checksum" : "0CA4D54C",
+            "started_at" : "20221123T150107Z",
+            "stderr" : "",
+            "stdout" : "",
+            "step_errors" : [],
+            "step_files" : [],
+            "step_final_condition" : "The model finished with 9 output variable objects.",
+            "step_info" : 
+            [
+               "Adding output variable for Zone Ideal Loads Zone Total Heating Energy reporting hourly.",
+               "Key value for variable is *."
+            ],
+            "step_initial_condition" : "The model started with 8 output variable objects.",
+            "step_result" : "Success",
+            "step_values" : 
+            [
+               {
+                  "name" : "variable_name",
+                  "value" : "Zone Ideal Loads Zone Total Heating Energy"
+               },
+               {
+                  "name" : "reporting_frequency",
+                  "value" : "hourly"
+               },
+               {
+                  "name" : "key_value",
+                  "value" : "*"
+               }
+            ],
+            "step_warnings" : []
+         }
+      },
+      {
+         "arguments" : 
+         {
+            "variable_name" : "Zone Ideal Loads Zone Total Heating Rate"
+         },
+         "description" : "This measure adds an output variable at the requested reporting frequency.",
+         "measure_dir_name" : "Add Output Variable",
+         "modeler_description" : "The measure just passes in the string and does not validate that it is a proper variable name. It is up to the user to know this or to look at the .rdd file from a previous simulation run.",
+         "name" : "Ideal Loads Rate",
+         "result" : 
+         {
+            "completed_at" : "20221123T150107Z",
+            "measure_class_name" : "AddOutputVariable",
+            "measure_display_name" : "Add Output Variable",
+            "measure_name" : "add_output_variable",
+            "measure_taxonomy" : "Reporting.QAQC",
+            "measure_type" : "ModelMeasure",
+            "measure_uid" : "2a058afb-e349-49ae-a4bf-2c56a42b4352",
+            "measure_version_id" : "3eecceae-5a6f-4d69-ab65-567f9ffeb8b3",
+            "measure_version_modified" : "20200229T024320Z",
+            "measure_xml_checksum" : "0CA4D54C",
+            "started_at" : "20221123T150107Z",
+            "stderr" : "",
+            "stdout" : "",
+            "step_errors" : [],
+            "step_files" : [],
+            "step_final_condition" : "The model finished with 10 output variable objects.",
+            "step_info" : 
+            [
+               "Adding output variable for Zone Ideal Loads Zone Total Heating Rate reporting hourly.",
+               "Key value for variable is *."
+            ],
+            "step_initial_condition" : "The model started with 9 output variable objects.",
+            "step_result" : "Success",
+            "step_values" : 
+            [
+               {
+                  "name" : "variable_name",
+                  "value" : "Zone Ideal Loads Zone Total Heating Rate"
+               },
+               {
+                  "name" : "reporting_frequency",
+                  "value" : "hourly"
+               },
+               {
+                  "name" : "key_value",
+                  "value" : "*"
+               }
+            ],
+            "step_warnings" : []
+         }
+      },
+      {
+         "arguments" : 
+         {
+            "variable_name" : "Zone Mechanical Ventilation Mass Flow Rate"
+         },
+         "description" : "This measure adds an output variable at the requested reporting frequency.",
+         "measure_dir_name" : "Add Output Variable",
+         "modeler_description" : "The measure just passes in the string and does not validate that it is a proper variable name. It is up to the user to know this or to look at the .rdd file from a previous simulation run.",
+         "name" : "ventilation flow rate",
+         "result" : 
+         {
+            "completed_at" : "20221123T150107Z",
+            "measure_class_name" : "AddOutputVariable",
+            "measure_display_name" : "Add Output Variable",
+            "measure_name" : "add_output_variable",
+            "measure_taxonomy" : "Reporting.QAQC",
+            "measure_type" : "ModelMeasure",
+            "measure_uid" : "2a058afb-e349-49ae-a4bf-2c56a42b4352",
+            "measure_version_id" : "3eecceae-5a6f-4d69-ab65-567f9ffeb8b3",
+            "measure_version_modified" : "20200229T024320Z",
+            "measure_xml_checksum" : "0CA4D54C",
+            "started_at" : "20221123T150107Z",
+            "stderr" : "",
+            "stdout" : "",
+            "step_errors" : [],
+            "step_files" : [],
+            "step_final_condition" : "The model finished with 11 output variable objects.",
+            "step_info" : 
+            [
+               "Adding output variable for Zone Mechanical Ventilation Mass Flow Rate reporting hourly.",
+               "Key value for variable is *."
+            ],
+            "step_initial_condition" : "The model started with 10 output variable objects.",
+            "step_result" : "Success",
+            "step_values" : 
+            [
+               {
+                  "name" : "variable_name",
+                  "value" : "Zone Mechanical Ventilation Mass Flow Rate"
+               },
+               {
+                  "name" : "reporting_frequency",
+                  "value" : "hourly"
+               },
+               {
+                  "name" : "key_value",
+                  "value" : "*"
+               }
+            ],
+            "step_warnings" : []
+         }
+      },
+      {
+         "arguments" : 
+         {
+            "outputDiagnostic" : "DisplayAllWarnings"
+         },
+         "description" : "Often the eplusout.err file may request output diagnostics. This measure can be used to add this to the IDF file. Re-run your project to see the requested output.",
+         "measure_dir_name" : "AddOutputDiagnostics",
+         "modeler_description" : "Makes Output:Diagnostics object with choice list for optional values:, DisplayAllWarnings, DisplayExtraWarnings, DisplayUnusedSchedules, DisplayUnusedObjects, DisplayAdvancedReportVariables, DisplayZoneAirHeatBalanceOffBalance, DoNotMirrorDetachedShading, DisplayWeatherMissingDataWarnings, ReportDuringWarmup, ReportDetailedWarmupConvergence.",
+         "name" : "Add Output Diagnostics",
+         "result" : 
+         {
+            "completed_at" : "20221123T150107Z",
+            "measure_class_name" : "AddOutputDiagnostics",
+            "measure_display_name" : "Add Output Diagnostics",
+            "measure_name" : "add_output_diagnostics",
+            "measure_taxonomy" : "Reporting.QAQC",
+            "measure_type" : "EnergyPlusMeasure",
+            "measure_uid" : "cb957503-4a01-42c4-a918-a44df4ea759c",
+            "measure_version_id" : "a7506eaf-51ed-4409-a00e-3b84c6feb5b9",
+            "measure_version_modified" : "20200229T024313Z",
+            "measure_xml_checksum" : "AA6ADD14",
+            "started_at" : "20221123T150107Z",
+            "stderr" : "",
+            "stdout" : "",
+            "step_errors" : [],
+            "step_files" : [],
+            "step_final_condition" : "The model finished with 1 Output:Diagnostic objects.",
+            "step_info" : 
+            [
+               "An output diagnostic object with a value of DisplayAllWarnings has been added to your model."
+            ],
+            "step_initial_condition" : "The model started with 0 Output:Diagnostic objects.",
+            "step_result" : "Success",
+            "step_values" : 
+            [
+               {
+                  "name" : "outputDiagnostic",
+                  "value" : "DisplayAllWarnings"
+               }
+            ],
+            "step_warnings" : []
+         }
+      },
+      {
+         "arguments" : 
+         {
+            "units" : "SI"
+         },
+         "description" : "This measure creates high level tables and charts pulling both from model inputs and EnergyPlus results. It has building level information as well as detail on space types, thermal zones, HVAC systems, envelope characteristics, and economics. Click the heading above a chart to view a table of the chart data.",
+         "measure_dir_name" : "OpenStudioResults",
+         "modeler_description" : "For the most part consumption data comes from the tabular EnergyPlus results, however there are a few requests added for time series results. Space type and loop details come from the OpenStudio model. The code for this is modular, making it easy to use as a template for your own custom reports. The structure of the report uses bootstrap, and the graphs use dimple js. The new measure warning section will show warnings generated by upstream measures. It will not show forward translation warnings, EnergyPlus warnings, or warnings that might be reported by this measure.",
+         "name" : "OpenStudio Results",
+         "result" : 
+         {
+            "completed_at" : "20221123T150601Z",
+            "measure_class_name" : "OpenStudioResults",
+            "measure_display_name" : "OpenStudio Results",
+            "measure_name" : "openstudio_results",
+            "measure_taxonomy" : "Reporting.QAQC",
+            "measure_type" : "ReportingMeasure",
+            "measure_uid" : "a25386cd-60e4-46bc-8b11-c755f379d916",
+            "measure_version_id" : "59fa3076-fa21-4623-9fd5-2cfa10e98db9",
+            "measure_version_modified" : "20210322T205322Z",
+            "measure_xml_checksum" : "557BF06F",
+            "started_at" : "20221123T150543Z",
+            "stderr" : "",
+            "stdout" : "",
+            "step_errors" : [],
+            "step_files" : 
+            [
+               "C:/Users/lucas/AppData/Local/Temp/osmodel-1669215444-0/resources/run/004_OpenStudioResults/report.html"
+            ],
+            "step_final_condition" : "Generated report with 22 sections to ./report.html.",
+            "step_info" : [],
+            "step_initial_condition" : "Gathering data from EnergyPlus SQL file and OSM model. Will report in SI Units",
+            "step_result" : "Success",
+            "step_values" : 
+            [
+               {
+                  "name" : "units",
+                  "value" : "SI"
+               },
+               {
+                  "name" : "building_summary_section",
+                  "value" : true
+               },
+               {
+                  "name" : "annual_overview_section",
+                  "value" : true
+               },
+               {
+                  "name" : "monthly_overview_section",
+                  "value" : true
+               },
+               {
+                  "name" : "utility_bills_rates_section",
+                  "value" : true
+               },
+               {
+                  "name" : "envelope_section_section",
+                  "value" : true
+               },
+               {
+                  "name" : "space_type_breakdown_section",
+                  "value" : true
+               },
+               {
+                  "name" : "space_type_details_section",
+                  "value" : true
+               },
+               {
+                  "name" : "interior_lighting_section",
+                  "value" : true
+               },
+               {
+                  "name" : "plug_loads_section",
+                  "value" : true
+               },
+               {
+                  "name" : "exterior_light_section",
+                  "value" : true
+               },
+               {
+                  "name" : "water_use_section",
+                  "value" : true
+               },
+               {
+                  "name" : "hvac_load_profile",
+                  "value" : true
+               },
+               {
+                  "name" : "zone_condition_section",
+                  "value" : true
+               },
+               {
+                  "name" : "zone_summary_section",
+                  "value" : true
+               },
+               {
+                  "name" : "zone_equipment_detail_section",
+                  "value" : true
+               },
+               {
+                  "name" : "air_loops_detail_section",
+                  "value" : true
+               },
+               {
+                  "name" : "plant_loops_detail_section",
+                  "value" : true
+               },
+               {
+                  "name" : "outdoor_air_section",
+                  "value" : true
+               },
+               {
+                  "name" : "cost_summary_section",
+                  "value" : true
+               },
+               {
+                  "name" : "source_energy_section",
+                  "value" : true
+               },
+               {
+                  "name" : "schedules_overview_section",
+                  "value" : true
+               },
+               {
+                  "name" : "measure_warning_section",
+                  "value" : true
+               },
+               {
+                  "name" : "reg_monthly_details",
+                  "value" : false
+               },
+               {
+                  "name" : "standards_gem_version",
+                  "value" : "0.2.12"
+               },
+               {
+                  "name" : "workflow_gem_version",
+                  "value" : "2.1.0"
+               },
+               {
+                  "display_name" : "Building 1",
+                  "name" : "building_name",
+                  "value" : "n/a"
+               },
+               {
+                  "name" : "total_site_energy",
+                  "units" : "kWh",
+                  "value" : 167830.55555555556
+               },
+               {
+                  "name" : "net_site_energy",
+                  "units" : "kWh",
+                  "value" : 167830.55555555556
+               },
+               {
+                  "name" : "total_building_area",
+                  "units" : "m^2",
+                  "value" : 1485.0
+               },
+               {
+                  "name" : "total_site_eui",
+                  "units" : "kWh/m^2",
+                  "value" : 113.01720912832025
+               },
+               {
+                  "name" : "eui",
+                  "units" : "kWh/m^2",
+                  "value" : 113.01720912832025
+               },
+               {
+                  "name" : "unmet_hours_during_heating",
+                  "units" : "hr",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "unmet_hours_during_cooling",
+                  "units" : "hr",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "unmet_hours_during_occupied_heating",
+                  "units" : "hr",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "unmet_hours_during_occupied_cooling",
+                  "units" : "hr",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "unmet_hours_tolerance_heating",
+                  "units" : "K",
+                  "value" : 0.20000000000000001
+               },
+               {
+                  "name" : "unmet_hours_tolerance_cooling",
+                  "units" : "K",
+                  "value" : 0.20000000000000001
+               },
+               {
+                  "name" : "end_use_heating",
+                  "units" : "kWh",
+                  "value" : 144402.77777777778
+               },
+               {
+                  "name" : "end_use_cooling",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_interior_lighting",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_exterior_lighting",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_interior_equipment",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_exterior_equipment",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_fans",
+                  "units" : "kWh",
+                  "value" : 22700.0
+               },
+               {
+                  "name" : "end_use_pumps",
+                  "units" : "kWh",
+                  "value" : 727.77777777777771
+               },
+               {
+                  "name" : "end_use_heat_rejection",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_humidification",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_heat_recovery",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_water_systems",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_refrigeration",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_generators",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_electricity",
+                  "units" : "kBtu",
+                  "value" : 79938.895927225181
+               },
+               {
+                  "name" : "fuel_natural_gas",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_gasoline",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_diesel",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_coal",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_fuel_oil_no_1",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_fuel_oil_no_2",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_propane",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_other_fuel_1",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_other_fuel_2",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_district_cooling",
+                  "units" : "kBtu",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_district_heating",
+                  "units" : "kBtu",
+                  "value" : 492722.729994878
+               },
+               {
+                  "name" : "end_use_electricity_heating",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_cooling",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_interior_lighting",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_exterior_lighting",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_interior_equipment",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_exterior_equipment",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_fans",
+                  "units" : "kWh",
+                  "value" : 22700.0
+               },
+               {
+                  "name" : "end_use_electricity_pumps",
+                  "units" : "kWh",
+                  "value" : 727.77777777777771
+               },
+               {
+                  "name" : "end_use_electricity_heat_rejection",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_humidification",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_heat_recovery",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_water_systems",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_refrigeration",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_electricity_generators",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_heating",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_cooling",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_interior_lighting",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_exterior_lighting",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_interior_equipment",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_exterior_equipment",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_fans",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_pumps",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_heat_rejection",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_humidification",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_heat_recovery",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_water_systems",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_refrigeration",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "end_use_natural_gas_generators",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_fans_ip",
+                  "units" : "kWh",
+                  "value" : 22700.555555555555
+               },
+               {
+                  "name" : "electricity_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 727.29634465555546
+               },
+               {
+                  "name" : "electricity_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "electricity_ip",
+                  "units" : "kWh",
+                  "value" : 23427.85190021111
+               },
+               {
+                  "name" : "natural_gas_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "natural_gas_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "gasoline_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "diesel_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "coal_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_1_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "fuel_oil_no_2_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "propane_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_1_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "other_fuel_2_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_heating_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_heating_ip",
+                  "units" : "kWh",
+                  "value" : 144403.44069989724
+               },
+               {
+                  "name" : "district_heating_cooling_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_interior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_exterior_lighting_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_interior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_exterior_equipment_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_fans_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_pumps_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_heat_rejection_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_humidification_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_heat_recovery_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_water_systems_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_refrigeration_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_generators_ip",
+                  "units" : "kWh",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "district_heating_ip",
+                  "units" : "kWh",
+                  "value" : 144403.44069989724
+               },
+               {
+                  "name" : "external_walls",
+                  "units" : "m^2",
+                  "value" : 963.86000000000058
+               },
+               {
+                  "name" : "roof",
+                  "units" : "m^2",
+                  "value" : 264.00000000000023
+               },
+               {
+                  "name" : "glass_door",
+                  "units" : "m^2",
+                  "value" : 3.0
+               },
+               {
+                  "name" : "windows",
+                  "units" : "m^2",
+                  "value" : 223.13999999999987
+               },
+               {
+                  "name" : "gross_window_wall_ratio",
+                  "units" : "%",
+                  "value" : 19.0
+               },
+               {
+                  "name" : "gross_window_wall_ratio_conditioned",
+                  "units" : "%",
+                  "value" : 19.0
+               },
+               {
+                  "name" : "skylight_roof_ratio",
+                  "units" : "%",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "space_type_bedrooms",
+                  "units" : "m^2",
+                  "value" : 768.0
+               },
+               {
+                  "name" : "space_type_kitchen",
+                  "units" : "m^2",
+                  "value" : 420.0
+               },
+               {
+                  "name" : "space_type_livingrooms",
+                  "units" : "m^2",
+                  "value" : 297.0
+               },
+               {
+                  "name" : "space_type_non_living_areas",
+                  "units" : "m^2",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "zone_max_hours_over_70_rh",
+                  "units" : "hr",
+                  "value" : 467.0
+               },
+               {
+                  "name" : "zone_max_hours_over_55_rh",
+                  "units" : "hr",
+                  "value" : 2241.0
+               },
+               {
+                  "name" : "num_zones_x_hours_over_70",
+                  "units" : "zones",
+                  "value" : 26
+               },
+               {
+                  "name" : "num_zones_x_hours_over_55",
+                  "units" : "zones",
+                  "value" : 26
+               },
+               {
+                  "name" : "inflation_approach",
+                  "value" : "Constant Dollar"
+               },
+               {
+                  "name" : "analysis_length",
+                  "units" : "yrs",
+                  "value" : 25
+               },
+               {
+                  "name" : "number_of_measures_with_warnings",
+                  "value" : 0
+               },
+               {
+                  "name" : "number_warnings",
+                  "value" : 0
+               },
+               {
+                  "name" : "annual_peak_electric_demand",
+                  "units" : "kW",
+                  "value" : 2.8989799999999999
+               },
+               {
+                  "name" : "first_year_capital_cost",
+                  "units" : "$",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "annual_utility_cost",
+                  "units" : "$",
+                  "value" : 0.0
+               },
+               {
+                  "name" : "total_lifecycle_cost",
+                  "units" : "$",
+                  "value" : 0.0
+               }
+            ],
+            "step_warnings" : []
+         }
+      }
+   ],
+   "updated_at" : "20221123T150602Z",
+   "weather_file" : "DEU_Frankfurt.am.Main.106370_IWEC.epw"
+}
