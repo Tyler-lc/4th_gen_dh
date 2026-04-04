@@ -156,6 +156,12 @@ area_results = pd.DataFrame(
 )
 
 
+# BUG: area_results["space_heating"] only accumulates demand from buildings
+# that need insulation (inside the while loop). Buildings already below the
+# threshold are never added, resulting in ~30% undercount (37,614 vs 54,184 MWh).
+# The downstream scenario scripts no longer depend on this CSV (they use
+# utils/area_demand.py instead), so this is non-critical. Fix by initialising
+# area_results with the unrenovated demand and replacing only renovated buildings.
 # now we will apply the renovation to the buildings that need it.
 while gdf_buildingstock_results["needs_insulation"].sum() > 0:
 
