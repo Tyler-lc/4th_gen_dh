@@ -23,10 +23,10 @@ from utils.misc import get_electricity_cost
 from config import (
     PLOTS_DIR,
     grid_results_parquet,
-    area_results_path,
     buildingstock_results_path,
     weather_data_path,
 )
+from utils.area_demand import compute_area_demand
 
 #############################################################################################
 # In this scenario we compare the NPV of the customer when they do not renovate and use gas
@@ -87,9 +87,7 @@ res_types = ["mfh", "sfh", "ab", "th"]
 
 ## We need to import both the unrenovated and renovated buildingstock
 
-path_renovated_area = area_results_path("renovated")
-areas_demand = pd.read_csv(path_renovated_area, index_col=0)
-areas_demand.index = pd.to_datetime(areas_demand.index)
+areas_demand = compute_area_demand("renovated")
 
 areas_demand["total_useful_demand"] = (
     areas_demand["dhw_energy"] + areas_demand["space_heating"]

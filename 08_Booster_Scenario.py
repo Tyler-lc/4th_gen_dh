@@ -22,10 +22,10 @@ from utils.misc import get_electricity_cost
 from config import (
     PLOTS_DIR,
     grid_results_parquet,
-    booster_area_results_path,
     booster_buildingstock_results_path,
     weather_data_path,
 )
+from utils.area_demand import compute_booster_area_demand
 
 #############################################################################################
 # In this scenario we will use a mixed heat supply system. We will distribute the heat at low
@@ -103,9 +103,7 @@ fixed_costs_boosters = 250  # €/booster per year
 
 ## We need to import both the unrenovated and renovated buildingstock
 
-path_unrenovated_area = booster_area_results_path(size)
-areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
-areas_demand.index = pd.to_datetime(areas_demand.index)
+areas_demand = compute_booster_area_demand()
 
 areas_demand["total useful demand thermal demand [kWh]"] = (
     areas_demand["area space heating demand [kWh]"]

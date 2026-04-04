@@ -9,11 +9,19 @@ import os
 from config import (
     PLOTS_DIR,
     grid_results_parquet,
-    area_results_path,
     buildingstock_results_path,
     weather_data_path,
 )
-from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh, compute_ouc_residual
+from utils.area_demand import compute_area_demand
+from costs.heat_supply import (
+    capital_costs_hp,
+    var_oem_hp,
+    fixed_oem_hp,
+    calculate_lcoh,
+    compute_ouc_residual,
+)
+from utils.misc import get_electricity_cost
+
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
 from costs.renovation_costs import (
@@ -44,10 +52,6 @@ reduction_factor = 1
 safety_factor = 1.2
 n_heat_pumps = 3
 
-
-initial_electricity_cost = (
-    0.1776  # EUROSTAT 2023- semester 2 for consumption between above 19999 MWH
-)
 n_years_hp = 25  # for LCOH calculation
 ir_hp = 0.05  # interest rate for the heat pump
 heat_pump_lifetime = 25  # setting years until replacement
@@ -86,9 +90,7 @@ res_types = ["mfh", "sfh", "ab", "th"]
 
 ## We need to import both the unrenovated and renovated buildingstock
 
-path_unrenovated_area = area_results_path("unrenovated")
-areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
-areas_demand.index = pd.to_datetime(areas_demand.index)
+areas_demand = compute_area_demand("unrenovated")
 
 areas_demand["total_useful_demand"] = (
     areas_demand["dhw_energy"] + areas_demand["space_heating"]
@@ -124,6 +126,7 @@ heat_pump_load = (
 )  # MWh this is the load for each heat pump
 capacity_single_hp = estimated_capacity / n_heat_pumps * safety_factor / 1000  # MW
 
+
 # let's calculate the efficiency of the heat pumps at a hourly level.
 # we assume that the heat pumps are air source heat pumps.
 # the COP of the heat pump is calculated as a function of the outside temperature using the Carnot formula
@@ -143,6 +146,7 @@ cop_hourly = carnot_cop(supply_temp, outside_temp, approach_temperature)
 P_el = (
     areas_demand["hourly heat generated in Large HP [kWh]"] / cop_hourly
 )  # this is the Electric power input for ALL heat pumps
+
 
 DK_to_DE = (
     109.1 / 148.5
@@ -181,6 +185,11 @@ print(
 
 # TODO: I could make a little function or simply a mapping to calculate the electricity cost for the DH operator
 ## we need to calculate also the electricity cost of running the heat pump:
+# and this is the electricity cost for the large scale heat pump in €/MWh
+initial_electricity_cost = get_electricity_cost(
+    P_el.sum() / 1000,
+    "non_residential",  # total electricity consumption
+)
 
 future_electricity_prices = calculate_future_values(
     {"electricity": initial_electricity_cost}, n_years_hp
@@ -202,9 +211,13 @@ unrenovated_buildingstock = unrenovated_buildingstock[
     unrenovated_buildingstock["NFA"] >= 30
 ]
 yearly_heat_supplied = (
-    unrenovated_buildingstock["yearly_dhw_energy"]
-    + unrenovated_buildingstock["yearly_space_heating"]
-).sum() / efficiency_he / 1000  # MWh
+    (
+        unrenovated_buildingstock["yearly_dhw_energy"]
+        + unrenovated_buildingstock["yearly_space_heating"]
+    ).sum()
+    / efficiency_he
+    / 1000
+)  # MWh
 
 heat_supplied_df = pd.DataFrame(
     {"Heat Supplied (MW)": [yearly_heat_supplied] * n_years_hp}
@@ -475,7 +488,9 @@ plt.tight_layout()
 plt.tight_layout()
 os.makedirs(PLOTS_DIR / "HighTemperature", exist_ok=True)
 plt.savefig(
-    PLOTS_DIR / "HighTemperature" / f"HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"HighTemperature_SavingsAverage_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -496,7 +511,9 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    PLOTS_DIR / "HighTemperature" / f"HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -537,7 +554,9 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    PLOTS_DIR / "HighTemperature" / f"HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -558,7 +577,9 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    PLOTS_DIR / "HighTemperature" / f"HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"HighTemperature_SavingsDistribution_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -586,7 +607,9 @@ for i, building_type in enumerate(building_types, 1):
 
 plt.tight_layout()
 plt.savefig(
-    PLOTS_DIR / "HighTemperature" / f"HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"HighTemperature_EnergySavingsVsNFA_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -605,7 +628,9 @@ bar.tick_params(labelsize=14)
 plt.xticks(rotation=45)
 plt.tight_layout()
 plt.savefig(
-    PLOTS_DIR / "HighTemperature" / f"HighTemperature_AverageSavings_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"HighTemperature_AverageSavings_reduction_factor_{reduction_factor}_dhg_lifetime_{dhg_lifetime}.png"
 )
 plt.close()
 
@@ -624,11 +649,16 @@ plt.xlabel("Building Type")
 plt.ylabel("NPV Savings (€)")
 
 os.makedirs(
-    PLOTS_DIR / "HighTemperature" / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}",
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}",
     exist_ok=True,
 )
 npv_data.to_csv(
-    PLOTS_DIR / "HighTemperature" / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}" / "npv_data_high_temperature.csv"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}"
+    / "npv_data_high_temperature.csv"
 )
 # bar plot with box plot overlayed.
 plt.figure(figsize=(12, 8))
@@ -725,7 +755,9 @@ print(f"NPV of the District Heating Operator: {npv_dh}")
 
 # Create export directory if it doesn't exist
 export_path = (
-    PLOTS_DIR / "HighTemperature" / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"data_exports_{reduction_factor}_dhg_lifetime_{dhg_lifetime}"
 )
 os.makedirs(export_path, exist_ok=True)
 
@@ -754,9 +786,13 @@ parameters = {
     "gas_prices": gas_energy_prices,
     "total_hp_inv_costs": total_installation_costs,
     "total_grid_inv_costs": investment_costs_dhg,
-    "total_heat_from_lshp_kwh": float(areas_demand["hourly heat generated in Large HP [kWh]"].sum()),
+    "total_heat_from_lshp_kwh": float(
+        areas_demand["hourly heat generated in Large HP [kWh]"].sum()
+    ),
     "total_electricity_lshp_kwh": float(P_el.sum()),
-    "SCOP_lshp": float(areas_demand["hourly heat generated in Large HP [kWh]"].sum() / P_el.sum()),
+    "SCOP_lshp": float(
+        areas_demand["hourly heat generated in Large HP [kWh]"].sum() / P_el.sum()
+    ),
 }
 
 with open(export_path / "parameters.json", "w") as f:
@@ -791,7 +827,9 @@ plt.title("Building Specific Energy Use Demand")
 
 plt.tight_layout()
 plt.savefig(
-    PLOTS_DIR / "HighTemperature" / f"HighTemperature_specific_ued_dhg_lifetime_{dhg_lifetime}_dhg_lifetime_{dhg_lifetime}.png"
+    PLOTS_DIR
+    / "HighTemperature"
+    / f"HighTemperature_specific_ued_dhg_lifetime_{dhg_lifetime}_dhg_lifetime_{dhg_lifetime}.png"
 )
 
 # n_columns = 3
