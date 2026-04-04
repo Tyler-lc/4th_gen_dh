@@ -34,11 +34,23 @@ SCENARIOS = {
     },
 }
 
-MULTIPLIERS = [0.6, 0.7, 0.8, 0.9, 1.0]
+def _discover_multipliers(scenario_dir: Path, min_val: float = 0.6) -> list:
+    """Auto-discover available multiplier values from filenames, filtered to >= min_val."""
+    import re
+    mults = []
+    for f in scenario_dir.glob("inv_cost_multiplier_*.csv"):
+        m = re.search(r"inv_cost_multiplier_([\d.]+)\.csv$", f.name)
+        if m:
+            val = float(m.group(1))
+            if val >= min_val:
+                mults.append(val)
+    return sorted(mults)
 
 
-def load_scenario_data(scenario_dir: Path, multipliers: list) -> dict:
+def load_scenario_data(scenario_dir: Path, multipliers: list = None) -> dict:
     """Load per-multiplier data for a scenario."""
+    if multipliers is None:
+        multipliers = _discover_multipliers(scenario_dir)
     results = []
     for mult in multipliers:
         fpath = scenario_dir / f"inv_cost_multiplier_{mult}.csv"
@@ -90,7 +102,7 @@ if __name__ == "__main__":
 
     for name, info in SCENARIOS.items():
         print(f"\n=== {name} ===")
-        data = load_scenario_data(info["dir"], MULTIPLIERS)
+        data = load_scenario_data(info["dir"])
         npv = load_operator_npv(info["dir"])
         all_data[name] = data
         all_npv[name] = npv
@@ -101,7 +113,12 @@ if __name__ == "__main__":
     print("RANKING CHECK: Does the scenario ordering change with CAPEX reduction?")
     print(f"{'='*80}")
 
-    for mult in MULTIPLIERS:
+    # Use multipliers common to all scenarios
+    common_mults = None
+    for data in all_data.values():
+        s = set(data["multiplier"].round(10))
+        common_mults = s if common_mults is None else common_mults & s
+    for mult in sorted(common_mults):
         red = round((1 - mult) * 100)
         prices = {}
         for name, data in all_data.items():
@@ -135,6 +152,12 @@ if __name__ == "__main__":
     ax.invert_xaxis()  # 0% reduction on right, 40% on left
     plt.tight_layout()
     fig.savefig(RESULTS_DIR / "customer_price_vs_capex.png", dpi=200)
+    paper_fig = Path(
+        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
+        "Other computers/My laptop/Documents/phd thesis/Possible papers/"
+        "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
+    )
+    fig.savefig(paper_fig / "hp_capex_sensitivity.png", dpi=200)
     print(f"\nSaved customer price plot")
 
     # --- Figure 2: Operator NPV vs CAPEX multiplier ---
