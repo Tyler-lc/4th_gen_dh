@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
 
 from config import SENSITIVITY_DIR, sensitivity_results_dir
 
@@ -76,11 +77,15 @@ def create_combined_contour(df_booster, df_ht, df_lt):
     ax.legend(handles=legend_elements, fontsize=14, loc="upper left")
 
     plt.tight_layout()
-    plt.savefig(
-        SENSITIVITY_DIR / "combined_price_sensitivity_contour.png",
-        bbox_inches="tight",
-        dpi=300,
+
+    paper_fig = Path(
+        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
+        "Other computers/My laptop/Documents/phd thesis/Possible papers/"
+        "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
     )
+    fname = "combined_price_sensitivity_contour.png"
+    for dest in [SENSITIVITY_DIR / fname, paper_fig / fname]:
+        plt.savefig(dest, bbox_inches="tight", dpi=300)
     plt.close()
 
 

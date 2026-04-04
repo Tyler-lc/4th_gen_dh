@@ -26,9 +26,16 @@ average_specific_ued_renovated = renovated_buildingstock.groupby("building_usage
 ].mean()
 
 
-labels = average_specific_ued_unrenovated.index.tolist()
-values_unrenovated = average_specific_ued_unrenovated.values
-values_renovated = average_specific_ued_renovated.values
+_label_map = {
+    "mfh": "MFH", "sfh": "SFH", "ab": "AB", "th": "TH",
+    "other": "Other", "trade": "Trade", "education": "Education",
+    "health": "Health", "office": "Office",
+}
+_type_order = ["mfh", "ab", "sfh", "th", "other", "trade", "education", "health", "office"]
+_raw_labels = [t for t in _type_order if t in average_specific_ued_unrenovated.index]
+labels = [_label_map[l] for l in _raw_labels]
+values_unrenovated = average_specific_ued_unrenovated.reindex(_raw_labels).values
+values_renovated = average_specific_ued_renovated.reindex(_raw_labels).values
 
 width = 0.35  # Bar width
 x = np.arange(len(labels))  # Label locations
@@ -64,25 +71,25 @@ rects2 = ax.bar(
 )
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel("Average Specific UED (kWh/m²a)", fontsize=16)
+ax.set_ylabel("Average Specific UED [kWh/(m\u00b2\u00b7yr)]", fontsize=18)
 
 
 # ax.set_title("Average Specific UED by Building Type and Renovation Status")
 ax.set_xticks(x)
 ax.set_xticklabels(labels)
 ax.legend()
-plt.yticks(fontsize=14)
+plt.yticks(fontsize=16)
 
-plt.xticks(rotation=45, ha="right", fontsize=16)  # Rotate labels to prevent overlap
+plt.xticks(rotation=45, ha="right", fontsize=18)  # Rotate labels to prevent overlap
 fig.tight_layout()
 
 # Save with bbox_inches='tight' to prevent label cutoff
 plt.savefig(
-    PLOTS_DIR / "buildingstock_demand_pre_post_renovation.png", dpi=1000, bbox_inches="tight"
+    PLOTS_DIR / "buildingstock_demand_pre_post_renovation.png", dpi=300, bbox_inches="tight"
 )
 plt.savefig(
     "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/Other computers/My laptop/Documents/phd thesis/Possible papers/District Heating Comparison/paper_git/4th-Gen-Paper/figure/buildingstock_demand_pre_post_renovation.png",
-    dpi=1000,
+    dpi=300,
     bbox_inches="tight",
 )
 

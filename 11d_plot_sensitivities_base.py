@@ -35,6 +35,25 @@ from config import SENSITIVITY_DIR, sensitivity_results_dir
 
 output_dpi = 1000
 
+_LABEL_MAP = {
+    "mfh": "MFH", "sfh": "SFH", "ab": "AB", "th": "TH",
+    "other": "Other", "trade": "Trade", "education": "Education",
+    "health": "Health", "office": "Office",
+}
+_TYPE_ORDER = ["mfh", "ab", "sfh", "th", "office", "trade", "education", "health", "other"]
+
+_AXIS_TITLE_MAP = {
+    "ir": "Discount Rate",
+    "reduction_factor": "Reduction Factor",
+    "inv_cost_multiplier": "Inv Cost Multiplier",
+    "electricity_price": "Electricity Price Multiplier",
+    "gas_price": "Gas Price Multiplier",
+    "approach_temperature": "Approach Temperature",
+    "max_cop": "Max COP",
+    "supply_temperature": "Supply Temperature",
+    "percent_residual_value": "Residual Value",
+}
+
 
 def flatten_list(list_of_lists):
     flat_list = []
@@ -116,7 +135,7 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
             # We need to pass the specific axis to plot on
 
             # Create the plot directly on the subplot
-            analysis_type_title = analysis_type.replace("_", " ").title()
+            analysis_type_title = _AXIS_TITLE_MAP.get(analysis_type, analysis_type.replace("_", " ").title())
 
             # Plot average customer savings on primary axis (left)
             ax.set_xlabel(f"{analysis_type_title}", fontsize=20)
@@ -124,21 +143,21 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
                 "Average Customer Savings (€/m²NFA)", color="tab:blue", fontsize=20
             )
 
-            # Plot each building type's savings
-            colors_palette = sns.color_palette(
-                "colorblind", n_colors=len(avg_savings_data_nfa.columns)
-            )
+            # Plot each building type's savings in consistent order
+            ordered_cols = [t for t in _TYPE_ORDER if t in avg_savings_data_nfa.columns]
+            colors_palette = sns.color_palette("colorblind", n_colors=len(ordered_cols))
             markers = ["o", "s", "D", "^", "v", "<", ">", "p", "*", "h"]
 
             for building_type, color_palette, marker in zip(
-                avg_savings_data_nfa.columns, colors_palette, markers
+                ordered_cols, colors_palette, markers
             ):
+                display_label = _LABEL_MAP.get(building_type, building_type.capitalize())
                 line = ax.plot(
                     values,
                     avg_savings_data_nfa[building_type],
                     marker=marker,
                     markersize=8,
-                    label=building_type,
+                    label=display_label,
                     color=color_palette,
                     linestyle="-",
                     linewidth=2,
@@ -149,7 +168,7 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
                 # Store legend data from first scenario
                 if idx == 0:
                     legend_handles.append(line[0])
-                    legend_labels.append(building_type)
+                    legend_labels.append(display_label)
 
             ax.tick_params(axis="y", labelcolor="tab:blue")
             ax.grid(True, linestyle="--", alpha=0.7)
@@ -215,11 +234,16 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
     plt.tight_layout()
 
     # Save the combined plot
-    output_file = (
-        SENSITIVITY_DIR / f"combined_{analysis_type}_base_sensitivities.png"
+    from pathlib import Path
+    paper_fig = Path(
+        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
+        "Other computers/My laptop/Documents/phd thesis/Possible papers/"
+        "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
     )
-    plt.savefig(output_file, bbox_inches="tight", dpi=output_dpi)
-    print(f"Combined plot saved to: {output_file}")
+    fname = f"combined_{analysis_type}_base_sensitivities.png"
+    for dest in [SENSITIVITY_DIR / fname, paper_fig / fname]:
+        plt.savefig(dest, bbox_inches="tight", dpi=output_dpi)
+        print(f"Saved to: {dest}")
 
     plt.show()
 

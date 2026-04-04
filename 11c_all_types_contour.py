@@ -1,12 +1,6 @@
 """Contour plot of gas/electricity/renovation sensitivity — ALL building types.
 
-This is a variant of 11c_plot_gas_electr_renovations_sensitivity.py that
-averages NPV savings across ALL building types instead of MFH only.
-
-For Booster and HT the break-even is identical across building types
-(no renovation costs), so using MFH-only data is fine.  For LT+Reno the
-break-even varies strongly by type (SFH needs 313% gas increase vs MFH 133%),
-so the all-types average is materially different.
+All three scenarios use all-types average NPV savings for consistency.
 """
 
 import glob
@@ -22,56 +16,51 @@ from config import SENSITIVITY_DIR, sensitivity_results_dir
 analysis_type_lt = "combined_electicity_gas_renovation_costs"
 analysis_type_other = "combined_electicity_gas"
 
-# Booster and HT: use existing aggregated files (all types identical)
-path_booster_agg = (
-    sensitivity_results_dir("booster", analysis_type_other)
-    / "data"
-    / "mfh_savings_analysis.csv"
-)
-path_ht_agg = (
-    sensitivity_results_dir("unrenovated", analysis_type_other)
-    / "data"
-    / "mfh_savings_analysis.csv"
-)
 
-df_booster = pd.read_csv(path_booster_agg)
-df_ht = pd.read_csv(path_ht_agg)
+def _load_all_types_average(simulation, analysis_type):
+    """Load individual CSVs and compute all-types average savings."""
+    import re
+    data_path = sensitivity_results_dir(simulation, analysis_type) / "data"
+    pattern = f"{analysis_type}_gas*_el*.csv"
+    all_files = glob.glob(str(data_path / pattern))
+    if not all_files:
+        raise FileNotFoundError(f"No data files found in {data_path}")
 
-# ── LT+Reno: average across ALL building types ──────────────────────────
-lt_data_path = sensitivity_results_dir("renovated", analysis_type_lt) / "data"
-all_lt_files = glob.glob(str(lt_data_path / f"{analysis_type_lt}_gas*_el*_reno*.csv"))
+    # Regex to extract gas, el, and optional reno multipliers from filename
+    re_pattern = re.compile(r"gas([\d.]+)_el([\d.]+)(?:_reno([\d.]+))?\.csv$")
 
-if not all_lt_files:
-    raise FileNotFoundError(
-        f"No detailed LT data files found in {lt_data_path}."
-    )
+    data_list = []
+    for f in all_files:
+        m = re_pattern.search(Path(f).name)
+        if not m:
+            continue
+        try:
+            gas_mult = float(m.group(1))
+            el_mult = float(m.group(2))
+            reno_mult = float(m.group(3)) if m.group(3) else None
 
-lt_data_list = []
-for f in all_lt_files:
-    try:
-        parts = Path(f).stem.split("_")
-        gas_mult = float(parts[-3].replace("gas", ""))
-        el_mult = float(parts[-2].replace("el", ""))
-        reno_mult = float(parts[-1].replace("reno", ""))
-
-        df_temp = pd.read_csv(f)
-
-        # ── KEY CHANGE: average over ALL building types, not just MFH ──
-        all_types_savings = df_temp["savings_npv_25years_ir_0.05"].mean()
-
-        if not pd.isna(all_types_savings):
-            lt_data_list.append(
-                {
+            df_temp = pd.read_csv(f)
+            avg = df_temp["savings_npv_25years_ir_0.05"].mean()
+            if not pd.isna(avg):
+                row = {
                     "electricity_multiplier": el_mult,
                     "gas_multiplier": gas_mult,
-                    "renovation_cost_multiplier": reno_mult,
-                    "average_savings": all_types_savings,
+                    "average_savings": avg,
                 }
-            )
-    except Exception as e:
-        print(f"Warning: Could not process file {f}: {e}")
+                if reno_mult is not None:
+                    row["renovation_cost_multiplier"] = reno_mult
+                data_list.append(row)
+        except Exception as e:
+            print(f"Warning: Could not process {f}: {e}")
 
-df_lt_combined = pd.DataFrame(lt_data_list)
+    return pd.DataFrame(data_list)
+
+
+# ── Load all three scenarios with all-types averaging ────────────────────
+df_booster = _load_all_types_average("booster", analysis_type_other)
+df_ht = _load_all_types_average("unrenovated", analysis_type_other)
+
+df_lt_combined = _load_all_types_average("renovated", analysis_type_lt)
 
 print(f"Booster DF shape: {df_booster.shape}")
 print(f"HT DF shape: {df_ht.shape}")
