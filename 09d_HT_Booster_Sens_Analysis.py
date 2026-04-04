@@ -8,9 +8,9 @@ import os
 from typing import Union
 
 from config import (
-    RESULTS_DIR,
     SENSITIVITY_PARAMS_PATH,
-    grid_results_sensitivity_parquet,
+    grid_results_parquet,
+    booster_buildingstock_results_path,
     sensitivity_results_dir,
     weather_data_path,
 )
@@ -27,7 +27,10 @@ from costs.renovation_costs import (
     renovation_costs_iwu,
 )
 from utils.misc import get_electricity_cost
+from utils.area_demand import compute_booster_area_demand
 
+# NOTE: grid_temperatures list retained for future grid-temperature sensitivity.
+# Currently only supply_temperature=50 is used (CAPEX and DR sensitivity).
 grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
 
 
@@ -35,6 +38,9 @@ grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
 # do this.
 def sensitivity_analysis_booster(
     simulation_type: str,
+    areas_demand: pd.DataFrame = None,
+    embers_data: pd.DataFrame = None,
+    booster_buildingstock: gpd.GeoDataFrame = None,
     supply_temperature: Union[float, int] = 50,
     approach_temperature: Union[float, int] = 5,
     margin: float = 0,
@@ -82,8 +88,8 @@ def sensitivity_analysis_booster(
     #############################################################################################
 
     ### import EMBERS data to assess grid losses and total investment costs
-    path_embers = grid_results_sensitivity_parquet(simulation_type, supply_temperature)
-    embers_data = pd.read_parquet(path_embers)
+    if embers_data is None:
+        embers_data = pd.read_parquet(grid_results_parquet(simulation_type))
 
     # margin, taxation and reduction_factor are now arguments of the function
     # margin = 0
@@ -124,14 +130,9 @@ def sensitivity_analysis_booster(
 
     ## We need to import both the unrenovated and renovated buildingstock
 
-    path_unrenovated_area = (
-        RESULTS_DIR / "sensitivity_analysis" / simulation_type
-        / f"{simulation_type}_whole_buildingstock_{supply_temperature}"
-        / f"area_results_{supply_temperature}"
-        / f"area_results_{simulation_type}_whole_buildingstock_{supply_temperature}.csv"
-    )
-    areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
-    areas_demand.index = pd.to_datetime(areas_demand.index)
+    if areas_demand is None:
+        areas_demand = compute_booster_area_demand()
+    areas_demand = areas_demand.copy()
 
     areas_demand["total useful demand thermal demand [kWh]"] = (
         areas_demand["area space heating demand [kWh]"]
@@ -139,14 +140,9 @@ def sensitivity_analysis_booster(
     )
 
     # we need the buildingstock data to calculate the investment costs of the booster heat pumps
-    # TODO: check whether the pathing is correct or not
-    path_booster_buildingstock = (
-        RESULTS_DIR / "sensitivity_analysis" / simulation_type
-        / f"{simulation_type}_whole_buildingstock_{supply_temperature}"
-        / f"buildingstock_{simulation_type}_whole_buildingstock_{supply_temperature}_results.parquet"
-    )
-    booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
-    booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
+    if booster_buildingstock is None:
+        booster_buildingstock = gpd.read_parquet(booster_buildingstock_results_path())
+        booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
 
     efficiency_he = 0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
 
@@ -716,6 +712,12 @@ simulation = "booster"
 n_heat_pumps = 2
 supply_temperature = 50
 
+# Preload data once to avoid re-reading on every sensitivity iteration
+_areas_demand = compute_booster_area_demand()
+_embers_data = pd.read_parquet(grid_results_parquet(simulation))
+_booster_buildingstock = gpd.read_parquet(booster_buildingstock_results_path())
+_booster_buildingstock = _booster_buildingstock[_booster_buildingstock["NFA"] >= 30]
+
 df_sensitivity_parameters = pd.read_excel(SENSITIVITY_PARAMS_PATH)
 df_sensitivity_parameters.set_index("num_analysis", inplace=True)
 
@@ -755,7 +757,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         if num_analysis == 0:  # ir
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     ir=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,
@@ -764,7 +766,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         elif num_analysis == 1:  # approach temperature
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     approach_temperature=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,
@@ -773,7 +775,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         elif num_analysis == 2:  # electricity price
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     electricity_cost_multiplier=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,
@@ -782,7 +784,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         elif num_analysis == 3:  # gas price
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     gas_cost_multiplier=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,
@@ -791,7 +793,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         elif num_analysis == 4:  # max COP
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     max_COP=value,
                     carnot_efficiency=carnot_efficiency,
                     n_heat_pumps=n_heat_pumps,
@@ -801,7 +803,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         elif num_analysis == 5:  # supply temperature
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     supply_temperature=value.astype(int),
                     n_heat_pumps=n_heat_pumps,
                 )
@@ -809,7 +811,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         elif num_analysis == 6:  # investment cost multiplier
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     inv_cost_multiplier=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,
@@ -818,7 +820,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         elif num_analysis == 7:  # reduction factor
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     reduction_factor=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,
@@ -829,7 +831,7 @@ for num_analysis, row in df_sensitivity_parameters.iterrows():
         ):  # percent residual value still not implemented nor working.
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = (
                 sensitivity_analysis_booster(
-                    simulation,
+                    simulation, _areas_demand, _embers_data, _booster_buildingstock,
                     percent_residual_value=value,
                     n_heat_pumps=n_heat_pumps,
                     supply_temperature=supply_temperature,

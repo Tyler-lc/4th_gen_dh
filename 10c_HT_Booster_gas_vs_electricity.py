@@ -21,12 +21,13 @@ from costs.renovation_costs import (
 )
 from utils.misc import get_electricity_cost
 from config import (
+    grid_results_parquet,
     grid_results_sensitivity_parquet,
-    booster_area_results_path,
     booster_buildingstock_results_path,
     weather_data_path,
     sensitivity_results_dir,
 )
+from utils.area_demand import compute_booster_area_demand
 
 grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
 
@@ -35,6 +36,9 @@ grid_temperatures = [25, 30, 35, 40, 45, 50, 55, 60, 65, 70]
 # do this.
 def sensitivity_analysis_booster(
     simulation_type: str,
+    areas_demand: pd.DataFrame = None,
+    embers_data: pd.DataFrame = None,
+    booster_buildingstock: gpd.GeoDataFrame = None,
     supply_temperature: Union[float, int] = 50,
     approach_temperature: Union[float, int] = 5,
     margin: float = 0,
@@ -84,8 +88,8 @@ def sensitivity_analysis_booster(
     #############################################################################################
 
     ### import EMBERS data to assess grid losses and total investment costs
-    path_embers = grid_results_sensitivity_parquet(simulation_type, supply_temperature)
-    embers_data = pd.read_parquet(path_embers)
+    if embers_data is None:
+        embers_data = pd.read_parquet(grid_results_sensitivity_parquet(simulation_type, supply_temperature))
 
     # margin, taxation and reduction_factor are now arguments of the function
     # margin = 0
@@ -128,9 +132,9 @@ def sensitivity_analysis_booster(
 
     ## We need to import both the unrenovated and renovated buildingstock
 
-    path_unrenovated_area = booster_area_results_path()
-    areas_demand = pd.read_csv(path_unrenovated_area, index_col=0)
-    areas_demand.index = pd.to_datetime(areas_demand.index)
+    if areas_demand is None:
+        areas_demand = compute_booster_area_demand()
+    areas_demand = areas_demand.copy()
 
     areas_demand["total useful demand thermal demand [kWh]"] = (
         areas_demand["area space heating demand [kWh]"]
@@ -138,9 +142,9 @@ def sensitivity_analysis_booster(
     )
 
     # we need the buildingstock data to calculate the investment costs of the booster heat pumps
-    path_booster_buildingstock = booster_buildingstock_results_path()
-    booster_buildingstock = gpd.read_parquet(path_booster_buildingstock)
-    booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
+    if booster_buildingstock is None:
+        booster_buildingstock = gpd.read_parquet(booster_buildingstock_results_path())
+        booster_buildingstock = booster_buildingstock[booster_buildingstock["NFA"] >= 30]
 
     efficiency_he = 0.8  # efficiency of the heat exchanger to be used to calculate the delivered energy
 
@@ -701,6 +705,13 @@ df_npv = pd.DataFrame()
 
 analysis_type = "combined_electicity_gas"
 simulation = "booster"
+
+# Preload data once
+_areas_demand = compute_booster_area_demand()
+_embers_data = pd.read_parquet(grid_results_parquet(simulation))
+_booster_buildingstock = gpd.read_parquet(booster_buildingstock_results_path())
+_booster_buildingstock = _booster_buildingstock[_booster_buildingstock["NFA"] >= 30]
+
 _sens_dir = sensitivity_results_dir(simulation, analysis_type)
 os.makedirs(_sens_dir / "data", exist_ok=True)
 os.makedirs(_sens_dir / "plots", exist_ok=True)
@@ -730,8 +741,9 @@ for rows, columns in tqdm(df_combinations.iterrows(), total=len(df_combinations)
     gas_multiplier = df_combinations.loc[rows, "gas_multiplier"]
 
     df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop = sensitivity_analysis_booster(
-        supply_temperature=50,
         simulation_type=simulation,
+        areas_demand=_areas_demand, embers_data=_embers_data, booster_buildingstock=_booster_buildingstock,
+        supply_temperature=50,
         gas_cost_multiplier=gas_multiplier,
         electricity_cost_multiplier=electricity_multiplier,
         n_heat_pumps=2,

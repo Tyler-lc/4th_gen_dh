@@ -11,11 +11,11 @@ from typing import Union
 from config import (
     SENSITIVITY_PARAMS_PATH,
     grid_results_parquet,
-    area_results_path,
     buildingstock_results_path,
     weather_data_path,
     sensitivity_results_dir,
 )
+from utils.area_demand import compute_area_demand
 
 from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh, compute_ouc_residual
 from heat_supply.carnot_efficiency import carnot_cop
@@ -34,6 +34,9 @@ from utils.misc import get_electricity_cost
 
 def sensitivity_analysis(
     simulation_type: str,
+    areas_demand: pd.DataFrame = None,
+    ember_results: pd.DataFrame = None,
+    buildingstock: gpd.GeoDataFrame = None,
     supply_temperature: Union[float, int] = 90,
     approach_temperature: Union[float, int] = 5,
     margin: float = 0,
@@ -84,8 +87,8 @@ def sensitivity_analysis(
     n_years_hp = 25  # for LCOH calculation
     heat_pump_lifetime = 25  # setting years until replacement
 
-    path_embers = grid_results_parquet(simulation_type)
-    ember_results = pd.read_parquet(path_embers)
+    if ember_results is None:
+        ember_results = pd.read_parquet(grid_results_parquet(simulation_type))
     investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
     # investment_costs_dhg = 24203656.03 / 1000000  # from thermos with HT option
@@ -106,9 +109,9 @@ def sensitivity_analysis(
 
     ## We need to import both the unrenovated and renovated buildingstock
 
-    path_area_data = area_results_path(simulation_type)
-    areas_demand = pd.read_csv(path_area_data, index_col=0)
-    areas_demand.index = pd.to_datetime(areas_demand.index)
+    if areas_demand is None:
+        areas_demand = compute_area_demand(simulation_type)
+    areas_demand = areas_demand.copy()
 
     areas_demand["total_useful_demand"] = (
         areas_demand["dhw_energy"] + areas_demand["space_heating"]
@@ -232,9 +235,9 @@ def sensitivity_analysis(
     total_var_oem_hp = single_var_oem_hp * n_heat_pumps
     total_fixed_oem_hp = single_fix_oem * n_heat_pumps * capacity_single_hp
     # Compute from filtered building stock for consistency with revenue basis
-    buildingstock_path = buildingstock_results_path(simulation_type)
-    buildingstock = gpd.read_parquet(buildingstock_path)
-    buildingstock = buildingstock[buildingstock["NFA"] >= 30]
+    if buildingstock is None:
+        buildingstock = gpd.read_parquet(buildingstock_results_path(simulation_type))
+        buildingstock = buildingstock[buildingstock["NFA"] >= 30]
     yearly_heat_supplied = (
         buildingstock["yearly_dhw_energy"] + buildingstock["yearly_space_heating"]
     ).sum() / efficiency_he / 1000  # MWh
@@ -541,6 +544,12 @@ elif simulation == "renovated":
     n_heat_pumps = 2
     supply_temperature = 50
 
+# Preload data once to avoid re-reading on every sensitivity iteration
+_areas_demand = compute_area_demand(simulation)
+_ember_results = pd.read_parquet(grid_results_parquet(simulation))
+_buildingstock = gpd.read_parquet(buildingstock_results_path(simulation))
+_buildingstock = _buildingstock[_buildingstock["NFA"] >= 30]
+
 ###### we will create a loop for the analysis
 # To set up the loop we want to create different values for the analysis. So we will first insert the number
 # of steps we want to do for the analysis. Then we use these steps to create the different values for the analysis
@@ -577,28 +586,28 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         print(f"\n Analysis type: {analysis_type}, Processing value: {value} \n")
         if num_analysis == 0:  # interest rate
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 ir=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,
             )
         elif num_analysis == 1:  # approach temperature
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 approach_temperature=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,
             )
         elif num_analysis == 2:  # electricity price
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 electricity_cost_multiplier=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,
             )
         elif num_analysis == 3:  # gas price
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 gas_cost_multiplier=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,
@@ -606,32 +615,32 @@ for rows, columns in df_sensitivity_parameters.iterrows():
         elif num_analysis == 4:  # max COP
 
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 max_COP=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,
             )
         elif num_analysis == 5:  # supply temperature
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation, supply_temperature=value, n_heat_pumps=n_heat_pumps
+                simulation, _areas_demand, _ember_results, _buildingstock, supply_temperature=value, n_heat_pumps=n_heat_pumps
             )
         elif num_analysis == 6:  # investment cost multiplier
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 inv_cost_multiplier=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,
             )
         elif num_analysis == 7:  # reduction factor
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 reduction_factor=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,
             )
         elif num_analysis == 8:  # percent_residual value
             df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, cop_hourly = sensitivity_analysis(
-                simulation,
+                simulation, _areas_demand, _ember_results, _buildingstock,
                 percent_residual_value=value,
                 n_heat_pumps=n_heat_pumps,
                 supply_temperature=supply_temperature,

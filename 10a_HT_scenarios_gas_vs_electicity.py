@@ -11,11 +11,11 @@ import itertools
 
 from config import (
     grid_results_parquet,
-    area_results_path,
     buildingstock_results_path,
     weather_data_path,
     sensitivity_results_dir,
 )
+from utils.area_demand import compute_area_demand
 from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh, compute_ouc_residual
 from heat_supply.carnot_efficiency import carnot_cop
 from costs.heat_supply import calculate_revenues, calculate_future_values
@@ -33,6 +33,9 @@ from utils.misc import get_electricity_cost
 
 def sensitivity_analysis(
     simulation_type: str,
+    areas_demand: pd.DataFrame = None,
+    ember_results: pd.DataFrame = None,
+    buildingstock: gpd.GeoDataFrame = None,
     supply_temperature: Union[float, int] = 90,
     approach_temperature: Union[float, int] = 5,
     margin: float = 0,
@@ -84,8 +87,8 @@ def sensitivity_analysis(
     n_years_hp = 25  # for LCOH calculation
     heat_pump_lifetime = 25  # setting years until replacement
 
-    path_embers = grid_results_parquet(simulation_type)
-    ember_results = pd.read_parquet(path_embers)
+    if ember_results is None:
+        ember_results = pd.read_parquet(grid_results_parquet(simulation_type))
     investment_costs_dhg = ember_results["cost_total"].sum() / 1000000  # Million Euros
 
     dhg_lifetime = 50  # years
@@ -107,9 +110,9 @@ def sensitivity_analysis(
 
     ## We need to import both the unrenovated and renovated buildingstock
 
-    path_area_data = area_results_path(simulation_type)
-    areas_demand = pd.read_csv(path_area_data, index_col=0)
-    areas_demand.index = pd.to_datetime(areas_demand.index)
+    if areas_demand is None:
+        areas_demand = compute_area_demand(simulation_type)
+    areas_demand = areas_demand.copy()
 
     areas_demand["total_useful_demand"] = (
         areas_demand["dhw_energy"] + areas_demand["space_heating"]
@@ -233,9 +236,9 @@ def sensitivity_analysis(
     total_var_oem_hp = single_var_oem_hp * n_heat_pumps
     total_fixed_oem_hp = single_fix_oem * n_heat_pumps * capacity_single_hp
     # Compute from filtered building stock for consistency with revenue basis
-    buildingstock_path = buildingstock_results_path(simulation_type)
-    buildingstock = gpd.read_parquet(buildingstock_path)
-    buildingstock = buildingstock[buildingstock["NFA"] >= 30]
+    if buildingstock is None:
+        buildingstock = gpd.read_parquet(buildingstock_results_path(simulation_type))
+        buildingstock = buildingstock[buildingstock["NFA"] >= 30]
     yearly_heat_supplied = (
         buildingstock["yearly_dhw_energy"] + buildingstock["yearly_space_heating"]
     ).sum() / efficiency_he / 1000  # MWh
@@ -654,6 +657,13 @@ if simulation == "unrenovated":
 elif simulation == "renovated":
     n_heat_pumps = 2
     supply_temperature = 50
+
+# Preload data once
+_areas_demand = compute_area_demand(simulation)
+_ember_results = pd.read_parquet(grid_results_parquet(simulation))
+_buildingstock = gpd.read_parquet(buildingstock_results_path(simulation))
+_buildingstock = _buildingstock[_buildingstock["NFA"] >= 30]
+
 os.makedirs(sensitivity_results_dir(simulation, analysis_type) / "data", exist_ok=True)
 os.makedirs(sensitivity_results_dir(simulation, analysis_type) / "plots", exist_ok=True)
 el_multiplier = np.array([0.1, 0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0, 4.0, 5.0])
@@ -680,6 +690,7 @@ for rows, columns in tqdm(df_combinations.iterrows(), total=len(df_combinations)
 
     df_npv, npv_dh, LCOH_dhg, LCOH_HP, cop, actual_cop = sensitivity_analysis(
         simulation_type=simulation,
+        areas_demand=_areas_demand, ember_results=_ember_results, buildingstock=_buildingstock,
         gas_cost_multiplier=gas_multiplier,
         electricity_cost_multiplier=electricity_multiplier,
         n_heat_pumps=n_heat_pumps,
