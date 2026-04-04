@@ -15,11 +15,21 @@ scripts_to_run = [
     "11_plots_base_cases.py",
     "11b_plot_gas_electr_sensitivity.py",
     "11c_plot_gas_electr_renovations_sensitivity.py",
+    "11c_all_types_contour.py",
     "11d_plot_sensitivities_base.py",
     "12_buildingstock_analysis.py",
     "13_DH_parameters.py",
     "14_NFA_calculation.py",
     "15_iwu_renovation_costs_plot.py",
+    "16_pumping_losses.py",
+    "17_subsidy_calculation.py",
+    "18_installed_capacity_summary.py",
+    "19_breakeven_at_50pct_reno_subsidy.py",
+    "20_heat_demand_profile.py",
+    "21_reduction_factor_slopes.py",
+    "22_reduction_factor_slopes_table.py",
+    "23_contour_slopes.py",
+    "24_study_area_map.py",
 ]
 
 # Run each script in sequence
