@@ -1,0 +1,46 @@
+[project]
+name = "4th-gen-dh"
+version = "1.0.0"
+description = "Techno-economic analysis of 4th Generation District Heating strategies for Frankfurt-Griesheim-Mitte"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Luca Casamassima"},
+]
+
+dependencies = [
+    "geopandas>=1.0",
+    "gurobipy>=12.0",
+    "matplotlib>=3.9",
+    "networkx>=3.3",
+    "numpy>=1.26,<2.0",
+    "numpy-financial>=1.0",
+    "openpyxl>=3.1",
+    "osmnx>=2.0",
+    "pandas>=2.2",
+    "pyarrow>=17.0",
+    "pyomo>=6.9",
+    "scipy>=1.14",
+    "seaborn>=0.13",
+    "shapely>=2.0",
+    "tqdm>=4.66",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
+
+[tool.pytest.ini_options]
+addopts = "--ignore=tests/speed_tests"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+markers = [
+    "regression: marks tests that verify results match golden baseline",
+    "equivalence: marks tests that verify seeded old == seeded new code",
+    "smoke: marks smoke tests (imports, config paths)",
+    "slow: marks tests that take a long time to run",
+]

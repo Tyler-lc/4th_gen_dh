@@ -12,7 +12,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-SENSITIVITY_DIR = Path(__file__).resolve().parent.parent / "sensitivity_analysis"
+import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from config import PAPER_FIGURE_DIR, SENSITIVITY_DIR
 RESULTS_DIR = Path(__file__).resolve().parent / "results" / "capex_sensitivity"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -152,12 +154,8 @@ if __name__ == "__main__":
     ax.invert_xaxis()  # 0% reduction on right, 40% on left
     plt.tight_layout()
     fig.savefig(RESULTS_DIR / "customer_price_vs_capex.png", dpi=200)
-    paper_fig = Path(
-        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
-        "Other computers/My laptop/Documents/phd thesis/Possible papers/"
-        "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
-    )
-    fig.savefig(paper_fig / "hp_capex_sensitivity.png", dpi=200)
+    if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+        fig.savefig(PAPER_FIGURE_DIR / "hp_capex_sensitivity.png", dpi=200)
     print(f"\nSaved customer price plot")
 
     # --- Figure 2: Operator NPV vs CAPEX multiplier ---

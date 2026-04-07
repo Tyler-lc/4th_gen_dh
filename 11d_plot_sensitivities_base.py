@@ -31,7 +31,7 @@ import numpy as np
 from utils.plotting import nfa_savings_operator_comparison
 import glob
 
-from config import SENSITIVITY_DIR, sensitivity_results_dir
+from config import MULTIPLE_GRAPHS_SUBDIR, PAPER_FIGURE_DIR, SENSITIVITY_DIR, sensitivity_results_dir
 
 output_dpi = 1000
 
@@ -64,7 +64,7 @@ def flatten_list(list_of_lists):
 
 def import_data(analysis_type, simulation):
     main_path = (
-        sensitivity_results_dir(simulation, analysis_type) / "data" / "multitple_graphs"
+        sensitivity_results_dir(simulation, analysis_type) / "data" / MULTIPLE_GRAPHS_SUBDIR
     )
 
     all_npv_data = {}
@@ -234,16 +234,12 @@ def create_combined_base_sensitivities_plot(analysis_type="reduction_factor"):
     plt.tight_layout()
 
     # Save the combined plot
-    from pathlib import Path
-    paper_fig = Path(
-        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
-        "Other computers/My laptop/Documents/phd thesis/Possible papers/"
-        "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
-    )
     fname = f"combined_{analysis_type}_base_sensitivities.png"
-    for dest in [SENSITIVITY_DIR / fname, paper_fig / fname]:
-        plt.savefig(dest, bbox_inches="tight", dpi=output_dpi)
-        print(f"Saved to: {dest}")
+    plt.savefig(SENSITIVITY_DIR / fname, bbox_inches="tight", dpi=output_dpi)
+    print(f"Saved to: {SENSITIVITY_DIR / fname}")
+    if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+        plt.savefig(PAPER_FIGURE_DIR / fname, bbox_inches="tight", dpi=output_dpi)
+        print(f"Saved to: {PAPER_FIGURE_DIR / fname}")
 
     plt.show()
 
@@ -254,16 +250,16 @@ if __name__ == "__main__":
 
     print("Creating combined base sensitivities plot...")
 
-    # Check what analysis types have multitple_graphs data available
+    # Check what analysis types have processed data available
     available_analyses = []
     for scenario in ["unrenovated", "renovated", "booster"]:
         scenario_path = SENSITIVITY_DIR / scenario
         if scenario_path.exists():
             for analysis_dir in os.listdir(scenario_path):
-                multitple_graphs_path = (
-                    scenario_path / analysis_dir / "data" / "multitple_graphs"
+                graphs_path = (
+                    scenario_path / analysis_dir / "data" / MULTIPLE_GRAPHS_SUBDIR
                 )
-                if multitple_graphs_path.exists():
+                if graphs_path.exists():
                     if analysis_dir not in available_analyses:
                         available_analyses.append(analysis_dir)
 

@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-from config import PLOTS_DIR
+from config import PAPER_FIGURE_DIR, PLOTS_DIR
 
 # ── Load data ────────────────────────────────────────────────────────────
 ht = pd.read_csv(
@@ -88,16 +88,14 @@ plt.tight_layout()
 
 # ── Save to both locations ───────────────────────────────────────────────
 save_filename = "comparison_all_scenarios_all_scenarios.png"
-paper_fig = Path(
-    "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
-    "Other computers/My laptop/Documents/phd thesis/Possible papers/"
-    "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
-)
 
-for dest in [PLOTS_DIR / save_filename, paper_fig / save_filename]:
-    dest.parent.mkdir(parents=True, exist_ok=True)
-    plt.savefig(dest, dpi=300, bbox_inches="tight")
-    print(f"Saved: {dest}")
+PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+plt.savefig(PLOTS_DIR / save_filename, dpi=300, bbox_inches="tight")
+print(f"Saved: {PLOTS_DIR / save_filename}")
+
+if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+    plt.savefig(PAPER_FIGURE_DIR / save_filename, dpi=300, bbox_inches="tight")
+    print(f"Saved: {PAPER_FIGURE_DIR / save_filename}")
 
 plt.close()
 print("Done.")

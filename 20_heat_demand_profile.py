@@ -12,24 +12,24 @@ Both show unrenovated (HT/Booster baseline) and renovated (LT+Reno) demands.
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from tqdm import tqdm
 
+from config import PAPER_FIGURE_DIR, PLOTS_DIR, RESULTS_DIR, results_dir, buildingstock_results_path
+
 # ── Configuration ────────────────────────────────────────────────────
-RESULTS_DIR = Path("building_analysis/results")
 SCENARIOS = {
     "Unrenovated (HT / Booster)": {
-        "parquet": RESULTS_DIR / "unrenovated_whole_buildingstock" / "buildingstock_results_unrenovated.parquet",
-        "sh_dir": RESULTS_DIR / "unrenovated_whole_buildingstock" / "space_heating",
-        "dhw_dir": RESULTS_DIR / "unrenovated_whole_buildingstock" / "dhw_energy",
+        "parquet": buildingstock_results_path("unrenovated"),
+        "sh_dir": results_dir("unrenovated") / "space_heating",
+        "dhw_dir": results_dir("unrenovated") / "dhw_energy",
         "sh_col": "net useful hourly demand [kWh]",
         "dhw_col": None,  # will check
         "color": "#d62728",
     },
     "Renovated (LT+Reno)": {
-        "parquet": RESULTS_DIR / "renovated_whole_buildingstock" / "buildingstock_results_renovated.parquet",
-        "sh_dir": RESULTS_DIR / "renovated_whole_buildingstock" / "space_heating",
-        "dhw_dir": RESULTS_DIR / "renovated_whole_buildingstock" / "dhw_energy",
+        "parquet": buildingstock_results_path("renovated"),
+        "sh_dir": results_dir("renovated") / "space_heating",
+        "dhw_dir": results_dir("renovated") / "dhw_energy",
         "sh_col": "net useful hourly demand [kWh]",
         "dhw_col": None,
         "color": "#1f77b4",
@@ -86,7 +86,6 @@ for name, cfg in SCENARIOS.items():
     print(f"  Annual demand: {demands[name].sum():.0f} MWh")
     print(f"  Peak demand: {demands[name].max():.1f} MW")
 
-PAPER_FIG = Path.home() / "Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/Other computers/My laptop/Documents/phd thesis/Possible papers/District Heating Comparison/paper_git/4th-Gen-Paper/figure"
 ROLLING_WINDOW = 24  # hours for moving average
 
 # ── Global font settings ─────────────────────────────────────────────
@@ -146,7 +145,12 @@ ax2.set_ylim(bottom=0)
 ax2.grid(True, alpha=0.3)
 
 fig.tight_layout()
-fig.savefig(PAPER_FIG / "heat_demand_combined.png", dpi=300, bbox_inches="tight")
-print(f"\nSaved: {PAPER_FIG / 'heat_demand_combined.png'}")
+PLOTS_DIR.mkdir(parents=True, exist_ok=True)
+fig.savefig(PLOTS_DIR / "heat_demand_combined.png", dpi=300, bbox_inches="tight")
+print(f"\nSaved: {PLOTS_DIR / 'heat_demand_combined.png'}")
+
+if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+    fig.savefig(PAPER_FIGURE_DIR / "heat_demand_combined.png", dpi=300, bbox_inches="tight")
+    print(f"Saved: {PAPER_FIGURE_DIR / 'heat_demand_combined.png'}")
 
 plt.show()

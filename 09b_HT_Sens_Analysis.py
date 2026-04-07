@@ -9,6 +9,7 @@ import os
 from typing import Union
 
 from config import (
+    MULTIPLE_GRAPHS_SUBDIR,
     SENSITIVITY_PARAMS_PATH,
     grid_results_parquet,
     buildingstock_results_path,
@@ -688,7 +689,7 @@ for rows, columns in df_sensitivity_parameters.iterrows():
     )
 
     # let's save the data for the sensitivity analysis:
-    main_path = sens_dir / "data" / "multitple_graphs"
+    main_path = sens_dir / "data" / MULTIPLE_GRAPHS_SUBDIR
     os.makedirs(main_path, exist_ok=True)
     avg_savings_data_nfa.to_csv(main_path / "avg_savings_data_nfa.csv")
     npv_operator_df = pd.DataFrame(npv_operator)

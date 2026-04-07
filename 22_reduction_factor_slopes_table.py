@@ -10,7 +10,8 @@ Output: LaTeX table for the appendix.
 
 import pandas as pd
 import numpy as np
-from pathlib import Path
+
+from config import sensitivity_results_dir, MULTIPLE_GRAPHS_SUBDIR
 
 SCENARIOS = {
     "HT": "unrenovated",
@@ -28,7 +29,7 @@ TYPE_LABELS = {
 rows = []
 
 for scenario_name, sim_name in SCENARIOS.items():
-    path = Path(f"sensitivity_analysis/{sim_name}/reduction_factor/data/multitple_graphs/avg_savings_data_nfa.csv")
+    path = sensitivity_results_dir(sim_name, "reduction_factor") / "data" / MULTIPLE_GRAPHS_SUBDIR / "avg_savings_data_nfa.csv"
     df = pd.read_csv(path, index_col=0)
     x = df.index.values
 

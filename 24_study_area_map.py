@@ -9,17 +9,13 @@ import matplotlib.patches as mpatches
 from matplotlib.lines import Line2D
 
 from config import (
+    PAPER_FIGURE_DIR,
     PLOTS_DIR,
     GRID_CALCULATION_DIR,
     buildingstock_results_path,
 )
 
 # ── Paths ────────────────────────────────────────────────────────────────
-PAPER_FIGURE_DIR = (
-    "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com"
-    "/Other computers/My laptop/Documents/phd thesis/Possible papers"
-    "/District Heating Comparison/paper_git/4th-Gen-Paper/figure"
-)
 STREETS_PATH = GRID_CALCULATION_DIR / "streets_only_clean_25832.gpkg"
 
 # ── Data ─────────────────────────────────────────────────────────────────
@@ -138,16 +134,14 @@ fig.tight_layout()
 
 # ── Save ─────────────────────────────────────────────────────────────────
 out_main = PLOTS_DIR / "study_area_map.png"
-out_paper = f"{PAPER_FIGURE_DIR}/study_area_map.png"
 
 fig.savefig(out_main, dpi=300, bbox_inches="tight", facecolor="white")
-fig.savefig(out_paper, dpi=300, bbox_inches="tight", facecolor="white")
-fig.savefig(
-    out_main.with_suffix(".pdf"), bbox_inches="tight", facecolor="white"
-)
-fig.savefig(
-    f"{PAPER_FIGURE_DIR}/study_area_map.pdf", bbox_inches="tight", facecolor="white"
-)
+fig.savefig(out_main.with_suffix(".pdf"), bbox_inches="tight", facecolor="white")
 print(f"Saved to {out_main}")
-print(f"Saved to {out_paper}")
+
+if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+    fig.savefig(PAPER_FIGURE_DIR / "study_area_map.png", dpi=300, bbox_inches="tight", facecolor="white")
+    fig.savefig(PAPER_FIGURE_DIR / "study_area_map.pdf", bbox_inches="tight", facecolor="white")
+    print(f"Saved to {PAPER_FIGURE_DIR / 'study_area_map.png'}")
+
 plt.close()

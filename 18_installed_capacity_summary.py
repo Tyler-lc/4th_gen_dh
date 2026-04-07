@@ -9,7 +9,8 @@ Booster capacities are computed from the buildingstock parquet.
 """
 
 import pandas as pd
-from pathlib import Path
+
+from config import booster_buildingstock_results_path
 
 # ── Central HP capacities (from Table 2 / scenario scripts) ──────────────
 scenarios = {
@@ -24,11 +25,7 @@ for name, params in scenarios.items():
 # ── Booster building-level capacities ────────────────────────────────────
 # NFA >= 30 m² filter matches 08_Booster_Scenario.py line 119.
 # Buildings below this threshold are excluded from the TEO analysis.
-booster_parquet = Path(
-    "building_analysis/results/booster_whole_buildingstock/"
-    "buildingstock_booster_whole_buildingstock_results.parquet"
-)
-booster_df = pd.read_parquet(booster_parquet)
+booster_df = pd.read_parquet(booster_buildingstock_results_path())
 n_total = len(booster_df)
 booster_df = booster_df[booster_df["NFA"] >= 30]
 

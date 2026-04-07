@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from config import SENSITIVITY_DIR, sensitivity_results_dir
+from config import PAPER_FIGURE_DIR, SENSITIVITY_DIR, sensitivity_results_dir
 
 # ── paths ────────────────────────────────────────────────────────────────
 analysis_type_lt = "combined_electicity_gas_renovation_costs"
@@ -197,16 +197,14 @@ def create_combined_contour_all_types(df_booster, df_ht, df_lt_combined):
 
     # Save
     save_filename = "combined_price_reno_sensitivity_contour_v2_all_types.png"
-    paper_fig = Path(
-        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
-        "Other computers/My laptop/Documents/phd thesis/Possible papers/"
-        "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
-    )
 
-    for dest in [SENSITIVITY_DIR / save_filename, paper_fig / save_filename]:
-        dest.parent.mkdir(parents=True, exist_ok=True)
-        plt.savefig(dest, bbox_inches="tight", dpi=1000)
-        print(f"Saved: {dest}")
+    SENSITIVITY_DIR.mkdir(parents=True, exist_ok=True)
+    plt.savefig(SENSITIVITY_DIR / save_filename, bbox_inches="tight", dpi=1000)
+    print(f"Saved: {SENSITIVITY_DIR / save_filename}")
+
+    if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+        plt.savefig(PAPER_FIGURE_DIR / save_filename, bbox_inches="tight", dpi=1000)
+        print(f"Saved: {PAPER_FIGURE_DIR / save_filename}")
 
     plt.close(fig)
 

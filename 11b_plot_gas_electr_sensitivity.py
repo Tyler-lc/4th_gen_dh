@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 
-from config import SENSITIVITY_DIR, sensitivity_results_dir
+from config import PAPER_FIGURE_DIR, SENSITIVITY_DIR, sensitivity_results_dir
 
 ### first let's import all the data from the csv files
 
@@ -78,14 +78,10 @@ def create_combined_contour(df_booster, df_ht, df_lt):
 
     plt.tight_layout()
 
-    paper_fig = Path(
-        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/"
-        "Other computers/My laptop/Documents/phd thesis/Possible papers/"
-        "District Heating Comparison/paper_git/4th-Gen-Paper/figure"
-    )
     fname = "combined_price_sensitivity_contour.png"
-    for dest in [SENSITIVITY_DIR / fname, paper_fig / fname]:
-        plt.savefig(dest, bbox_inches="tight", dpi=300)
+    plt.savefig(SENSITIVITY_DIR / fname, bbox_inches="tight", dpi=300)
+    if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+        plt.savefig(PAPER_FIGURE_DIR / fname, bbox_inches="tight", dpi=300)
     plt.close()
 
 

@@ -4,7 +4,7 @@ import numpy as np
 import glob
 from pathlib import Path
 
-from config import SENSITIVITY_DIR, sensitivity_results_dir
+from config import PAPER_FIGURE_DIR, SENSITIVITY_DIR, sensitivity_results_dir
 
 ### first let's import all the data from the csv files
 
@@ -326,15 +326,13 @@ def create_combined_contour_v2(df_booster, df_ht, df_lt_combined):
 
     # --- Prepare Save Paths ---
     save_filename = "combined_price_reno_sensitivity_contour_v2.png"
-    alt_path = Path(
-        "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/Other computers/My laptop/Documents/phd thesis/Possible papers/District Heating Comparison/paper_git/4th-Gen-Paper/figure"
-    )
 
-    # Define multiple save paths
+    # Define save paths
     save_paths = [
-        SENSITIVITY_DIR / save_filename,  # Original path: sensitivity_analysis/
-        alt_path / save_filename,  # Alternative path: plots/
+        SENSITIVITY_DIR / save_filename,
     ]
+    if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+        save_paths.append(PAPER_FIGURE_DIR / save_filename)
 
     # --- Save Figure to Multiple Locations ---
     for i, save_path in enumerate(save_paths, 1):

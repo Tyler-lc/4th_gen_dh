@@ -4,6 +4,7 @@ All directory paths, data file paths, and study-area constants live here
 so that pipeline scripts never need os.chdir() or sys.path hacks.
 """
 
+import os
 from pathlib import Path
 
 # ── Project root (directory that contains this file) ──────────────────────
@@ -119,8 +120,18 @@ ANNUAL_HOURS = 8760                # hours/year (consistent with scenario script
 # ── Pumping losses output ────────────────────────────────────────────
 PUMPING_LOSSES_DIR = PROJECT_ROOT / "pumping_losses"
 
+# ── Paper figure directory (optional, machine-specific) ────────────
+# Set PAPER_FIGURE_DIR environment variable to copy figures to paper dir.
+# If unset, figures are only saved to PLOTS_DIR.
+_paper_fig = os.environ.get("PAPER_FIGURE_DIR")
+PAPER_FIGURE_DIR = Path(_paper_fig) if _paper_fig else None
+
 # ── Sensitivity analysis paths ───────────────────────────────────────
 SENSITIVITY_PARAMS_PATH = SENSITIVITY_DIR / "sensitivity_analysis_parameters.xlsx"
+
+
+# Note: typo in existing directory name ("multitple"), kept for compatibility
+MULTIPLE_GRAPHS_SUBDIR = "multitple_graphs"
 
 
 def sensitivity_results_dir(scenario: str, analysis_type: str) -> Path:

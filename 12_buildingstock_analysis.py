@@ -3,7 +3,7 @@ import geopandas as gpd
 import numpy as np
 import matplotlib.pyplot as plt
 
-from config import PLOTS_DIR, buildingstock_results_path
+from config import PAPER_FIGURE_DIR, PLOTS_DIR, buildingstock_results_path
 from costs.renovation_costs import renovation_costs_iwu
 
 unrenovated_buildingstock = gpd.read_parquet(buildingstock_results_path("unrenovated"))
@@ -87,11 +87,12 @@ fig.tight_layout()
 plt.savefig(
     PLOTS_DIR / "buildingstock_demand_pre_post_renovation.png", dpi=300, bbox_inches="tight"
 )
-plt.savefig(
-    "/Users/lucacasamassima/Library/CloudStorage/GoogleDrive-lucasamassima@gmail.com/Other computers/My laptop/Documents/phd thesis/Possible papers/District Heating Comparison/paper_git/4th-Gen-Paper/figure/buildingstock_demand_pre_post_renovation.png",
-    dpi=300,
-    bbox_inches="tight",
-)
+if PAPER_FIGURE_DIR and PAPER_FIGURE_DIR.exists():
+    plt.savefig(
+        PAPER_FIGURE_DIR / "buildingstock_demand_pre_post_renovation.png",
+        dpi=300,
+        bbox_inches="tight",
+    )
 
 
 number_not_renovated = renovated_buildingstock.groupby("building_usage")[
