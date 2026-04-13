@@ -430,7 +430,6 @@ lcoh_booster = calculate_lcoh(
     lcoh_total_heat_generated_boosters,
     ir_dhg,
 )
-##### TODO I NEED TO DOUBLE CHECK THE LCOH FOR THE BOOSTERS!!!!!! but it should be correct
 
 price_heat_eurokwh_residential = (
     (lcoh_booster) * (1 + margin) * (1 + taxation) * reduction_factor
@@ -769,19 +768,10 @@ plt.close()
 # It will also receive money from the customers from the heat delivered.
 # I am not sure about the maintenance and running costs for the District Heating Network.
 
-#### TODO: The boosters need to be added to the overnight costs as well.
-
-
 overnight_costs = (
     total_installation_costs + investment_costs_dhg
 ) * 1000000 + total_investment_costs_boosters
 
-# heat_pump_replacement = pd.DataFrame()
-# heat_pump_replacement["costs"] = np.zeros(dhg_lifetime)
-# heat_pump_replacement.iloc[heat_pump_lifetime] = total_installation_costs * 1000000
-#### We need to calculate the running costs for the heat pumps. We have this data from the LCOH calculation
-
-#### TODO: We need to add the running costs for the boosters as well.
 elecricity_costs_boosters = (
     initial_electricity_cost_system * electricity_demand_boosters
 )

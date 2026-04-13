@@ -4,8 +4,6 @@ import geopandas as gpd
 from tqdm import tqdm
 import os
 import shutil
-from multiprocessing import Pool
-from tqdm import tqdm
 
 from building_analysis.Building import Building
 from Person.Person import Person
@@ -34,11 +32,6 @@ gdf_buildingstock_results["needs_insulation"] = need_insulation(
     gdf_buildingstock_results, buffer=20
 )
 
-
-# let's see how many buildings need insulation
-print(
-    f"Buildings that need insulation: \n {gdf_buildingstock_results['needs_insulation'].value_counts()}"
-)
 
 # Now we know that the DHW doesn't change across scenarios. Also we don't want to recalculate buildings that
 # are alraedy efficient enough. So we will copy from the "unrenovated scenario" the data we need.
@@ -127,15 +120,9 @@ df_soil_temp = pd.read_csv(soil_temperature_path())
 
 # missing data are represented by -99.9. So we replace them with NaN values. This allows fill by interpolation
 df_soil_temp.replace(-99.9, np.nan, inplace=True)
-print(
-    f"total number of NaN values in soil temperature before fix: {df_soil_temp['V_TE0052'].isna().sum()}"
-)
 
 # now interpolate the missing values
 df_soil_temp["V_TE0052"] = df_soil_temp["V_TE0052"].interpolate()
-print(
-    f"total number of NaN values in soil temperature after fix: {df_soil_temp['V_TE0052'].isna().sum()}"
-)
 
 # we are also setting the inside temperature to be a bit variable. We set it to be 20 °C from 8 am to 10pm
 # and 17 °C anywhere else (basically night time)
@@ -172,8 +159,6 @@ while gdf_buildingstock_results["needs_insulation"].sum() > 0:
     to_renovate = gdf_buildingstock_results["needs_insulation"].sum()
     mask = gdf_buildingstock_results["needs_insulation"]
 
-    print(f"number of buildings that need insulation: {to_renovate} \n")
-    print(f"insulation thickness: {insulation_thickness} mm")
     for idx, row in tqdm(gdf_buildingstock_results[mask].iterrows(), total=to_renovate):
         if row["needs_insulation"]:
 

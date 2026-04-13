@@ -7,9 +7,16 @@ from tqdm import tqdm
 
 import os
 
-from costs.heat_supply import capital_costs_hp, var_oem_hp, fixed_oem_hp, calculate_lcoh, compute_ouc_residual
+from costs.heat_supply import (
+    capital_costs_hp,
+    var_oem_hp,
+    fixed_oem_hp,
+    calculate_lcoh,
+    compute_ouc_residual,
+    calculate_revenues,
+    calculate_future_values,
+)
 from heat_supply.carnot_efficiency import carnot_cop
-from costs.heat_supply import calculate_revenues, calculate_future_values
 from costs.renovation_costs import (
     apply_inflation,
     calculate_energy_prices_future,

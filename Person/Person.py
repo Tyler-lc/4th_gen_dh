@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 
-# import icecream as ic
 import warnings
 
 
@@ -339,54 +338,3 @@ if __name__ == "__main__":
         plt.yticks(fontsize=20)
         plt.title("Occupancy probability distribution", fontsize=28)
         plt.show()
-
-    # from pyinstrument import Profiler
-
-    # profiler = Profiler()
-    # profiler.start()
-    # gianni = Person(building_id=1, name=2)
-    # dhw = luca.dhw_profile2()
-    # profiler.stop()
-    # output = profiler.output_text(unicode=True, color=True)
-    # # filtered_output = "\n".join(
-    # #         line for line in output.split("\n") if "pandas" not in line
-    # # )
-    # print(output)
-
-    # import os
-    # import sys
-
-    # os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    # # Ensure the parent directory is in the Python path
-    # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-    # buildings_path = "../building_analysis/building_input.parquet"
-    # buildings_data = pd.read_parquet(buildings_path)
-
-    # res_mask = buildings_data["building_usage"].isin(["sfh", "mfh", "ab", "th"])
-    # total_GFA = buildings_data[res_mask]["GFA"].sum()
-    # maximum_people = 9500
-    # people_per_GFA = maximum_people / total_GFA
-    # buildings_data.loc[res_mask, "n_people"] = round(
-    #     buildings_data["GFA"] * people_per_GFA
-    # )
-    # buildings_data["n_people"] = (
-    #     buildings_data["n_people"].fillna(0).infer_objects(copy=False)
-    # )
-
-    # # conver n_people to integer
-    # buildings_data["n_people"] = buildings_data["n_people"].astype(int)
-
-    # i = 0
-    # for idx, row in buildings_data[res_mask].iterrows():
-    #     fid = row["fid"]
-    #     full_id = row["full_id"]
-    #     osmid = row["osm_id"]
-    #     n_people = row["n_people"]
-    #     print(f"Building {full_id} has {n_people} people")
-    #     for people in range(n_people):
-    #         print(f"analyising person {person} in building {full_id}")
-    #         person = Person(full_id, people)
-    #         dhw_data = person.dhw_profile()
-    #         os.makedirs("../building_analysis/dhw_profiles", exist_ok=True)
-    #         dhw_data.to_csv(f"../building_analysis/dhw_profiles/{full_id}_{people}.csv")

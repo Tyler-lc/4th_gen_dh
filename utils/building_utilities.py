@@ -440,7 +440,6 @@ def net_vertical_surface(
     border_length: pd.Series,
     building_height: pd.Series,
 ):
-    print("calculating net vertical surface")
     df_data = pd.DataFrame(
         {
             "full_id": building_id,
@@ -507,20 +506,6 @@ if __name__ == "__main__":
     mask_th = df_data["building_usage"] == "th"
     mask_mfh = df_data["building_usage"] == "mfh"
 
-    # print(
-    #     "Single Family Homes: ",
-    #     mask_sfh.sum(),
-    #     "share:",
-    #     mask_sfh.sum() / all_res.sum(),
-    # )
-    # print("Terraced Houses: ", mask_th.sum(), "share:", mask_th.sum() / all_res.sum())
-    # print(
-    #     "Multi Family Homes: ", mask_mfh.sum(), "share:", mask_mfh.sum() / all_res.sum()
-    # )
-    # print(
-    #     "Apartment Buildings: ", mask_ab.sum(), "share:", mask_ab.sum() / all_res.sum()
-    # )
-    # print("all residential buildings", all_res.sum())
 
     # Age of the building assignment
 
@@ -546,12 +531,10 @@ if __name__ == "__main__":
     for age in range(1, 13):
         percentage = age_dict[age] / total_residential
         percentage_dict.update({age: percentage})
-        print(f"percentage of buildings in age category {age}: {percentage_dict[age]}")
 
     non_res_mask = np.logical_not(df_data["building_usage"].isin(res_types))
 
     percent_types = check_percent_types(df_data, res_types)
-    print(percent_types)
 
     # Ceiling height assignment
 
@@ -586,10 +569,6 @@ if __name__ == "__main__":
                 & (ceiling_data["age_code"] == ages)
             ]["ceiling_height"].unique()
 
-            print(
-                f" building type {building} and age {ages}, assigned to buildings: {current_height}. Height from data  {height_from_data}"
-            )
-            # print(f"Building type {building} and age {ages}, ceiling height: {df_data[(mask_age) & (mask_type)]['ceiling_height'].unique()}")
 
     processed_data = process_data(
         gdf_path=abs_path,

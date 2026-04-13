@@ -393,10 +393,6 @@ class Building:
         total_gains = self.solar_gain.sum(axis=1) + self.internal_heat_sources.sum(
             axis=1
         )
-        # total_gains[self.outside_temperature.iloc[:, 0] >= 20] = (
-        #     0  # TODO: i'm not sure this is the correct way to address the
-        # )
-
         net_result = total_losses - total_gains
         mask = net_result < 0
         net_result[mask] = 0
@@ -560,19 +556,10 @@ class Building:
 if __name__ == "__main__":
     import os
     import sys
-    import timeit
     import pandas as pd
     from pathlib import Path
 
-    # from Databases.mysql_utils.mysql_utils import create_connection, fetch_data
-
     # import the weather and irradiation data
-    # path_weather = "../Irradiation_Data/east.csv"
-    # weather = pd.read_csv(path_weather, usecols=["T2m"])
-    # irradiation_path = "../Irradiation_Data/irradiation_data.csv"
-    # irradiation = pd.read_csv(irradiation_path)
-
-    # import the weather and irradiation data. This time we will use the same file for both
     city_name = "Frankfurt_Griesheim_Mitte"
     year_start = 2019
     year_end = 2019
@@ -632,15 +619,9 @@ if __name__ == "__main__":
     # cleaning the data a little. The dwd uses -99.9 to indicate missing data
     # first replace the -99.9 with np.nan
     df_soil_temp.replace(-99.9, np.nan, inplace=True)
-    print(
-        f"total number of NaN values in soil temperature before fix: {df_soil_temp['V_TE0052'].isna().sum()}"
-    )
 
     # now interpolate the missing values
     df_soil_temp["V_TE0052"] = df_soil_temp["V_TE0052"].interpolate()
-    print(
-        f"total number of NaN values in soil temperature after fix: {df_soil_temp['V_TE0052'].isna().sum()}"
-    )
 
     # creating a dataframe with the inside temperatures to be used throughout the year
     # it is set to be 20 °c from 8am to 10pm and 17°C at any other time.
@@ -690,37 +671,17 @@ if __name__ == "__main__":
 
     ## testing for the people functions
     test_sfh.add_people()
+    assert len(test_sfh.people) == test_sfh.n_people
 
-    # check if names are actually somewhat correct
-    print(
-        f" there are {len(test_sfh.people)} person(s) in the building. There should be: {test_sfh.n_people}"
-    )
+    for i, person in enumerate(test_sfh.people):
+        expected_name = test_sfh.building_id.values[0] + f"_{i}"
+        assert person.person_id == expected_name
 
-    # check the if the ids are correct
-
-    i = 0
-    for person in test_sfh.people:
-        from_class = person.person_id
-        manual_name = test_sfh.building_id.values[0] + f"_{i}"
-        print(f"person id: {from_class}. It should be {manual_name}")
-        print(f" is name correct: {from_class == manual_name}")
-        i += 1
-
-    # append the water usage to each person
+    # verify DHW pipeline
     test_sfh.append_water_usage("dhw_profiles")
-    print("water usage appended correctly")
-
-    # calculate the dhw energy expenditure for each person
     test_sfh.people_dhw_energy()
-    print("dhw energy calculated correctly")
-
-    # calculate the total dhw volume used in the building
     dhw_volume = test_sfh.building_dhw_volume()
-    print(f"total dhw volume used in the building: {dhw_volume.sum().sum()}")
-
-    # calculate the total dhw energy used in the building
     dhw_energy = test_sfh.building_dhw_energy()
-    print(f"total dhw energy used in the building: {dhw_energy.sum().sum()}")
 
     ## now i want to test a non residential building
     non_res_building = building_input.loc[0, :].to_frame().T
@@ -746,126 +707,3 @@ if __name__ == "__main__":
     dhw_volume_non_res = building_non_res.building_dhw_volume()
     dhw_energy_non_res = building_non_res.building_dhw_energy()
     non_res_space_heating = building_non_res.get_useful_demand()
-
-    # df_results.to_csv("sht_test_results.csv")
-
-    # # on/off toggle some tests and debugging options
-    # losses_outputs = 0
-    # plot = 0
-    # test_speed = 0
-    # profiler = 0
-
-    # from Databases.mysql_utils.mysql_utils import create_connection, fetch_data
-
-    # # test building results
-    # data = fetch_data(1)
-
-    # if profiler == 0:
-    #     sfh = Building("test", "SFH1", data, weather, irradiation)
-    #     sfh.thermal_balance()
-    #     sfh.add_people(2)
-    #     dhw_volume = sfh.dhw_volume()
-    #     dhw_energy = sfh.dhw_energy()
-
-    # if profiler == 1:
-    #     from pyinstrument import Profiler
-
-    #     profiler = Profiler()
-    #     profiler.start()
-    #     sfh = Building("test", "SFH1", data, weather, irradiation)
-    #     sfh.thermal_balance()
-    #     profiler.stop()
-    #     output = profiler.output_text(unicode=True, color=True)
-    #     filtered_output = "\n".join(
-    #         line for line in output.split("\n") if "pandas" not in line
-    #     )
-    #     print(filtered_output)
-
-    # total_ued = sfh.get_sum_useful_demand()
-    # original_value = 100452.379147
-
-    # print(
-    #     f"Total useful energy demand per year = {total_ued} kWh. Should be: {original_value} kWh"
-    # )
-
-    # if test_speed == 1:
-    #     # test the speed of the code
-    #     def new_losses():
-    #         sfh.thermal_balance()
-
-    #     n_runs = 1000
-    #     time = timeit.timeit(lambda: new_losses(), number=n_runs)
-
-    #     print(f"Time for {n_runs} runs: {time} seconds")
-
-    # if plot == 1:
-    #     import matplotlib.pyplot as plt
-
-    #     # Assuming `df` is your DataFrame and 'Net Useful Hourly Demand [kWh]' is the column to be plotted
-    #     df = sfh.get_useful_demand()
-
-    #     # Calculate the 12-hour rolling average
-    #     rolling_window = 96
-    #     df["Smoothed"] = (
-    #         df["net useful hourly demand [kWh]"].rolling(window=rolling_window).mean()
-    #     )
-
-    #     # Plot the original data
-    #     plt.figure(figsize=(10, 6))
-    #     plt.plot(
-    #         df.index,
-    #         df["net useful hourly demand [kWh]"],
-    #         label="Original Data",
-    #         alpha=0.5,
-    #     )
-
-    #     # Plot the smoothed data
-    #     plt.plot(
-    #         df.index,
-    #         df["Smoothed"],
-    #         label=f"{rolling_window}-hour Rolling Average",
-    #         color="red",
-    #     )
-
-    #     # Add title and labels
-    #     plt.title(
-    #         f"Net Useful Hourly Demand with {rolling_window}-hour Rolling Average"
-    #     )
-    #     plt.xlabel("Time")
-    #     plt.ylabel("Net Useful Hourly Demand [kWh]")
-    #     plt.legend()
-
-    #     # Show the plot
-    #     plt.show()
-
-    # if losses_outputs == 1:
-    #     # results from each category of losses and gains are saved in csv files.
-    #     test_results = df.to_csv("test_results.csv")
-    #     solar_gain = sfh.get_solar_gain()
-    #     ground_losses = sfh.get_ground_losses()
-    #     opaque_losses = sfh.get_opaque_losses()
-    #     transparent_losses = sfh.get_transparent_losses()
-    #     ventilation_losses = sfh.get_ventilation_losses()
-    #     useful_demand = sfh.get_hourly_useful_demand()
-    #     total_useful_energy_demand = sfh.get_total_useful_energy_demand()
-
-    #     from pathlib import Path
-
-    #     Path("test_results").mkdir(parents=True, exist_ok=True)
-    #     solar_gain.to_csv("test_results/solar_gain.csv")
-    #     ground_losses.to_csv("test_results/ground_losses.csv")
-    #     opaque_losses.to_csv("test_results/opaque_losses.csv")
-    #     transparent_losses.to_csv("test_results/transparent_losses.csv")
-    #     ventilation_losses.to_csv("test_results/ventilation_losses.csv")
-    #     useful_demand.to_csv("test_results/useful_demand.csv")
-    #     total_useful_energy_demand.to_csv("test_results/total_useful_energy_demand.csv")
-    #     print("Results saved in test_results folder.")
-
-    # # def thermal_balance(self):
-    # #     self.transmission_losses_opaque()  # ok
-    # #     self.transmission_losses_transparent()  # ok
-    # #     self.transmission_losses_ground()  # ok
-    # #     self.sol_gain()  # ok
-    # #     self.vent_loss()  # ok
-    # #     self.useful_demand()  # ok
-    # #     self.total_use_energy_demand()  # ok

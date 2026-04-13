@@ -19,11 +19,12 @@ from costs.heat_supply import (
     fixed_oem_hp,
     calculate_lcoh,
     compute_ouc_residual,
+    calculate_revenues,
+    calculate_future_values,
 )
 from utils.misc import get_electricity_cost
 
 from heat_supply.carnot_efficiency import carnot_cop
-from costs.heat_supply import calculate_revenues, calculate_future_values
 from costs.renovation_costs import (
     apply_inflation,
     calculate_energy_prices_future,

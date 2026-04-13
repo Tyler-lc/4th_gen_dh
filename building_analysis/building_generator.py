@@ -342,7 +342,6 @@ def iterator_generate_buildings(
     results_list = []
 
     for idx, row in tqdm(building_data.iterrows(), total=building_data.shape[0]):
-        # print(row)
         building_usage = row["building_usage"]
         age_code = row["age_code"]
         building_id = row["full_id"]
@@ -602,7 +601,6 @@ if __name__ == "__main__":
     original_u_value = 2.427  # W/m2K
 
     new_u_value = add_insulation(mm_insulation, thermal_conductivity, original_u_value)
-    print(f"new u_value is: {new_u_value}")
 
     # testing the apply_renovation function
     sim = "unrenovated"

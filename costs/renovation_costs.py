@@ -188,7 +188,6 @@ def apply_inflation(
 
     # Calculate the cumulative product of the inflation rates
     cumulative_inflation = np.cumprod(1 + inflation)
-    # print("cumulative inflation", cumulative_inflation)
 
     # Calculate the energy prices for each year
     inflated_prices = base_energy_price * cumulative_inflation
@@ -257,7 +256,6 @@ def consumer_size(
     consumer_size[np.logical_not(res_mask) & mask_small_consumer] = "nr0"
     consumer_size[np.logical_not(res_mask) & mask_medium_consumer] = "nr1"
     consumer_size[np.logical_not(res_mask) & mask_large_consumer] = "nr2"
-    # print(consumer_size)
     return consumer_size
 
 
@@ -365,7 +363,6 @@ def npv_2(year_0, expenses, incomes, i):
     cash_flow = incomes_array - expenses_array
 
     cash_flow = np.insert(cash_flow, 0, year_0)
-    # print(len(cash_flow))
 
     npv_value = npf.npv(i, cash_flow)
     df = pd.DataFrame({"cash_flow": cash_flow})
@@ -540,9 +537,6 @@ if __name__ == "__main__":
         year_consumption["unrenovated_total_demand"] >= medium_consumer_threshold_kwh
     )
 
-    print(
-        f"small consumers: {mask_small_consumer.sum()}, medium consumers: {mask_medium_consumer.sum()}, large consumers: {mask_large_consumer.sum()}"
-    )
     ##
     small_residential_prices = apply_inflation(
         base_energy_price=0.1405,  # household gas price per kwh 2023- Semester 2 https://ec.europa.eu/eurostat/databrowser/view/nrg_pc_202/default/table?lang=en&category=nrg.nrg_price.nrg_pc

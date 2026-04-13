@@ -4,8 +4,6 @@ import geopandas as gpd
 from tqdm import tqdm
 import os
 import sys
-from multiprocessing import Pool
-from tqdm import tqdm
 
 from building_analysis.Building import Building
 from Person.Person import Person
@@ -39,15 +37,9 @@ df_soil_temp = pd.read_csv(soil_temperature_path())
 
 # missing data are represented by -99.9. So we replace them with NaN values. This allows fill by interpolation
 df_soil_temp.replace(-99.9, np.nan, inplace=True)
-print(
-    f"total number of NaN values in soil temperature before fix: {df_soil_temp['V_TE0052'].isna().sum()}"
-)
 
 # now interpolate the missing values
 df_soil_temp["V_TE0052"] = df_soil_temp["V_TE0052"].interpolate()
-print(
-    f"total number of NaN values in soil temperature after fix: {df_soil_temp['V_TE0052'].isna().sum()}"
-)
 
 # we are also setting the inside temperature to be a bit variable. We set it to be 20 °C from 8 am to 10pm
 # and 17 °C anywhere else (mostly night time)
@@ -76,17 +68,9 @@ for idx, building in gdf_buildingstock_results[res_mask].iterrows():
     for person_id in people_ids:
         file_path = os.path.join(dhw_volumes_folder, f"{person_id}.csv")
         if os.path.exists(file_path):
-            # print(
-            #     f"File exists for person {person_id} in building {building['full_id']}."
-            # )
             exist.append(person_id)
         else:
-            # print(
-            #     f"File does not exist for person {person_id} in building {building['full_id']}."
-            # )
             dont_exist.append(person_id)
-print(f"Total number of people that exist: {len(exist)}")
-print(f"Total number of people that do not exist: {len(dont_exist)}")
 if len(dont_exist) > 0:
     sys.exit("There are people that do not have a dhw profile. Please check the data.")
 
