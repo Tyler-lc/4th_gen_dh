@@ -9,6 +9,8 @@ from config import (
     DHW_PROFILES_DIR,
     MAXIMUM_PEOPLE,
     RESIDENTIAL_BUILDING_TYPES,
+    SEED,
+    derive_seed,
 )
 
 # Set up logging
@@ -46,7 +48,8 @@ def process_building(building):
 
         for people in range(n_people):
             logging.info(f"Analyzing person {people} in building {full_id}.")
-            person = Person(full_id, people)
+            person_seed = derive_seed(SEED, (full_id, people))
+            person = Person(full_id, people, seed=person_seed)
             dhw_data = person.dhw_profile()
             os.makedirs(DHW_PROFILES_DIR, exist_ok=True)
             dhw_data.to_csv(DHW_PROFILES_DIR / f"{full_id}_{people}.csv")
