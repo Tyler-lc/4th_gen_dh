@@ -41,26 +41,28 @@ This repository contains the simulation and analysis code accompanying the paper
 
 ### Prerequisites
 
-- Python 3.9+
-- [Gurobi](https://www.gurobi.com/) solver with a valid license (for grid optimisation)
+- [Conda](https://docs.conda.io/) (Miniconda or Anaconda). Conda-forge is the primary channel — binary builds of `geopandas`, `pyomo`, and friends are more reliable than pip on macOS/Linux.
+- A MILP solver for the grid optimisation. The project defaults to [Gurobi](https://www.gurobi.com/) (commercial, free academic licenses available). `grid_calculation/` supports any Pyomo-compatible solver; swap at call site if Gurobi is unavailable.
 
-### Installation
+### Recommended installation (conda)
 
 ```bash
-# Clone the repository
 git clone <repository-url>
 cd 4th-gen-dh
-
-# Create and activate a conda environment
-conda create -n dh_sim python=3.11
+conda env create -f environment.yml
 conda activate dh_sim
+```
 
-# Install dependencies
-pip install -r requirements.txt
+`environment.yml` contains the versions used to produce the published results with loose pins, so the conda solver can substitute platform-appropriate builds. For a byte-exact snapshot of the environment that produced the paper's results, see `environment-lock.yml` (generated with `conda env export --no-builds` on macOS; platform-specific).
 
-# Or install as a package (editable mode)
+### Pip-only fallback
+
+```bash
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 ```
+
+Geospatial binaries (`geopandas`, `osmnx`) may require system-level build tools on this path. `requirements.txt` mirrors `pyproject.toml` for systems where `pip install -e .` is not available.
 
 ## Reproducing Results
 

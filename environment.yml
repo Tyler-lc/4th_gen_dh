@@ -1,0 +1,47 @@
+# Primary install file for the dh_sim environment.
+#
+# Create/update with:
+#   conda env create -f environment.yml
+#   conda env update -f environment.yml --prune
+#
+# Versions below reflect those used to produce the published results. Loose
+# pins (>=) on pip dependencies allow solver-driven resolution on new platforms.
+# For an exact, platform-specific snapshot see environment-lock.yml.
+#
+# Notes:
+# - Gurobi is a commercial solver and requires a license. The gis/grid
+#   optimization module can be pointed at an alternative Pyomo-supported
+#   solver; installation of gurobipy here is convenience, not a hard
+#   requirement. License setup is user-side.
+# - Python 3.11 is used. Earlier versions (3.9) may work but are untested.
+
+name: dh_sim
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - ipykernel=6.29
+  - matplotlib=3.9
+  - networkx=3.3
+  - numpy=1.26
+  - openpyxl=3.1
+  - pandas=2.2
+  - pyarrow=17.0
+  - pyomo=6.9
+  - scipy=1.14
+  - seaborn=0.13
+  - shapely=2.0
+  - tqdm=4.66
+  - pip
+  - pip:
+      - geopandas>=1.0
+      - gurobipy>=12.0
+      - h5py>=3.12
+      - haversine>=2.9
+      - numpy-financial>=1.0
+      - osmnx>=2.0
+      - pvlib>=0.11
+      - pyogrio>=0.10
+      - pytest>=7.0
+      - -e .

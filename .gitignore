@@ -1,6 +1,11 @@
 *.pyc
 *.json
 !tests/golden_baseline.json
+
+# Python packaging artefacts
+*.egg-info/
+build/
+dist/
 Person/__pycache__/Person.cpython-311.pyc
 building_analysis/stundenwerte_EB_01420_19790101_20231231_hist/Metadaten_Fehldaten_01420_19790101_20231231.html
 building_analysis/stundenwerte_EB_01420_19790101_20231231_hist/Metadaten_Fehldaten_01420_19790101_20231231.txt
