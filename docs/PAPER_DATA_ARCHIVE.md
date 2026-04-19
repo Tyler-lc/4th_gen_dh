@@ -62,11 +62,15 @@ tar --exclude='.git' --exclude='__pycache__' --exclude='*.egg-info' \
     grid_calculation/cache
 ```
 
-Fill in the path where you actually store the archive:
+Archive record:
 
-- Archive location: `<fill in after backup>`
-- Archive date: `<fill in after backup>`
-- Archive SHA256: `<fill in via shasum -a 256>`
+- Primary location: `~/backups/4th_gen_dh_paper_submission_2026-04-19.tar.gz`
+- Date: 2026-04-19
+- Size: 6.07 GB (5.7 GB per `ls -lh`, macOS binary units)
+- Entries: 54,608 (files + directories)
+- Contents verified with `tar -tzf <archive> | wc -l`
+- Secondary copy: local NAS (user-managed)
+- SHA256: not computed; run `shasum -a 256 <archive>` and append here if integrity verification is later required.
 
 ## Restoration procedure
 
