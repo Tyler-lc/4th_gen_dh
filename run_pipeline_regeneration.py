@@ -16,6 +16,7 @@ the sensitivity stages. tqdm progress bars from each script are forwarded
 to this terminal.
 """
 
+import argparse
 import os
 import subprocess
 import sys
@@ -134,16 +135,64 @@ def run_stage(index: int, total: int, label: str, script: str) -> float:
     return time.perf_counter() - start
 
 
+def _parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Full pipeline regeneration for Phase 7b.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--skip-to",
+        type=int,
+        metavar="N",
+        default=1,
+        help=(
+            "Resume from stage N (1-indexed). Useful after a mid-pipeline "
+            "failure: fix the issue, then restart with --skip-to <failed_stage> "
+            "to avoid re-running the slow early stages. Upstream outputs must "
+            "still be on disk from the previous run. Default: 1."
+        ),
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all stages with their indices and exit.",
+    )
+    args = parser.parse_args()
+
+    if args.skip_to < 1 or args.skip_to > len(PIPELINE):
+        parser.error(
+            f"--skip-to must be between 1 and {len(PIPELINE)}, got {args.skip_to}"
+        )
+    return args
+
+
 def main() -> int:
+    args = _parse_args()
+
+    if args.list:
+        for i, (label, script) in enumerate(PIPELINE, start=1):
+            print(f"{i:2d}. {label}  ({script})")
+        return 0
+
+    if args.skip_to > 1:
+        print(f"Resuming from stage {args.skip_to}/{len(PIPELINE)} "
+              f"(skipping stages 1–{args.skip_to - 1}). Upstream outputs "
+              f"from a prior run are assumed to be on disk.\n")
+
     overall_start = time.perf_counter()
     durations: list[tuple[str, float]] = []
 
     for i, (label, script) in enumerate(PIPELINE, start=1):
+        if i < args.skip_to:
+            continue
         try:
             elapsed = run_stage(i, len(PIPELINE), label, script)
         except subprocess.CalledProcessError as exc:
             print(f"\n[FAIL] stage {i}/{len(PIPELINE)} ({label}) "
                   f"exited with status {exc.returncode}",
+                  file=sys.stderr)
+            print(f"To resume after fixing: "
+                  f"python {Path(__file__).name} --skip-to {i}",
                   file=sys.stderr)
             print("Stopping to avoid stale-data propagation downstream.",
                   file=sys.stderr)
