@@ -16,12 +16,31 @@ the sensitivity stages. tqdm progress bars from each script are forwarded
 to this terminal.
 """
 
+import os
 import subprocess
 import sys
 import time
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent
+
+
+def _pipeline_env() -> dict:
+    """Return a copy of os.environ with REPO_ROOT prepended to PYTHONPATH.
+
+    Scripts in subdirectories (e.g. grid_calculation/) would otherwise
+    fail to import ``config`` because Python only adds the script's own
+    directory to sys.path on invocation. Prepending REPO_ROOT to
+    PYTHONPATH makes top-level modules (``config``, top-level helpers)
+    importable from every stage.
+    """
+    env = os.environ.copy()
+    repo_root = str(REPO_ROOT)
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = (
+        f"{repo_root}{os.pathsep}{existing}" if existing else repo_root
+    )
+    return env
 
 # (stage label, script path relative to repo root)
 PIPELINE = [
@@ -104,9 +123,12 @@ def run_stage(index: int, total: int, label: str, script: str) -> float:
     # cwd=REPO_ROOT because scripts assume the repo root as working dir
     # (several read relative paths via config.PROJECT_ROOT-derived absolute
     # paths, but a couple of the grid scripts still rely on cwd).
+    # env=... prepends REPO_ROOT to PYTHONPATH so `from config import ...`
+    # works in scripts that live in subdirectories (e.g. grid_calculation/).
     subprocess.run(
         [sys.executable, str(script_path)],
         cwd=str(REPO_ROOT),
+        env=_pipeline_env(),
         check=True,  # hard-fail: CalledProcessError on non-zero exit
     )
     return time.perf_counter() - start
