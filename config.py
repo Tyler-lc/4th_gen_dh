@@ -4,6 +4,7 @@ All directory paths, data file paths, and study-area constants live here
 so that pipeline scripts never need os.chdir() or sys.path hacks.
 """
 
+import hashlib
 import os
 from pathlib import Path
 
@@ -36,6 +37,41 @@ YEAR_START = 2019
 YEAR_END = 2019
 MAXIMUM_PEOPLE = 9500
 RESIDENTIAL_BUILDING_TYPES = ["sfh", "mfh", "ab", "th"]
+
+# ── Stochastic pipeline seeding ──────────────────────────────────────────
+# Single source of truth for every randomised step in the pipeline
+# (Person occupancy + DHW, building U-value jitter, age-code assignment).
+# Every script that introduces randomness reads `SEED` from here and derives
+# a per-entity seed via `derive_seed`, so a fresh run reproduces the same
+# buildingstock, the same Persons, and the same downstream results bit for bit.
+SEED = 42
+
+
+def derive_seed(base: int, key) -> int:
+    """Return a deterministic 32-bit seed from a base integer and an arbitrary key.
+
+    Uses SHA-256 over ``f"{base}|{key}"`` and returns the first 32 bits as an
+    integer, giving a stable, cross-process, cross-platform mapping
+    ``(base, key) -> seed``. Python's built-in ``hash()`` is not used because
+    it is randomised per interpreter session for strings, which would break
+    reproducibility across runs.
+
+    Parameters
+    ----------
+    base : int
+        Root seed, typically ``config.SEED``.
+    key : Any
+        Stable identifier for the entity being seeded (e.g. a building's
+        ``full_id``, a ``(building_id, person_index)`` tuple). Converted to
+        string via ``str(key)``.
+
+    Returns
+    -------
+    int
+        A 32-bit non-negative integer suitable for ``numpy.random.RandomState``.
+    """
+    digest = hashlib.sha256(f"{base}|{key}".encode("utf-8")).hexdigest()
+    return int(digest[:8], 16)
 
 
 # ── Helper functions ─────────────────────────────────────────────────────
