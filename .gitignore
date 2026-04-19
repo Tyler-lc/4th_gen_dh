@@ -1,6 +1,7 @@
 *.pyc
 *.json
 !tests/golden_baseline.json
+!tests/golden_baseline_paper_submission.json
 
 # Python packaging artefacts
 *.egg-info/
