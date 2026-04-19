@@ -1,3 +1,5 @@
+import os
+
 import geopandas as gpd
 import networkx as nx
 import pandas as pd
@@ -51,7 +53,12 @@ def buildings_capacity(
     temp = pd.Series(index=gdf.index, dtype=float)
     for idx, row in tqdm(gdf.iterrows(), total=len(gdf)):
         path_to_data = row[column_name]
-        if rel_path:
+        # Legacy rel_path=True prepended "../" for scripts running from
+        # grid_calculation/. After the Phase 3 config.py migration these
+        # columns hold absolute paths, so the prefix corrupts them
+        # ("..//Users/..." -> FileNotFoundError). Only prepend when the
+        # stored path is actually relative.
+        if rel_path and not os.path.isabs(str(path_to_data)):
             path_to_data = f"../{path_to_data}"
 
         space_heating = pd.read_csv(path_to_data, index_col=0)
