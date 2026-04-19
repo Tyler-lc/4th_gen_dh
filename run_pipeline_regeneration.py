@@ -26,10 +26,13 @@ REPO_ROOT = Path(__file__).resolve().parent
 # (stage label, script path relative to repo root)
 PIPELINE = [
     # ── Data generation ──────────────────────────────────────────────────
-    ("Persons (DHW + occupancy)",
-        "01_create_people.py"),
+    # 01b must precede 01: 01_create_people.py reads BUILDINGSTOCK_PATH to
+    # learn which buildings need DHW profiles. Despite the numbering,
+    # buildingstock is the prerequisite.
     ("Unrenovated buildingstock",
         "01b_create_buildingstock.py"),
+    ("Persons (DHW + occupancy)",
+        "01_create_people.py"),
     ("Unrenovated energy demand (res + non-res)",
         "02_calculate_energy_demand.py"),
     ("Renovate buildingstock + renovated energy demand",
