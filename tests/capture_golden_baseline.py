@@ -42,9 +42,14 @@ KEY_RESULT_FILES = [
     "grid_calculation/booster_results.csv",
     "grid_calculation/dh_parameters.csv",
     # Cost results
-    "costs/renovation_costs.csv",
-    "costs/energy_savings_renovated.csv",
-    "costs/npv_data_renovated_gas.csv",
+    #
+    # 04_calculate_NPV_renovation.py has been broken since Sept 2024
+    # (consumer_size signature/caller drift) and its three CSV outputs
+    # (renovation_costs.csv, energy_savings_renovated.csv,
+    # npv_data_renovated_gas.csv) are not consumed by any pipeline step
+    # that feeds the paper. Dropped from baseline capture so Stage 7b
+    # regeneration stops expecting them. Tracked for cleanup in ticket
+    # #134 together with removing 04 and the stale on-disk CSVs.
 ]
 
 # Directories to scan (non-recursively for parquets, with skip logic for CSVs)

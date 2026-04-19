@@ -37,8 +37,11 @@ PIPELINE = [
         "02_calculate_energy_demand.py"),
     ("Renovate buildingstock + renovated energy demand",
         "03_renovate_buildingstock.py"),
-    ("Renovation NPV vs gas",
-        "04_calculate_NPV_renovation.py"),
+    # 04_calculate_NPV_renovation.py is intentionally skipped. It has been
+    # broken since Sept 2024 (consumer_size signature/caller drift) and its
+    # outputs are not consumed by any downstream step in the paper pipeline.
+    # Scheduled for removal together with the stale costs/*.csv outputs in
+    # ticket #134.
     ("Booster energy demand (t_grid=50)",
         "02b_calculate_booster_demand.py"),
 
