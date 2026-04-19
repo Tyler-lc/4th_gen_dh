@@ -398,6 +398,7 @@ def process_data(
     age_distr: pd.DataFrame,
     ceiling_height_distr: pd.DataFrame,
     res_types: List[str],
+    rng=None,
 ) -> gpd.GeoDataFrame:
     # from qgis_utils import get_building_data
 
@@ -407,6 +408,8 @@ def process_data(
     :param age_distr: DataFrame containing the age distribution of the buildings
     :param height_distr: DataFrame containing the ceiling height distribution of the buildings
     :res_types: a list of strings that identifies residential buildings in age_distr
+    :param rng: optional numpy RandomState for reproducibility; forwarded to define_building_age.
+                Defaults to np.random (global state) when None.
     :return: GeoDataFrame containing the updated values for the building
     """
 
@@ -417,7 +420,9 @@ def process_data(
     building_data["building_usage"] = define_building_type(building_data)
 
     # save the building age in a new column called "age_code"
-    building_data["age_code"] = define_building_age(building_data, age_distr, res_types)
+    building_data["age_code"] = define_building_age(
+        building_data, age_distr, res_types, rng=rng
+    )
 
     # save the ceiling heights in a new column called "ceiling_height"
     building_types = building_data["building_usage"]

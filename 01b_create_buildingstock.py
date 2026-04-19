@@ -15,10 +15,14 @@ from config import (
     BUILDINGSTOCK_PATH,
     MAXIMUM_PEOPLE,
     RESIDENTIAL_BUILDING_TYPES,
+    SEED,
+    derive_seed,
 )
 
-# as there is some randomness built-in to the generation of the buildings, we set the seed here for consistency
-np.random.seed(42)
+# Reproducibility: seed all stochastic steps from config.SEED. age-code assignment
+# in process_data uses a single RandomState; per-building U-value jitter in
+# iterator_generate_buildings derives its own RandomState per full_id.
+process_data_rng = np.random.RandomState(derive_seed(SEED, "process_data"))
 
 # first we need to process the QGIS data
 # we need to set up the path to the QGIS data, the age distribution of the buildings, and the ceiling heights distribution
@@ -35,6 +39,7 @@ geometric_data = process_data(
     age_distr_df,
     ceiling_heights_df,
     res_types,
+    rng=process_data_rng,
 )
 
 # finally we use the iterator_generate_buildings function to generate the buildings with all the information
@@ -42,7 +47,11 @@ geometric_data = process_data(
 # First we need to set the path where the u-values for all the archetypes are stored. This should be a csv
 # then we use the iterator_generate_buildings function to generate the buildings.
 buildingstock = iterator_generate_buildings(
-    geometric_data, str(U_VALUES_PATH), convert_wkb=True, randomization_factor=0.01
+    geometric_data,
+    str(U_VALUES_PATH),
+    convert_wkb=True,
+    randomization_factor=0.01,
+    seed=SEED,
 )
 
 # once we have generated the buildingstock we can add people to the building, since this requires us to know the total

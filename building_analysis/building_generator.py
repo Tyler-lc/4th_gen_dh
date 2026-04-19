@@ -328,6 +328,7 @@ def iterator_generate_buildings(
     convert_wkb=True,  # convert the geometry from wkb to shapely. this allows usage in gdf
     randomization_factor: float = 0.15,  # the randomization factor for the u-values. Default is 0.15
     verbose: bool = False,  # prints warnings if data is missing when True. Default is False
+    seed: int = None,  # base seed; per-building RandomState is derived from (seed, full_id) for reproducibility
 ) -> gpd.GeoDataFrame:
     """a small utility that will iterate over the buildings and generate the buildings.
     This is useful when we want to generate the buildings in a loop. The function will return eventually a
@@ -337,7 +338,14 @@ def iterator_generate_buildings(
     :param convert_wkb: convert the geometry from wkb to shapely. this allows usage in gdf
     :param randomization_factor: the randomization factor for the u-values. Default is 0.15
     :param verbose: prints warnings if data is missing when True. Default is False
+    :param seed: optional base seed. When provided, each building's U-value jitter uses a dedicated
+                 numpy.random.RandomState derived from ``derive_seed(seed, full_id)``, so results
+                 are reproducible and independent of iteration order / parallelism. When None, all
+                 buildings share ``np.random`` (legacy behaviour).
     """
+
+    # Lazy import to keep building_generator importable without project root on path
+    from config import derive_seed
 
     results_list = []
 
@@ -359,6 +367,12 @@ def iterator_generate_buildings(
         ceiling_height = row["ceiling_height"]
         angles_shared_borders = row["angles_shared_borders_standard"]
         cardinal_directions = row["cardinal_dir_shared_borders"]
+
+        per_building_rng = (
+            np.random.RandomState(derive_seed(seed, full_id))
+            if seed is not None
+            else None
+        )
 
         # if isinstance(geometry, bytes):
         #     geometry = wkb.loads(geometry)
@@ -383,6 +397,7 @@ def iterator_generate_buildings(
             randomization_factor,
             convert_wkb,
             verbose,
+            rng=per_building_rng,
         )
         results_list.append(result)
     results_df = pd.concat(results_list, ignore_index=True)
