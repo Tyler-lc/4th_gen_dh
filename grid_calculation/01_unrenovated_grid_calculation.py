@@ -79,48 +79,50 @@ project = pyproj.Transformer.from_crs(source_crs, target_crs, always_xy=True).tr
 # Reproject the polygon
 polygon_wgs84 = transform(project, polygon)
 
-# Plot the reprojected polygon
-x, y = polygon_wgs84.exterior.xy
-plt.figure()
-plt.plot(x, y)
-plt.fill(x, y, alpha=0.5, fc="r", ec="black")
-plt.title("Reprojected Polygon in EPSG:4326")
-plt.xlabel("Longitude")
-plt.ylabel("Latitude")
-plt.show()
+# Debug plots (reprojected polygon + road networks) disabled for unattended
+# pipeline runs — figure construction is slow enough to matter on the full
+# buildingstock. Flip the guard to True when investigating geometry issues.
+if False:
+    x, y = polygon_wgs84.exterior.xy
+    plt.figure()
+    plt.plot(x, y)
+    plt.fill(x, y, alpha=0.5, fc="r", ec="black")
+    plt.title("Reprojected Polygon in EPSG:4326")
+    plt.xlabel("Longitude")
+    plt.ylabel("Latitude")
+    plt.show()
 
 # Now use the reprojected polygon with OSMnx
 road_nw = ox.graph_from_polygon(polygon_wgs84, simplify=False, custom_filter=high_cf)
 
 road_simplified = ox.simplify_graph(road_nw)
 
-# Plot the original road network
-fig, ax = plt.subplots(figsize=(10, 10))
-ox.plot_graph(
-    road_nw,
-    ax=ax,
-    node_size=0,
-    edge_color="blue",
-    edge_linewidth=0.5,
-    show=False,
-    close=False,
-)
-plt.title("Original Road Network")
-plt.show()
+if False:
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ox.plot_graph(
+        road_nw,
+        ax=ax,
+        node_size=0,
+        edge_color="blue",
+        edge_linewidth=0.5,
+        show=False,
+        close=False,
+    )
+    plt.title("Original Road Network")
+    plt.show()
 
-# Plot the simplified road network
-fig, ax = plt.subplots(figsize=(10, 10))
-ox.plot_graph(
-    road_simplified,
-    ax=ax,
-    node_size=0,
-    edge_color="red",
-    edge_linewidth=0.5,
-    show=False,
-    close=False,
-)
-plt.title("Simplified Road Network")
-plt.show()
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ox.plot_graph(
+        road_simplified,
+        ax=ax,
+        node_size=0,
+        edge_color="red",
+        edge_linewidth=0.5,
+        show=False,
+        close=False,
+    )
+    plt.title("Simplified Road Network")
+    plt.show()
 
 
 ######## Pass osmid to nodes
@@ -1022,34 +1024,20 @@ graph_test_data = {k: v for k, v in graph_test_data.items() if v != 0}
 
 graph_test = nx.Graph()
 graph_test.add_edges_from(graph_test_data.keys())
-# nx.draw(graph_test)
 
-# Set up the plot
-plt.figure(figsize=(12, 8))  # Adjust the figure size as needed
-
-# Use spring layout for node positioning
-pos = nx.spring_layout(graph_test)
-
-# Draw nodes
-nx.draw_networkx_nodes(graph_test, pos, node_size=50, node_color="lightblue")
-
-# Draw edges
-nx.draw_networkx_edges(graph_test, pos, edge_color="gray", alpha=0.5)
-
-# Draw labels
-# nx.draw_networkx_labels(graph_test, pos, font_size=8, font_family='sans-serif')
-
-# Remove axis
-plt.axis("off")
-
-# Add a title
-plt.title("Network Graph Visualization", fontsize=16)
-
-# Adjust the layout
-plt.tight_layout()
-
-# Show the plot
-plt.show()
+# Network graph visualisation disabled for unattended pipeline runs.
+# nx.spring_layout() on the full street-network graph is the single
+# slowest step in this script when enabled (O(n^2)-ish iterations over
+# ~1000+ nodes). Flip the guard to True when a topology check is wanted.
+if False:
+    plt.figure(figsize=(12, 8))
+    pos = nx.spring_layout(graph_test)
+    nx.draw_networkx_nodes(graph_test, pos, node_size=50, node_color="lightblue")
+    nx.draw_networkx_edges(graph_test, pos, edge_color="gray", alpha=0.5)
+    plt.axis("off")
+    plt.title("Network Graph Visualization", fontsize=16)
+    plt.tight_layout()
+    plt.show()
 
 ###########GET NUMBER OF SUBGRAPHS IN GRAPH########################
 

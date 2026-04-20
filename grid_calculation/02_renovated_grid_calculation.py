@@ -71,15 +71,18 @@ coords_list = [
 ]
 polygon = Polygon(coords_list).convex_hull
 
-# Plot the original polygon
-x, y = polygon.exterior.xy
-plt.figure()
-plt.plot(x, y)
-plt.fill(x, y, alpha=0.5, fc="r", ec="black")
-plt.title("Original Polygon in EPSG:25832")
-plt.xlabel("X")
-plt.ylabel("Y")
-plt.show()
+# Debug plots (polygons + road networks) disabled for unattended pipeline
+# runs — figure construction is slow enough to matter on the full
+# buildingstock. Flip the guard to True when investigating geometry issues.
+if False:
+    x, y = polygon.exterior.xy
+    plt.figure()
+    plt.plot(x, y)
+    plt.fill(x, y, alpha=0.5, fc="r", ec="black")
+    plt.title("Original Polygon in EPSG:25832")
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.show()
 
 # Define the source and target CRS
 source_crs = pyproj.CRS("EPSG:25832")
@@ -91,48 +94,47 @@ project = pyproj.Transformer.from_crs(source_crs, target_crs, always_xy=True).tr
 # Reproject the polygon
 polygon_wgs84 = transform(project, polygon)
 
-# Plot the reprojected polygon
-x, y = polygon_wgs84.exterior.xy
-plt.figure()
-plt.plot(x, y)
-plt.fill(x, y, alpha=0.5, fc="r", ec="black")
-plt.title("Reprojected Polygon in EPSG:4326")
-plt.xlabel("Longitude")
-plt.ylabel("Latitude")
-plt.show()
+if False:
+    x, y = polygon_wgs84.exterior.xy
+    plt.figure()
+    plt.plot(x, y)
+    plt.fill(x, y, alpha=0.5, fc="r", ec="black")
+    plt.title("Reprojected Polygon in EPSG:4326")
+    plt.xlabel("Longitude")
+    plt.ylabel("Latitude")
+    plt.show()
 
 # Now use the reprojected polygon with OSMnx
 road_nw = ox.graph_from_polygon(polygon_wgs84, simplify=False, custom_filter=high_cf)
 
 road_simplified = ox.simplify_graph(road_nw)
 
-# Plot the original road network
-fig, ax = plt.subplots(figsize=(10, 10))
-ox.plot_graph(
-    road_nw,
-    ax=ax,
-    node_size=0,
-    edge_color="blue",
-    edge_linewidth=0.5,
-    show=False,
-    close=False,
-)
-plt.title("Original Road Network")
-plt.show()
+if False:
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ox.plot_graph(
+        road_nw,
+        ax=ax,
+        node_size=0,
+        edge_color="blue",
+        edge_linewidth=0.5,
+        show=False,
+        close=False,
+    )
+    plt.title("Original Road Network")
+    plt.show()
 
-# Plot the simplified road network
-fig, ax = plt.subplots(figsize=(10, 10))
-ox.plot_graph(
-    road_simplified,
-    ax=ax,
-    node_size=0,
-    edge_color="red",
-    edge_linewidth=0.5,
-    show=False,
-    close=False,
-)
-plt.title("Simplified Road Network")
-plt.show()
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ox.plot_graph(
+        road_simplified,
+        ax=ax,
+        node_size=0,
+        edge_color="red",
+        edge_linewidth=0.5,
+        show=False,
+        close=False,
+    )
+    plt.title("Simplified Road Network")
+    plt.show()
 
 
 ######## Pass osmid to nodes
@@ -287,42 +289,42 @@ for demand in n_demand_list:
 road_simplified_undirected = ox.convert.to_undirected(road_simplified)
 # road_simplified_undirected = ox.project_graph(road_simplified_undirected)
 
-# Plot the final road network
-fig, ax = plt.subplots(figsize=(10, 10))
-ox.plot_graph(
-    road_simplified_undirected,
-    ax=ax,
-    node_size=0,
-    edge_color="green",
-    edge_linewidth=0.5,
-    show=False,
-    close=False,
-)
-plt.title("Final Road Network")
-
-# Plot supply nodes
-for supply in n_supply_list:
-    plt.plot(
-        supply["coords"][1],
-        supply["coords"][0],
-        "bo",
-        markersize=10,
-        label="Supply Node" if supply == n_supply_list[0] else "",
+# Final road network + supply/demand overlay disabled for unattended
+# pipeline runs. Supply and demand loops were looping plt.plot() calls
+# per node, which blows up on the full buildingstock.
+if False:
+    fig, ax = plt.subplots(figsize=(10, 10))
+    ox.plot_graph(
+        road_simplified_undirected,
+        ax=ax,
+        node_size=0,
+        edge_color="green",
+        edge_linewidth=0.5,
+        show=False,
+        close=False,
     )
+    plt.title("Final Road Network")
 
-# Plot demand nodes
-for demand in n_demand_list:
-    plt.plot(
-        demand["coords"][1],
-        demand["coords"][0],
-        "ro",
-        markersize=1,
-        label="Demand Node" if demand == n_demand_list[0] else "",
-    )
+    for supply in n_supply_list:
+        plt.plot(
+            supply["coords"][1],
+            supply["coords"][0],
+            "bo",
+            markersize=10,
+            label="Supply Node" if supply == n_supply_list[0] else "",
+        )
 
-# Add legend
-plt.legend()
-plt.show()
+    for demand in n_demand_list:
+        plt.plot(
+            demand["coords"][1],
+            demand["coords"][0],
+            "ro",
+            markersize=1,
+            label="Demand Node" if demand == n_demand_list[0] else "",
+        )
+
+    plt.legend()
+    plt.show()
 
 
 ###############################################################################
@@ -1058,34 +1060,20 @@ graph_test_data = {k: v for k, v in graph_test_data.items() if v != 0}
 
 graph_test = nx.Graph()
 graph_test.add_edges_from(graph_test_data.keys())
-# nx.draw(graph_test)
 
-# Set up the plot
-plt.figure(figsize=(12, 8))  # Adjust the figure size as needed
-
-# Use spring layout for node positioning
-pos = nx.spring_layout(graph_test)
-
-# Draw nodes
-nx.draw_networkx_nodes(graph_test, pos, node_size=50, node_color="lightblue")
-
-# Draw edges
-nx.draw_networkx_edges(graph_test, pos, edge_color="gray", alpha=0.5)
-
-# Draw labels
-# nx.draw_networkx_labels(graph_test, pos, font_size=8, font_family='sans-serif')
-
-# Remove axis
-plt.axis("off")
-
-# Add a title
-plt.title("Network Graph Visualization", fontsize=16)
-
-# Adjust the layout
-plt.tight_layout()
-
-# Show the plot
-plt.show()
+# Network graph visualisation disabled for unattended pipeline runs.
+# nx.spring_layout() on the full street-network graph is the single
+# slowest step in this script when enabled. Flip the guard to True
+# when a topology check is wanted.
+if False:
+    plt.figure(figsize=(12, 8))
+    pos = nx.spring_layout(graph_test)
+    nx.draw_networkx_nodes(graph_test, pos, node_size=50, node_color="lightblue")
+    nx.draw_networkx_edges(graph_test, pos, edge_color="gray", alpha=0.5)
+    plt.axis("off")
+    plt.title("Network Graph Visualization", fontsize=16)
+    plt.tight_layout()
+    plt.show()
 
 ###########GET NUMBER OF SUBGRAPHS IN GRAPH########################
 
