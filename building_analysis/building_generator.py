@@ -127,10 +127,6 @@ def generate_building(
     # calculate the NFA :TODO in the future we can assign a different ratio according to the building type
     nfa = calculate_nfa(gfa)
 
-    # door data evaluation. If no door data are available then we set the area and u-value to 0
-    door_area = template_df["door_surface"].values[0]
-    door_u_value = template_df["door_uvalue"].values[0]
-
     # some times the roof_area might be smaller than the ground_contact_area (plot area)
     # that is because how the slope layer in qgis was filtered. Therefore we assume that if the roof area is smaller than the plot area
     # then the roof area is the same as the plot area
