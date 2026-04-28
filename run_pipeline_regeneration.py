@@ -98,6 +98,20 @@ PIPELINE = [
         "09c_LT_Sens_Analysis.py"),
     ("Booster sensitivity (09d)",
         "09d_HT_Booster_Sens_Analysis.py"),
+
+    # ── 2-D gas-vs-electricity sensitivity (combined_electicity_gas) ─────
+    # 10* scripts read the 09* outputs and produce the
+    # combined_electicity_gas/data/*.csv sweeps consumed by the 11* plot
+    # scripts. Bit-determinism verified 2026-04-28 across two consecutive
+    # runs (1319/1319 CSVs identical).
+    ("HT gas-vs-electricity sensitivity (10a)",
+        "10a_HT_scenarios_gas_vs_electicity.py"),
+    ("LT gas-vs-electricity sensitivity (10b)",
+        "10b_LT_scenarios_gas_vs_electicity.py"),
+    ("Booster gas-vs-electricity sensitivity (10c)",
+        "10c_HT_Booster_gas_vs_electricity.py"),
+    ("LT gas-vs-electricity-vs-renovation-costs sensitivity (10d, slowest)",
+        "10d_LT_scenarios_gas_vs_electicity_vs_rencosts.py"),
 ]
 
 
