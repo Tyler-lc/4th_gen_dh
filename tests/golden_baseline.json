@@ -5931,12 +5931,6 @@
       ]
     }
   },
-  "grid_calculation/booster_results.csv": {
-    "md5": "82e2f5736daaa7319f97326cfa8f12b7",
-    "path": "grid_calculation/booster_results.csv",
-    "read_error": "'utf-8' codec can't decode byte 0xa0 in position 7: invalid start byte",
-    "size_bytes": 1311697
-  },
   "grid_calculation/dh_parameters.csv": {
     "md5": "8bd8a598bef423cbd97247b5a1ef9db1",
     "path": "grid_calculation/dh_parameters.csv",

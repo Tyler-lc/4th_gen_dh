@@ -408,8 +408,7 @@ class Building:
     # here we start adding people to the building.
 
     def add_people(self, n_people: int = None, seed: Optional[int] = SEED):
-        """add people in the building based on the Person.py class.
-        To calculate domestic hot water call the method 'domestic_hot_water'
+        """Populate ``self.people`` with seeded ``Person`` instances.
 
         Parameters
         ----------
@@ -442,10 +441,13 @@ class Building:
             )
 
     def append_water_usage(self, profiles_folder):
-        """add a person to the building based on the Person.py class.
-        To calculate domestic hot water call the method 'domestic_hot_water'
-        This is in case the user wants to add a person that has already been created
-        and pre-calculated the hot water demand
+        """Load each Person's pre-computed DHW volume profile from CSV.
+
+        For each ``Person`` already in ``self.people``, read
+        ``<profiles_folder>/<person_id>.csv`` and attach it via
+        ``Person.set_dhw_profile``. Use this when DHW profiles were
+        produced offline (e.g. by ``01_create_people.py``) and the current
+        run only needs to consume them.
         """
         if self.people == []:
             return
