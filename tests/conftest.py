@@ -159,6 +159,61 @@ def minimal_building(synthetic_weather, synthetic_irradiation):
     )
 
 
+# ---------------------------------------------------------------------------
+# Analytic fixtures: constant outside temperature, zero irradiation.
+# Used to assert heat-loss components against hand-computed reference values.
+# ---------------------------------------------------------------------------
+ANALYTIC_T_OUT = 0.0      # °C, constant outside air temperature
+ANALYTIC_SOIL_T = 8.0     # °C, Building default
+ANALYTIC_T_IN = 20.0      # °C, Building default
+# Building.is_summer treats months 6-9 as summer (zero losses).
+# In a non-leap year (default 2019) that's 30+31+31+30 = 122 days = 2928 hours.
+ANALYTIC_HEATING_HOURS = HOURS_PER_YEAR - 2928  # 5832
+
+
+@pytest.fixture
+def constant_t_weather():
+    """8760-hour outside temperature DataFrame pinned at ANALYTIC_T_OUT."""
+    index = pd.date_range(start=DEFAULT_YEAR_START, periods=HOURS_PER_YEAR, freq="h")
+    return pd.DataFrame({"T2m": np.full(HOURS_PER_YEAR, ANALYTIC_T_OUT)}, index=index)
+
+
+@pytest.fixture
+def zero_irradiation():
+    """8760-hour irradiation DataFrame with all four cardinal G(i) at zero."""
+    index = pd.date_range(start=DEFAULT_YEAR_START, periods=HOURS_PER_YEAR, freq="h")
+    zeros = np.zeros(HOURS_PER_YEAR)
+    return pd.DataFrame(
+        {
+            "north G(i) [kWh/m2]": zeros,
+            "south G(i) [kWh/m2]": zeros,
+            "east G(i) [kWh/m2]": zeros,
+            "west G(i) [kWh/m2]": zeros,
+        },
+        index=index,
+    )
+
+
+@pytest.fixture
+def analytic_building(constant_t_weather, zero_irradiation):
+    """Building with constant T_out = 0 °C, soil T = 8 °C, inside T = 20 °C,
+    zero irradiation. Geometry from _make_components_row defaults. Loss
+    components are exactly UA·ΔT·heating_hours/1000 per surface class.
+    """
+    from building_analysis.Building import Building
+
+    components = _make_components_row()
+    return Building(
+        building_id="analytic_bldg",
+        building_type="sfh5",
+        components=components,
+        outside_temperature=constant_t_weather,
+        irradiation_data=zero_irradiation,
+        soil_temp=ANALYTIC_SOIL_T,
+        inside_temp=ANALYTIC_T_IN,
+    )
+
+
 @pytest.fixture
 def minimal_person():
     """Return a seeded Person with a fully generated DHW profile."""

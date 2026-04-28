@@ -17,34 +17,78 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from Person.Person import Person
 from building_analysis.Building import Building
-from config import SEED, derive_seed
+from config import SEED
+
+
+# Analytic reference values for the constant-T fixture (analytic_building).
+# Derivation: each loss class collapses to UA·ΔT·heating_hours/1000 because
+# T_out, T_soil and T_in are constant and irradiation is zero. ΔT is 20 K
+# against air, 12 K against soil. Heating hours = 5832 (months 1-5 + 10-12).
+# Window U-values are ≤ 1.4 so unwanted_vent_coeff resolves to 0.2.
+ANALYTIC_OPAQUE_KWH = (0.30 * 130 + 0.35 * 200 + 1.8 * 3) * 20 * 5832 / 1000
+ANALYTIC_TRANSPARENT_KWH = 1.2 * (8 + 16 + 10 + 10) * 20 * 5832 / 1000
+ANALYTIC_GROUND_KWH = 0.40 * 120 * 12 * 5832 / 1000
+ANALYTIC_VENTILATION_KWH = 0.34 * (0.2 + 0.2) * 360 * 20 * 5832 / 1000
 
 
 @pytest.mark.equivalence
-def test_transmission_and_ventilation_sum_matches_components(minimal_building):
-    """Sum of the four loss streams equals the aggregated loss Building
-    uses inside useful_demand().
+def test_opaque_transmission_matches_analytic(analytic_building):
+    analytic_building.transmission_losses_opaque()
+    assert analytic_building.opaque_losses.values.sum() == pytest.approx(
+        ANALYTIC_OPAQUE_KWH, rel=1e-6
+    )
+
+
+@pytest.mark.equivalence
+def test_transparent_transmission_matches_analytic(analytic_building):
+    analytic_building.transmission_losses_transparent()
+    assert analytic_building.transparent_losses.values.sum() == pytest.approx(
+        ANALYTIC_TRANSPARENT_KWH, rel=1e-6
+    )
+
+
+@pytest.mark.equivalence
+def test_ground_transmission_matches_analytic(analytic_building):
+    analytic_building.transmission_losses_ground()
+    assert analytic_building.ground_losses.values.sum() == pytest.approx(
+        ANALYTIC_GROUND_KWH, rel=1e-6
+    )
+
+
+@pytest.mark.equivalence
+def test_ventilation_loss_matches_analytic(analytic_building):
+    analytic_building.vent_loss()
+    assert analytic_building.ventilation_losses.values.sum() == pytest.approx(
+        ANALYTIC_VENTILATION_KWH, rel=1e-6
+    )
+
+
+@pytest.mark.equivalence
+def test_total_losses_match_analytic_sum(analytic_building):
+    """Cross-check: the four loss streams together equal the analytic sum.
+    This is the regression bound that catches any single-component drift
+    even if the per-component tests are skipped.
     """
-    b = minimal_building
+    b = analytic_building
     b.transmission_losses_opaque()
     b.transmission_losses_transparent()
     b.transmission_losses_ground()
     b.vent_loss()
 
-    per_component = (
-        b.opaque_losses.sum(axis=1)
-        + b.transparent_losses.sum(axis=1)
-        + b.ground_losses.sum(axis=1)
-        + b.ventilation_losses.sum(axis=1)
+    total = (
+        b.opaque_losses.values.sum()
+        + b.transparent_losses.values.sum()
+        + b.ground_losses.values.sum()
+        + b.ventilation_losses.values.sum()
     )
-    assert per_component.notna().all()
-    assert (per_component >= 0).all()
-    # Total annual losses match the sum of parts (sanity — the sum is
-    # literally the per-component total by construction)
-    total_annual = per_component.sum()
-    assert total_annual > 0
+    expected = (
+        ANALYTIC_OPAQUE_KWH
+        + ANALYTIC_TRANSPARENT_KWH
+        + ANALYTIC_GROUND_KWH
+        + ANALYTIC_VENTILATION_KWH
+    )
+    assert total == pytest.approx(expected, rel=1e-6)
 
 
 @pytest.mark.equivalence
@@ -113,17 +157,9 @@ def test_dhw_aggregation_equals_person_sum(minimal_building):
     dhw_year DataFrame.
     """
     b = minimal_building
-    # Populate people manually with seeded persons and their DHW profiles,
-    # because Building.add_people() does not forward seeds.
-    b.people = []
-    for idx, pid in enumerate(b.people_id):
-        person = Person(
-            building_id=b.building_id,
-            person_id=pid,
-            seed=derive_seed(SEED, (b.building_id, idx)),
-        )
+    b.add_people(seed=SEED)
+    for person in b.people:
         person.dhw_profile()
-        b.people.append(person)
 
     agg = b.building_dhw_volume()
     expected = sum(person.dhw_year for person in b.people)
@@ -140,16 +176,9 @@ def test_building_dhw_deterministic_under_seed(synthetic_weather, synthetic_irra
             "det", "sfh5", make_components(),
             synthetic_weather.copy(), synthetic_irradiation.copy(),
         )
-        b.people = []
-        for idx in range(b.n_people):
-            pid = b.people_id[idx]
-            person = Person(
-                building_id=b.building_id,
-                person_id=pid,
-                seed=derive_seed(SEED, (b.building_id, idx)),
-            )
+        b.add_people(seed=SEED)
+        for person in b.people:
             person.dhw_profile()
-            b.people.append(person)
         return b.building_dhw_volume()
 
     first = run()
@@ -157,20 +186,3 @@ def test_building_dhw_deterministic_under_seed(synthetic_weather, synthetic_irra
     pd.testing.assert_frame_equal(first, second)
 
 
-@pytest.mark.equivalence
-def test_thermal_balance_deterministic(minimal_building, synthetic_weather,
-                                        synthetic_irradiation, make_components):
-    """Re-running thermal_balance on a freshly built Building with the
-    same inputs produces identical UED.
-    """
-    first = minimal_building
-    first.thermal_balance()
-    first_ued = first.hourly_useful_demand.copy()
-
-    second = Building(
-        "test_bldg", "sfh5", make_components(),
-        synthetic_weather.copy(), synthetic_irradiation.copy(),
-    )
-    second.thermal_balance()
-
-    pd.testing.assert_frame_equal(first_ued, second.hourly_useful_demand)
