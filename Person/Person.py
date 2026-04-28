@@ -285,6 +285,19 @@ class Person:
         self.dhw_year = dhw_df
 
     def get_dhw_profile(self):
+        """Return the DHW volume profile.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Hourly DHW draws in litres, indexed by datetime.
+
+        Raises
+        ------
+        ValueError
+            If neither :meth:`dhw_profile` nor :meth:`set_dhw_profile`
+            has been called first.
+        """
         if self.dhw_year is None:
             raise ValueError(
                 "DHW profile not generated. Generate DHW first by using Person.dhw_profile() method or append a pre-calculated DHW profile using Person.set_dhw_profile() method."
@@ -292,6 +305,18 @@ class Person:
         return self.dhw_year
 
     def get_dhw_energy_demand(self):
+        """Return the DHW energy demand profile.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Hourly DHW energy demand in kWh, indexed by datetime.
+
+        Raises
+        ------
+        ValueError
+            If :meth:`dhw_energy` has not been called first.
+        """
         if self.dhw_energy_demand.empty:
             raise ValueError(
                 "DHW energy demand not calculated. Calculate DHW energy demand first by using Person.dhw_energy() method."

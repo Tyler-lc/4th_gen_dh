@@ -29,6 +29,51 @@ class Building:
         summer_end: int = 9,
         verbose: bool = False,
     ):
+        """Construct a Building from a single-row components DataFrame.
+
+        Parses geometry and U-values from ``components``, normalises the
+        outside-temperature series to a ``DatetimeIndex``, broadcasts
+        scalar soil/inside temperatures to per-hour series, and
+        allocates empty result frames for transmission and ventilation
+        losses, solar gains, internal gains and DHW.
+
+        Parameters
+        ----------
+        building_id : str or int
+            Stable identifier for the building (e.g. OSM ``full_id``).
+        building_type : str
+            Tabula archetype string, e.g. ``"sfh5"`` or ``"mfh3"``.
+            Used by Tabula-based U-value lookups.
+        components : pandas.DataFrame
+            Single-row frame with the geometry and U-value columns
+            produced by :mod:`building_analysis.building_generator`.
+            Required columns include ``n_floors``, ``volume``,
+            ``ground_contact_area``, ``n_people``, ``people_id``,
+            ``NFA``, ``GFA``, ``windows`` (a JSON-encoded dict),
+            ``roof_area``, ``walls_area``, ``door_area``,
+            and the ``*_u_value`` companions.
+        outside_temperature : pandas.DataFrame or pandas.Series
+            Hourly outside air temperature in °C. If passed without a
+            ``DatetimeIndex``, an index is constructed from
+            ``year_start`` at hourly frequency.
+        irradiation_data : pandas.DataFrame
+            PVGIS-style hourly irradiation with one ``"<orient> G(i) [kWh/m2]"``
+            column per cardinal direction the building has windows on.
+        soil_temp : int, list or pandas.Series, default 8
+            Soil temperature against which ground transmission is
+            computed, °C. Scalars are broadcast to all hours.
+        inside_temp : int, list or pandas.Series, default 20
+            Indoor setpoint temperature, °C. Scalars are broadcast.
+        year_start : int, default 2019
+            Calendar year used to construct the hourly DatetimeIndex
+            when the inputs are bare arrays.
+        summer_start, summer_end : int, default (6, 9)
+            Inclusive month bounds during which heating losses and
+            internal gains are zeroed; June–September is the default
+            heating-off window.
+        verbose : bool, default False
+            Emit warnings (e.g. when DHW is requested without people).
+        """
         self.building_id = building_id
         self.building_type = building_type
         self.components = components
@@ -138,7 +183,28 @@ class Building:
         self.summer_months = self.is_summer(self.outside_temperature.index)
 
     def convert_temps(self, temp_data, outside_temperature):
+        """Broadcast a scalar/list/Series temperature to the weather index.
 
+        Parameters
+        ----------
+        temp_data : int, float, list or pandas.Series
+            Temperature input. Scalars are repeated to match the weather
+            length; lists are wrapped as a Series; Series are reindexed
+            to the weather index when their existing index does not
+            already match.
+        outside_temperature : pandas.DataFrame or pandas.Series
+            Reference time series whose index defines the target shape.
+
+        Returns
+        -------
+        pandas.Series
+            Temperature aligned to ``outside_temperature.index``.
+
+        Raises
+        ------
+        TypeError
+            For unsupported input types.
+        """
         if isinstance(temp_data, (int, float)):
             temp_data = pd.Series(
                 [temp_data] * len(outside_temperature),
@@ -159,7 +225,20 @@ class Building:
     # in this first section we parse the data from the components dataframe to create
     # the data structure we use in the calculations
     def parse_opaque_surfaces(self, components):
-        # Extract opaque surfaces data
+        """Build a long-form DataFrame of opaque envelope surfaces.
+
+        Parameters
+        ----------
+        components : pandas.DataFrame
+            Single-row geometry frame; must contain
+            ``{roof,walls,door}_{area,u_value}`` columns.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Three rows (roof, wall, door) with columns
+            ``surface_name``, ``total_surface``, ``uvalue``.
+        """
         return pd.DataFrame(
             {
                 "surface_name": ["roof", "wall", "door"],
@@ -177,6 +256,21 @@ class Building:
         )
 
     def parse_transparent_surfaces(self, windows_json):
+        """Decode the per-orientation window JSON into long-form rows.
+
+        Parameters
+        ----------
+        windows_json : str
+            JSON string mapping ``{orientation: {area, u_value, shgc}}``.
+            Orientations with ``area == 0`` are dropped.
+
+        Returns
+        -------
+        pandas.DataFrame
+            One row per non-zero-area window orientation, with columns
+            ``surface_name``, ``total_surface``, ``uvalue``, ``SHGC``,
+            ``orientation``.
+        """
         windows_dict = json.loads(windows_json)
         windows_list = [
             {
@@ -192,6 +286,20 @@ class Building:
         return pd.DataFrame(windows_list)
 
     def parse_ground_contact_surfaces(self, components):
+        """One-row DataFrame describing the ground-contact slab.
+
+        Parameters
+        ----------
+        components : pandas.DataFrame
+            Single-row geometry frame; must contain
+            ``ground_contact_area`` and ``ground_contact_u_value``.
+
+        Returns
+        -------
+        pandas.DataFrame
+            Single-row frame in the same long-form schema as
+            :meth:`parse_opaque_surfaces`.
+        """
         return pd.DataFrame(
             {
                 "surface_name": ["ground_contact"],
@@ -203,6 +311,25 @@ class Building:
     # this first section is for all thermal calculations. All the function here calculate the thermal losses due to
     # transmission, ventilation and also the solar gain (Based on PVGIS data).
     def compute_losses(self, surfaces_df, outside_temp, inside_temp):
+        r"""Vectorised :math:`Q = U \cdot A \cdot \Delta T` over surfaces and hours.
+
+        Negative results (outdoor warmer than indoor) are clipped to
+        zero, and summer months are zeroed in bulk.
+
+        Parameters
+        ----------
+        surfaces_df : pandas.DataFrame
+            Long-form surfaces with ``uvalue``, ``total_surface``,
+            ``surface_name`` columns.
+        outside_temp, inside_temp : pandas.Series
+            Hourly temperatures aligned to the same DatetimeIndex.
+
+        Returns
+        -------
+        pandas.DataFrame
+            One column per surface, indexed by the input timestamp.
+            Values in kWh per hour.
+        """
         u_values = surfaces_df["uvalue"].values[:, np.newaxis]
         areas = surfaces_df["total_surface"].values[:, np.newaxis]
         losses_matrix = (
@@ -218,10 +345,18 @@ class Building:
         return losses_df
 
     def transmission_losses_opaque(self, outside_temp=None, temp_col_index=0):
-        """by default the outside temperature is the temperature passed when creating the Building instance
-        Also the inside temperature is by default 20 °C constant. It is possible to also pass a list
-        """
+        """Hourly transmission loss through opaque surfaces (roof, walls, door).
 
+        Stores the result on ``self.opaque_losses``.
+
+        Parameters
+        ----------
+        outside_temp : pandas.Series, optional
+            Override the building's stored outside temperature.
+        temp_col_index : int, default 0
+            Column index used when reading from a multi-column outside
+            temperature DataFrame.
+        """
         if outside_temp is None:
             outside_temp = self.outside_temperature.iloc[:, temp_col_index]
 
@@ -234,10 +369,18 @@ class Building:
         )
 
     def transmission_losses_transparent(self, outside_temp=None, temp_col_index=0):
-        """by default the outside temperature is the temperature passed when creating the Building instance
-        Also the inside temperature is by default 20 °C constant. It is possible to also pass a list
-        """
+        """Hourly transmission loss through windows.
 
+        Stores the result on ``self.transparent_losses``.
+
+        Parameters
+        ----------
+        outside_temp : pandas.Series, optional
+            Override the building's stored outside temperature.
+        temp_col_index : int, default 0
+            Column index used when reading from a multi-column outside
+            temperature DataFrame.
+        """
         if outside_temp is None:
             outside_temp = self.outside_temperature.iloc[:, temp_col_index]
 
@@ -250,10 +393,21 @@ class Building:
         )
 
     def transmission_losses_ground(self, soil_temp=None, temp_col_index=0):
-        """by default the soil temperature is the temperature passed when creating the Building instance
-        Also the inside temperature is by default 20 °C constant. It is possible to also pass a list
-        """
+        """Hourly transmission loss through the ground-contact slab.
 
+        Uses soil temperature (not air temperature) as the cold-side
+        reference. Hours where soil temperature exceeds indoor setpoint
+        produce zero loss.
+
+        Stores the result on ``self.ground_losses``.
+
+        Parameters
+        ----------
+        soil_temp : pandas.Series, optional
+            Override the building's stored soil temperature.
+        temp_col_index : int, default 0
+            Reserved; currently unused (kept for API symmetry).
+        """
         if soil_temp is None:
             soil_temp = self.soil_temp
 
@@ -276,11 +430,31 @@ class Building:
     # so that we do not have to call them one by one
 
     def all_transmission_losses(self):
+        """Convenience wrapper that runs all three transmission paths.
+
+        Equivalent to calling :meth:`transmission_losses_opaque`,
+        :meth:`transmission_losses_transparent` and
+        :meth:`transmission_losses_ground` in sequence.
+        """
         self.transmission_losses_opaque()
         self.transmission_losses_transparent()
         self.transmission_losses_ground()
 
     def sol_gain(self):
+        r"""Hourly solar gain per window orientation.
+
+        For each non-zero window:
+
+        .. math::
+
+           Q_\text{sol}(t) = G_i(t) \cdot \text{SHGC} \cdot A_\text{win}
+
+        where :math:`G_i(t)` is the per-orientation global irradiation
+        from PVGIS in Wh/m². Result is zeroed in summer months and in
+        any hour where outside ≥ inside temperature (overheating
+        avoidance). Stores the per-orientation gains on
+        ``self.solar_gain``.
+        """
         for _, row in self.transparent_surfaces.iterrows():
             window_area = row["total_surface"]
             window_SHGC = row["SHGC"]
@@ -300,8 +474,19 @@ class Building:
             self.solar_gain[row["surface_name"]] = gains
 
     def internal_gains(self, watts_per_sqm: pd.DataFrame = None):
-        """calculate the internal gains in the building
-        watts_per_sqm: int, optional. Default is 3. The internal gains in the building in W/m2
+        """Hourly internal heat gains from occupants and appliances.
+
+        Parameters
+        ----------
+        watts_per_sqm : pandas.DataFrame, optional
+            Hourly internal heat-source intensity in W/m². Defaults to a
+            constant 3 W/m² over the whole net floor area, a common
+            EN 12831 design assumption for residential buildings.
+
+        Notes
+        -----
+        Result is zeroed in summer months and in any hour where outside
+        ≥ inside temperature. Stored on ``self.internal_heat_sources``.
         """
         if watts_per_sqm is None:
             watts_per_sqm = pd.DataFrame(
@@ -325,6 +510,24 @@ class Building:
         self.internal_heat_sources = internal_heat_sources
 
     def vent_loss(self):
+        r"""Hourly ventilation heat loss (simplified two-term model).
+
+        .. math::
+
+           Q_v(t) = 0.34 \cdot (n_\text{design} + n_\text{unwanted})
+                    \cdot V \cdot \max(0, T_\text{in} - T_\text{out}(t))
+
+        The 0.34 Wh/(m³·K) coefficient is the volumetric heat capacity
+        of dry air at 20 °C (ρ·c_p). The design air-change rate is
+        fixed at 0.2 ACH; the unwanted-infiltration term is 0.2 ACH
+        when the window U-value is ≤ 1.4 W/(m²·K) and 0.4 ACH otherwise
+        — a project heuristic that flags pre-thermal-pane stock as
+        leakier, not a literal application of EN 12831 or DIN 4701-10.
+
+        Stores the result on
+        ``self.ventilation_losses["ventilation losses [kWh]"]``. Summer
+        months are zeroed.
+        """
         # Qv = 0.34 * (0.4 + 0.2) * V
 
         inside_temp = self.inside_temp
@@ -347,6 +550,13 @@ class Building:
     # this function automatically calls all the relevant functions to perform the thermal balance calculations
 
     def thermal_balance(self):
+        """Run the full hourly thermal balance.
+
+        Calls all loss and gain methods in dependency order and finally
+        :meth:`useful_demand` and :meth:`total_use_energy_demand`. After
+        this call, ``self.hourly_useful_demand`` and
+        ``self.total_useful_energy_demand`` are populated.
+        """
         self.transmission_losses_opaque()  # ok
         self.transmission_losses_transparent()  # ok
         self.transmission_losses_ground()  # ok
@@ -382,9 +592,18 @@ class Building:
         )
 
     def total_specific_losses(self):
+        """Specific annual losses (kWh/m² NFA), stored on ``self.specific_losses``."""
         self.specific_losses = self.year_losses() / self.net_floor_area
 
     def useful_demand(self):
+        """Hourly net useful energy demand: losses minus gains, clipped at zero.
+
+        Combines opaque, transparent, ground and ventilation losses
+        against solar and internal gains. Hours where gains exceed
+        losses are set to zero — the building does not export heat in
+        this model. Stores the result on
+        ``self.hourly_useful_demand["net useful hourly demand [kWh]"]``.
+        """
         total_losses = (
             self.opaque_losses.sum(axis=1)
             + self.transparent_losses.sum(axis=1)
@@ -401,6 +620,18 @@ class Building:
         self.hourly_useful_demand["net useful hourly demand [kWh]"] = net_result
 
     def is_summer(self, date_index):
+        """Boolean mask: True for hours falling in the summer (heating-off) window.
+
+        Parameters
+        ----------
+        date_index : pandas.DatetimeIndex
+            Index to evaluate.
+
+        Returns
+        -------
+        pandas.Index of bool
+            True where ``summer_start ≤ month ≤ summer_end``.
+        """
         return (date_index.month >= self.summer_start) & (
             date_index.month <= self.summer_end
         )
@@ -494,40 +725,52 @@ class Building:
         return self.total_dhw_energy
 
     def get_useful_demand(self):
+        """Return the hourly useful energy demand DataFrame."""
         return self.hourly_useful_demand
 
     def get_sum_useful_demand(self):
+        """Return the annual total useful energy demand (kWh) as a scalar."""
         return self.hourly_useful_demand.sum().values[0]
 
     def get_specific_ued(self):
+        """Return annual UED per net floor area (kWh/m² NFA) and cache it."""
         self.specific_losses = self.get_sum_useful_demand() / self.nfa
         return self.specific_losses
 
     def get_components(self):
+        """Return the single-row geometry+U-value components frame."""
         return self.components
 
     def get_global_uvalue(self):
+        """Return the global transmission coefficient cached on the instance."""
         return self.global_uvalue
 
     def get_outside_temp(self):
+        """Return the outside temperature DataFrame."""
         return self.outside_temperature
 
     def get_opaque_losses(self):
+        """Return the per-surface opaque transmission loss DataFrame."""
         return self.opaque_losses
 
     def get_transparent_losses(self):
+        """Return the per-orientation window transmission loss DataFrame."""
         return self.transparent_losses
 
     def get_ground_losses(self):
+        """Return the ground-slab transmission loss DataFrame."""
         return self.ground_losses
 
     def get_solar_gain(self):
+        """Return the per-orientation solar gain DataFrame."""
         return self.solar_gain
 
     def get_internal_heat_sources(self):
+        """Return the internal-heat-source DataFrame (occupants, appliances)."""
         return self.internal_heat_sources
 
     def get_ventilation_losses(self):
+        """Return the ventilation loss DataFrame."""
         return self.ventilation_losses
 
     def get_hourly_useful_demand(self):
@@ -540,33 +783,41 @@ class Building:
         return self.total_useful_energy_demand
 
     def get_total_walls_surface(self):
+        """Total opaque wall surface (m²)."""
         return self.opaque_surfaces.loc[
             self.opaque_surfaces["surface_name"] == "wall", "total_surface"
         ].sum()
 
     def get_total_windows_surface(self):
+        """Total window surface across all orientations (m²)."""
         return self.transparent_surfaces["total_surface"].sum()
 
     def get_total_ground_surface(self):
+        """Total ground-contact slab surface (m²)."""
         return self.ground_contact_surfaces["total_surface"].sum()
 
     def get_total_roof_surface(self):
+        """Total roof surface (m²)."""
         return self.opaque_surfaces.loc[
             self.opaque_surfaces["surface_name"] == "roof", "total_surface"
         ].sum()
 
     def get_total_door_surface(self):
+        """Total door surface (m²)."""
         return self.opaque_surfaces.loc[
             self.opaque_surfaces["surface_name"] == "door", "total_surface"
         ].sum()
 
     def get_total_volume(self):
+        """Heated volume of the building (m³)."""
         return self.volume
 
     def get_dhw_sum_volume(self):
+        """Annual DHW volume across all occupants (litres)."""
         return self.building_dhw_volume().sum().sum()
 
     def get_dhw_sum_energy(self):
+        """Annual DHW energy across all occupants (kWh)."""
         return self.building_dhw_energy().sum().sum()
 
 

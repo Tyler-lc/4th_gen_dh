@@ -1,65 +1,35 @@
-import pandas as pd
+"""Heat supply economics: heat-pump CAPEX/OPEX power-law fits, LCOH.
+
+Cost coefficients in :func:`capital_costs_hp`, :func:`var_oem_hp` and
+:func:`fixed_oem_hp` are power-law fits to the Danish Energy Agency
+"Technology Data for Heating Plants and District Heating" catalogue
+(2020 EUR, VAT-exclusive).
+"""
+
 import numpy as np
-
-
-def lorenz_cop(
-    t_sink_in: pd.Series,
-    t_sink_out: pd.Series,
-    t_source_in: pd.Series,
-    t_source_out: pd.Series,
-    source_type: str,
-    installed_thermal_capacity: float,
-    approach_temperature: float = 5,
-) -> float:
-    """
-    Calculate the COP of a heat pump using the Lorentz formula.
-    COPlorentz = Tlm_sink/(Tlm_sink - Tlm_source) * eta_lorenz
-    The lorentz COP is more accurate than Carnot COP in the case of multistage heat pumps.
-    https://ens.dk/sites/ens.dk/files/Analyser/technology_data_catalogue_for_el_and_dh.pdf (pag 288)
-    Input temperatures are in °C.
-
-    Args:
-    t_sink_in: temperature of the sink fluid at the inlet of the heat pump [C]
-    t_sink_out: temperature of the sink fluid at the outlet of the heat pump [C]
-    t_source_in: temperature of the source fluid at the inlet of the heat pump [C]
-    t_source_out: temperature of the source fluid at the outlet of the heat pump [C]
-    source_type : type of the source fluid. It can be 'air' or 'excess_heat'
-    installed_thermal_capacity: the installed thermal capacity of the heat pump [MW]
-    approach_temperature: the additional temperature difference between the sink or source and the heat pump fluid [C]
-    """
-    t_sink_in = t_sink_in + 273.15 + approach_temperature
-    t_sink_out = t_sink_out + 273.15 + approach_temperature
-    t_source_in = t_source_in + 273.15 + approach_temperature
-    t_source_out = t_source_out + 273.15 + approach_temperature
-
-    cop_lorenz = log_temp(t_sink_in, t_sink_out) / (
-        log_temp(t_sink_in, t_sink_out) - log_temp(t_source_in, t_source_out)
-    )
-    if cop_lorenz > 4:
-        cop_lorenz = 4
-
-    elif source_type == "air":
-        eta_lorenz = 5.6485 * np.log(installed_thermal_capacity) + 46.929
-
-    elif source_type == "excess_heat":
-        eta_lorenz = 4.3399 * np.log(installed_thermal_capacity) + 40.08
-
-    else:
-        raise ValueError("source_type must be 'air' or 'excess_heat'")
-    return cop_lorenz * eta_lorenz
-
-
-def log_temp(t_in, t_out):
-    return (t_in - t_out) / np.log(t_in / t_out)
+import pandas as pd
 
 
 def capital_costs_hp(installed_thermal_capacity: float, source_type: str) -> float:
-    """
-    Calculate the installation cost of a heat pump based on the heat source type and the installed thermal capacity.
-    The cost is in Million EUR. Startup costs are ignored.
-    Args:
-    installed_thermal_capacity: the installed thermal capacity of the heat pump [MW]
-    source_type : type of the source fluid. It can be 'air' or 'excess_heat'
+    """Heat-pump nominal investment cost from a DEA power-law fit.
+
+    Parameters
+    ----------
+    installed_thermal_capacity : float
+        Installed thermal capacity of the heat pump, MW.
+    source_type : {"air", "excess_heat"}
+        Heat source category. Selects the relevant DEA fit.
+
+    Returns
+    -------
+    float
+        Nominal investment cost in million EUR (2020, VAT-exclusive).
+        Startup costs are not included.
+
+    Raises
+    ------
+    ValueError
+        If ``source_type`` is not one of the supported categories.
     """
     if source_type == "air":
         nominal_investment_total = 1.435 * installed_thermal_capacity ** (-0.219)
@@ -76,15 +46,27 @@ def var_oem_hp(
     source_type: str,
     yearly_thermal_energy_produced: float,
 ) -> float:
-    """
-    Calculate the variable operation and maintenance (O&M) costs of a heat pump based on the heat source type and the amount of Energy produced in the time frame.
-    The cost is in Million EUR/year (assuming we a whole year of thermal_ernergy_produced)
-    Args:
-    installed_thermal_capacity: the installed thermal capacity of the heat pump [MW]
-    source_type : type of the source fluid. It can be 'air' or 'excess_heat'
-    thermal_energy_produced: the thermal energy produced by the heat pump [MWh/year]
-    """
+    """Variable O&M cost per year, from a DEA power-law fit.
 
+    Parameters
+    ----------
+    installed_thermal_capacity : float
+        Installed thermal capacity of the heat pump, MW.
+    source_type : {"air", "excess_heat"}
+        Heat source category.
+    yearly_thermal_energy_produced : float
+        Annual thermal energy delivered, MWh/year.
+
+    Returns
+    -------
+    float
+        Variable O&M cost in million EUR/year.
+
+    Raises
+    ------
+    ValueError
+        If ``source_type`` is not one of the supported categories.
+    """
     if source_type == "air":
         var_oem = (-0.461 * np.log(installed_thermal_capacity)) + 2.852
 
@@ -97,12 +79,27 @@ def var_oem_hp(
 
 
 def fixed_oem_hp(installed_thermal_capacity: float, source_type: str) -> float:
-    """
-    Calculate the fixed operation and maintenance (O&M) costs of a heat pump based on the heat source type and the installed thermal capacity.
-    The cost is in Million EUR/year.
-    Args:
-    installed_thermal_capacity: the installed thermal capacity of the heat pump [MW]
-    source_type : type of the source fluid. It can be 'air' or 'excess_heat'
+    """Fixed O&M cost per year (independent of capacity in the current fit).
+
+    Parameters
+    ----------
+    installed_thermal_capacity : float
+        Installed thermal capacity of the heat pump, MW. Currently
+        unused — the DEA fit is flat across capacities — but kept in
+        the signature for symmetry with :func:`capital_costs_hp` and
+        :func:`var_oem_hp`.
+    source_type : {"air", "excess_heat"}
+        Heat source category.
+
+    Returns
+    -------
+    float
+        Fixed O&M cost in EUR/year.
+
+    Raises
+    ------
+    ValueError
+        If ``source_type`` is not one of the supported categories.
     """
     if source_type == "air":
         fixed_oem = 2126.75
@@ -124,6 +121,49 @@ def calculate_lcoh(
     heat_output_series,
     discount_rate,
 ):
+    r"""Levelised Cost of Heat over the supplied operating horizon.
+
+    Implements the standard discounted-cash-flow LCOH:
+
+    .. math::
+
+       \text{LCOH} = \frac{C_\text{inv} + \sum_{t=1}^{N}
+                            \frac{C_\text{fix}^{t} + C_\text{var}^{t}
+                            + C_\text{el}^{t}}{(1+r)^{t}}}
+                          {\sum_{t=1}^{N}
+                            \frac{Q_\text{out}^{t}}{(1+r)^{t}}}
+
+    Investment is taken at year 0 (undiscounted); operating costs and
+    heat output start at year 1 (so the loop variable ``t`` is
+    one-indexed via ``(t + 1)`` in the discount factor).
+
+    Parameters
+    ----------
+    investment_costs : float
+        Up-front investment cost in EUR (or any currency, consistently
+        applied to the operating series).
+    fixed_om_series : pandas.DataFrame
+        One column, indexed 0..N-1, with annual fixed O&M cost.
+    variable_om_series : pandas.DataFrame
+        Same shape as ``fixed_om_series``; annual variable O&M cost.
+    electricity_costs_series : pandas.DataFrame
+        Same shape; annual electricity cost.
+    heat_output_series : pandas.DataFrame
+        Same shape; annual delivered heat in MWh (or kWh — the unit of
+        the result follows: EUR/MWh or EUR/kWh).
+    discount_rate : float
+        Real discount rate, e.g. ``0.05`` for 5 %.
+
+    Returns
+    -------
+    float
+        Levelised cost of heat in EUR per unit of ``heat_output_series``.
+
+    Raises
+    ------
+    ValueError
+        If any of the four time series have differing lengths.
+    """
     if (
         len(fixed_om_series) != len(variable_om_series)
         or len(fixed_om_series) != len(electricity_costs_series)
@@ -135,38 +175,49 @@ def calculate_lcoh(
     numerator = investment_costs
     denominator = 0
 
-    ### Because the index starts at 0, we need to add 1 to the year to get the correct year number
-    # since we are using the investment cost as the year 0 cash flow here.
+    # The series index starts at 0; the first operating year is year 1,
+    # so the discount factor uses (t + 1).
     years = fixed_om_series.index
     for t in years:
-        # discount_factor = (1 + discount_rate) ** (t + 1)
         discount_factor = (1 + discount_rate) ** (t + 1)
-        # Sum the discounted costs
         numerator += (
             fixed_om_series.iloc[t, 0]
             + variable_om_series.iloc[t, 0]
             + electricity_costs_series.iloc[t, 0]
         ) / discount_factor
 
-        # Sum the discounted heat output
         denominator += heat_output_series.iloc[t, 0] / discount_factor
-
-    # Add investment cost as a one-time cost in the first year (not discounted if it's paid upfront)
-    # numerator += investment_costs
 
     lcoh = numerator / denominator
     return lcoh
 
 
 def compute_ouc_residual(discount_rate, npv_years, lcoh_years):
-    """Compute the Outstanding Unrecovered Capital as a fraction of DHG investment.
+    """Outstanding Unrecovered Capital as a fraction of the DHG investment.
 
-    When LCOH is amortised over a longer horizon (lcoh_years) than the NPV
-    evaluation period (npv_years), the operator under-recovers on the
-    investment. The OUC is the remaining capital, expressed as an undiscounted
-    fraction of the original investment at year ``npv_years``.
+    When LCOH is amortised over a longer horizon (``lcoh_years``) than
+    the NPV evaluation period (``npv_years``), the operator
+    under-recovers on the investment by year ``npv_years``. The OUC
+    quantifies that gap as an *undiscounted* fraction of the original
+    investment, suitable to plug in as a residual-value term in the
+    NPV calculation.
 
-    Returns a fraction (e.g. 0.77) to be used in place of percent_residual_value.
+    Parameters
+    ----------
+    discount_rate : float
+        Real discount rate (e.g. ``0.05``).
+    npv_years : int
+        Length of the NPV evaluation horizon, years.
+    lcoh_years : int
+        Length of the LCOH amortisation horizon, years.
+        Typically ``lcoh_years > npv_years``.
+
+    Returns
+    -------
+    float
+        Undiscounted residual fraction of investment at year
+        ``npv_years``. Multiply by ``investment_costs`` to recover the
+        residual value.
     """
     r = discount_rate
     pv_lcoh = sum(1 / (1 + r) ** (t + 1) for t in range(lcoh_years))
@@ -177,25 +228,41 @@ def compute_ouc_residual(discount_rate, npv_years, lcoh_years):
 
 
 def calculate_revenues(delivered_heat_demand, heat_prices):
-    """
-    Calculate the revenues from the heat supply. The two input must be the same length. Alternatively, the heat_demand can be a pd.Series and the heat_prices can be a float.
-    Args:
-    delivered_heat_demand: the heat demand of the customer [MWh/year]
-    heat_prices: the prices of the heat supply [EUR/MWh]
+    """Revenue from heat sales, element-wise multiplication.
+
+    Parameters
+    ----------
+    delivered_heat_demand : pandas.Series or float
+        Heat delivered (MWh/year, or any time-aligned shape).
+    heat_prices : pandas.Series or float
+        Heat price (EUR/MWh). When both arguments are series they must
+        be the same length.
+
+    Returns
+    -------
+    pandas.Series or float
+        Revenue, same shape as the inputs.
     """
     return delivered_heat_demand * heat_prices
 
 
 def calculate_future_values(base_values: dict, n_years: int):
-    """
-    Creates a DataFrame of yearly values (e.g., revenues or expenses) for the duration of the analysis.
+    """Project a dict of base values into a flat ``n_years``-row DataFrame.
 
-    Args:
-        base_values (dict): A dictionary containing the base values for each stream (e.g., revenue streams or expense categories).
-        n_years (int): The number of years to project the values.
+    Parameters
+    ----------
+    base_values : dict
+        Mapping from stream name (e.g. ``"electricity_cost"``) to its
+        base annual value. Each value is broadcast to all years.
+    n_years : int
+        Number of years to project.
 
-    Returns:
-        pd.DataFrame: A DataFrame containing the projected yearly values for each stream over the specified number of years.
+    Returns
+    -------
+    pandas.DataFrame
+        ``n_years`` rows indexed ``0..n_years-1``, one column per key
+        in ``base_values``. All rows hold the base value (no escalation
+        applied here — escalation is layered in by callers).
     """
     yearly_values = pd.DataFrame(
         {key: [value] * n_years for key, value in base_values.items()},
