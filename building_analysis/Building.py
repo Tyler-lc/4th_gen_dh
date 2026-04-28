@@ -3,9 +3,10 @@ import pandas as pd
 import warnings
 import json
 import os
-from typing import Union
+from typing import Optional, Union
 
 from Person.Person import Person
+from config import SEED, derive_seed
 
 #       from ISEK_Integriertes_Städtebauliches_Entwicklungskonzept_für_Griesheim-Mitte_Stand_08_2019_.pdf
 #       we know that there are on average 3.36m2/person. So we can calculate the number of people based on the floor area
@@ -406,23 +407,37 @@ class Building:
 
     # here we start adding people to the building.
 
-    def add_people(self, n_people: int = None):
+    def add_people(self, n_people: int = None, seed: Optional[int] = SEED):
         """add people in the building based on the Person.py class.
-        To calculate domestic hot water call the method 'domestic_hot_water'"""
+        To calculate domestic hot water call the method 'domestic_hot_water'
+
+        Parameters
+        ----------
+        n_people : int, optional
+            Override the building's stored ``n_people``. Defaults to ``self.n_people``.
+        seed : int, optional
+            Seed root for per-Person RNG. Each Person receives
+            ``derive_seed(seed, (building_id, idx))`` so DHW + occupancy draws
+            are reproducible. Pass ``None`` to fall back to the global
+            ``np.random`` (legacy unseeded behaviour).
+        """
         if n_people == None:
             n_people = self.n_people
 
         if self.n_people == 0:  # if there are no people do not add any
             return
 
-        for ids in self.people_id:
-            person_id = ids
+        for idx, person_id in enumerate(self.people_id):
             start_year = f"01/01/{self.year_start}"
+            person_seed = (
+                derive_seed(seed, (self.building_id, idx)) if seed is not None else None
+            )
             self.people.append(
                 Person(
                     building_id=self.building_id,
                     person_id=person_id,
                     start_year=start_year,
+                    seed=person_seed,
                 )
             )
 
