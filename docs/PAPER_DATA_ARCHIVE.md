@@ -27,19 +27,49 @@ The branch already ships:
 
 To populate the gitignored result trees (`building_analysis/results/`,
 `building_analysis/dhw_profiles/`, `sensitivity_analysis/`, `plots/`,
-`grid_calculation/cache/`) on disk, extract the tar archive recorded below:
+`grid_calculation/cache/`) on disk, restore the companion archive deposited
+on Zenodo:
+
+> **Zenodo:** <https://doi.org/10.5281/zenodo.19894657>
+> **Archive:** `4th_gen_dh_paper_data_2026-04-29.tar.gz` (5.7 GB)
+> **SHA256:** `18d00e3431460e08ba068ef47d9266abe6d8ec051915d519a18bdf2f0a78f01e`
+
+### Easy path (recommended)
 
 ```bash
 git checkout paper-ecmx-2026
 conda env create -f environment.yml
 conda activate dh_sim
 pip install -e .
-tar -xzf <path-to-archive>/4th_gen_dh_paper_submission_2026-04-19.tar.gz
-pytest -m regression                   # 29 tests, all pass against paper data
+python scripts/restore_paper_data.py    # downloads, verifies SHA256, extracts
+pytest -m regression                    # 29 tests pass against paper data
 ```
 
-If the tar is unavailable in your environment, `paper-submission-v1` plus
-fresh pipeline run is the alternative reproducibility path; see "Restoration
+`scripts/restore_paper_data.py` finds the repository root automatically,
+downloads the archive from Zenodo, verifies its SHA256, and extracts at the
+correct location. Pass a local path as a positional argument if you have
+the tar already (`python scripts/restore_paper_data.py /path/to/archive.tar.gz`).
+
+### Manual path
+
+```bash
+git checkout paper-ecmx-2026
+conda env create -f environment.yml
+conda activate dh_sim
+pip install -e .
+
+# Download manually from https://doi.org/10.5281/zenodo.19894657 (or:)
+curl -L -o 4th_gen_dh_paper_data_2026-04-29.tar.gz \
+    "https://zenodo.org/records/19894657/files/4th_gen_dh_paper_data_2026-04-29.tar.gz"
+shasum -a 256 4th_gen_dh_paper_data_2026-04-29.tar.gz
+# expect: 18d00e3431460e08ba068ef47d9266abe6d8ec051915d519a18bdf2f0a78f01e
+
+tar -xzf 4th_gen_dh_paper_data_2026-04-29.tar.gz
+pytest -m regression
+```
+
+If the Zenodo deposit is unavailable, `paper-submission-v1` plus a fresh
+pipeline run is the alternative reproducibility path; see "Restoration
 procedure (legacy code state)" below.
 
 ## What is archived where
@@ -74,47 +104,46 @@ cleanup (ticket #134). On other branches such as `publication-ready`, the
 working baseline tracks the post-Phase-7b regeneration and is allowed to
 drift from the paper baseline.
 
-### 3. Result artefacts — external backup (user-managed)
+### 3. Result artefacts — Zenodo deposit
 
-The following directories are **not** tracked in git (they are gitignored
-because of size). They were lost-and-regenerable under the old pipeline;
-under the new pipeline they will be regenerated from scratch with different
-seeds. To preserve the paper data, back them up externally before running
-any Phase 7b regeneration:
+The following directories are **not** tracked in git (gitignored because of
+size) and are archived on Zenodo as the companion deposit:
 
 ```text
 building_analysis/results/
 building_analysis/dhw_profiles/
-sensitivity_analysis/*/data/
-sensitivity_analysis/*/renovated/data/
-sensitivity_analysis/*/booster/data/
+sensitivity_analysis/
 plots/
 grid_calculation/cache/
 ```
 
-### Recommended backup command
+Public deposit:
 
-From the repository root:
+- DOI: <https://doi.org/10.5281/zenodo.19894657>
+- File: `4th_gen_dh_paper_data_2026-04-29.tar.gz`
+- Direct URL: <https://zenodo.org/records/19894657/files/4th_gen_dh_paper_data_2026-04-29.tar.gz>
+- Compressed size: 5.7 GB
+- Extracted size: ~20 GB
+- Entries: 54,802
+- SHA256: `18d00e3431460e08ba068ef47d9266abe6d8ec051915d519a18bdf2f0a78f01e`
+- Created: 2026-04-29
+
+### Rebuilding the archive
+
+If you need to rebuild the archive from a populated working tree, the recipe
+is:
 
 ```bash
-tar --exclude='.git' --exclude='__pycache__' --exclude='*.egg-info' \
-    -czf ~/backups/4th_gen_dh_paper_submission_2026-04-19.tar.gz \
+tar --exclude='.DS_Store' --exclude='._*' --exclude='*.numbers' \
+    --exclude='* Large.jpeg' --exclude='* Medium.jpeg' \
+    --exclude='sensitivity_analysis/__init__.py' --exclude='__pycache__' \
+    -czf paper_data.tar.gz \
     building_analysis/results \
     building_analysis/dhw_profiles \
     sensitivity_analysis \
     plots \
     grid_calculation/cache
 ```
-
-Archive record:
-
-- Primary location: `~/backups/4th_gen_dh_paper_submission_2026-04-19.tar.gz`
-- Date: 2026-04-19
-- Size: 6.07 GB (5.7 GB per `ls -lh`, macOS binary units)
-- Entries: 54,608 (files + directories)
-- Contents verified with `tar -tzf <archive> | wc -l`
-- Secondary copy: local NAS (user-managed)
-- SHA256: not computed; run `shasum -a 256 <archive>` and append here if integrity verification is later required.
 
 ## Restoration procedure (legacy code state)
 
@@ -129,10 +158,12 @@ To reproduce the paper's numerical results exactly:
    pip install -e .
    ```
 
-2. Restore the result artefacts from the external backup:
+2. Restore the result artefacts from the Zenodo deposit:
 
    ```bash
-   tar -xzf <path-to-archive> -C .
+   curl -L -o paper_data.tar.gz \
+       "https://zenodo.org/records/19894657/files/4th_gen_dh_paper_data_2026-04-29.tar.gz"
+   tar -xzf paper_data.tar.gz
    ```
 
 3. Verify integrity against the archived baseline:

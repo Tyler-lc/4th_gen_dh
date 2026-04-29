@@ -9,7 +9,9 @@ This repository contains the simulation and analysis code accompanying the paper
 
 ## About this snapshot
 
-Branch `paper-ecmx-2026` is a frozen snapshot of the codebase aligned with the ECMX submission. The data files committed here (and the tar archive referenced in `docs/PAPER_DATA_ARCHIVE.md` for the gitignored result tree) are the exact numerical outputs analysed in the paper. The working golden baseline, `tests/golden_baseline.json`, fingerprints those paper-aligned outputs, so `pytest -m regression` validates the paper data rather than a freshly regenerated run.
+Branch `paper-ecmx-2026` is a frozen snapshot of the codebase aligned with the ECMX submission. The data files committed here, together with the companion deposit at **<https://doi.org/10.5281/zenodo.19894657>** (the gitignored result tree), are the exact numerical outputs analysed in the paper. The working golden baseline, `tests/golden_baseline.json`, fingerprints those paper-aligned outputs, so `pytest -m regression` validates the paper data rather than a freshly regenerated run.
+
+To populate the gitignored result trees on a fresh clone, run `python scripts/restore_paper_data.py` — it downloads the archive from Zenodo, verifies its SHA256, and extracts at the repository root. Full instructions in [`docs/PAPER_DATA_ARCHIVE.md`](docs/PAPER_DATA_ARCHIVE.md).
 
 **Honest note on reproducibility.** The code on this snapshot includes a hardened deterministic-seeding refactor introduced after submission (Phase 7a). Running the pipeline from scratch on this code produces a different sample of the same stochastic process — the per-entity RNG draws differ from the legacy un-seeded path that produced the paper data. Aggregate metrics drift in the directions documented in [`docs/baseline_comparison_2026-04-20.md`](docs/baseline_comparison_2026-04-20.md): door-area mean shifts -27 % through TABULA's fat-tailed lookups, age-code -2.4 %, yearly space heating +3.6 %, booster electricity up to +29 % in some sensitivity bins. None of these reflect a bug; they are the expected sample-draw difference between the legacy and hardened seeding regimes.
 
