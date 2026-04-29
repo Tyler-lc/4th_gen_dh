@@ -87,7 +87,7 @@ PIPELINE = [
     # ── Sensitivity preparation ──────────────────────────────────────────
     # 02c reshuffles the buildingstock for sensitivity; depends on 03.
     ("Sensitivity buildingstock (02c)",
-        "02c_buildingstoclk_sensitivity_analysis.py"),
+        "02c_buildingstock_sensitivity_analysis.py"),
     ("Booster sensitivity DHC grid",
         "grid_calculation/03_booster_grid_calculation_sensitivty_analysis.py"),
 

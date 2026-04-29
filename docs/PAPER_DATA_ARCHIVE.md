@@ -4,6 +4,44 @@ This document records the state of the repository at the time of submission
 to *Energy Conversion and Management: X* and the procedures for recovering
 the exact code and results that underpin the paper.
 
+## Two artefacts, two purposes
+
+| Artefact | What it is | Use when |
+|---|---|---|
+| Branch `paper-ecmx-2026` | Cleaned-up codebase + paper data on disk + paper-aligned golden baseline. The commit at HEAD of this branch is the SHA cited from the paper. | You want to read, cite, or extend the paper-aligned codebase. Paper-data parquets are committed; gitignored result trees are restored from the tar archive below. |
+| Tag `paper-submission-v1` | The exact commit submitted with the paper (`e156295`). Code state preserved as-is, including not-yet-cleaned modules and a `.venv` directory accidentally tracked at the time. | You need byte-for-byte reproducibility of the legacy un-seeded RNG path that produced the paper draws. |
+
+The two are consistent: tracked paper-data parquets on `paper-ecmx-2026` are
+identical (by content) to the same paths at `paper-submission-v1`. The
+difference is structural — the snapshot ships an audited, deterministic
+codebase whose source files no longer match the legacy submission code, while
+the tag preserves the legacy code state.
+
+## Restoring full paper data on `paper-ecmx-2026`
+
+The branch already ships:
+
+- All git-tracked paper-data parquets (`building_analysis/buildingstock/buildingstock.parquet`, `grid_calculation/*_result_df*.parquet`, `grid_calculation/sensitivity_analysis/.../booster_result_df_*.parquet`) at their paper-submission content.
+- `tests/golden_baseline.json` aligned with paper outputs (this is `tests/golden_baseline_paper_submission.json` minus four entries pointing at `04_calculate_NPV_renovation.py` outputs — the producing script was removed during post-submission cleanup, ticket #134, so those four files have no current generator).
+- `tests/golden_baseline_paper_submission.json` itself, the immutable fingerprint of the submission outputs.
+
+To populate the gitignored result trees (`building_analysis/results/`,
+`building_analysis/dhw_profiles/`, `sensitivity_analysis/`, `plots/`,
+`grid_calculation/cache/`) on disk, extract the tar archive recorded below:
+
+```bash
+git checkout paper-ecmx-2026
+conda env create -f environment.yml
+conda activate dh_sim
+pip install -e .
+tar -xzf <path-to-archive>/4th_gen_dh_paper_submission_2026-04-19.tar.gz
+pytest -m regression                   # 29 tests, all pass against paper data
+```
+
+If the tar is unavailable in your environment, `paper-submission-v1` plus
+fresh pipeline run is the alternative reproducibility path; see "Restoration
+procedure (legacy code state)" below.
+
 ## What is archived where
 
 ### 1. Code — git tag `paper-submission-v1`
@@ -26,9 +64,15 @@ file.** It stays in the repository as the permanent fingerprint of the
 paper's numerical results (row counts, column hashes, aggregate statistics,
 MD5 of every result file).
 
-The working `tests/golden_baseline.json` will be regenerated under the new
-seeding regime during Phase 7b and is allowed to drift from the paper
-baseline.
+On the snapshot branch `paper-ecmx-2026`, the working
+`tests/golden_baseline.json` is also paper-aligned: it is the paper baseline
+minus four entries (`costs/renovation_costs.csv`,
+`costs/energy_savings_renovated.csv`, `costs/npv_data_renovated_gas.csv`,
+`grid_calculation/booster_results.csv`) whose producer
+(`04_calculate_NPV_renovation.py`) was removed during post-submission
+cleanup (ticket #134). On other branches such as `publication-ready`, the
+working baseline tracks the post-Phase-7b regeneration and is allowed to
+drift from the paper baseline.
 
 ### 3. Result artefacts — external backup (user-managed)
 
@@ -72,7 +116,7 @@ Archive record:
 - Secondary copy: local NAS (user-managed)
 - SHA256: not computed; run `shasum -a 256 <archive>` and append here if integrity verification is later required.
 
-## Restoration procedure
+## Restoration procedure (legacy code state)
 
 To reproduce the paper's numerical results exactly:
 
