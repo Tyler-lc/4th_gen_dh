@@ -13,7 +13,7 @@ Branch `paper-ecmx-2026` is a frozen snapshot of the codebase aligned with the E
 
 To populate the gitignored result trees on a fresh clone, run `python scripts/restore_paper_data.py` — it downloads the archive from Zenodo, verifies its SHA256, and extracts at the repository root. Full instructions in [`docs/PAPER_DATA_ARCHIVE.md`](docs/PAPER_DATA_ARCHIVE.md).
 
-**Honest note on reproducibility.** The code on this snapshot includes a hardened deterministic-seeding refactor introduced after submission (Phase 7a). Running the pipeline from scratch on this code produces a different sample of the same stochastic process — the per-entity RNG draws differ from the legacy un-seeded path that produced the paper data. Aggregate metrics drift in the directions documented in [`docs/baseline_comparison_2026-04-20.md`](docs/baseline_comparison_2026-04-20.md): door-area mean shifts -27 % through TABULA's fat-tailed lookups, age-code -2.4 %, yearly space heating +3.6 %, booster electricity up to +29 % in some sensitivity bins. None of these reflect a bug; they are the expected sample-draw difference between the legacy and hardened seeding regimes.
+**Honest note on reproducibility.** The code on this snapshot includes a hardened deterministic-seeding refactor introduced after submission (Phase 7a). Running the pipeline from scratch on this code produces a different sample of the same stochastic process — the per-entity RNG draws differ from the legacy un-seeded path that produced the paper data. Aggregate metrics drift in measurable directions: door-area mean shifts -27 % through TABULA's fat-tailed lookups, age-code -2.4 %, yearly space heating +3.6 %, booster electricity up to +29 % in some sensitivity bins. None of these reflect a bug; they are the expected sample-draw difference between the legacy and hardened seeding regimes.
 
 If you need to reproduce the paper's numerical results bit-for-bit, check out tag `paper-submission-v1` (commit `e156295`) and follow the restoration recipe in [`docs/PAPER_DATA_ARCHIVE.md`](docs/PAPER_DATA_ARCHIVE.md). That tag preserves the exact code state at submission. The current snapshot is the paper-citable artifact: improved code structure, paper data on disk, and a transparent record of where the post-submission cleanup diverges from the original draws.
 
@@ -32,7 +32,6 @@ If you need to reproduce the paper's numerical results bit-for-bit, check out ta
 ├── 09b-09d_*_Sens_Analysis.py       # Sensitivity analyses
 ├── 10a-10d_*_gas_vs_electricity.py  # Gas vs electricity comparisons
 ├── 11-24_*.py                       # Plotting and supplementary analysis
-├── run_all_scenarios.py             # Run full analysis pipeline
 ├── run_pipeline_regeneration.py     # Reproducible end-to-end pipeline runner
 │
 ├── building_analysis/               # Building class, stock generation, results
@@ -83,13 +82,7 @@ Geospatial binaries (`geopandas`, `osmnx`) may require system-level build tools 
 
 ### Full pipeline
 
-Run all scenarios, sensitivity analyses, and generate all figures:
-
-```bash
-python run_all_scenarios.py
-```
-
-For an end-to-end orchestrated run with progress logging and resumability, use `run_pipeline_regeneration.py`:
+Run all scenarios, sensitivity analyses, and generate all figures with progress logging and resumability:
 
 ```bash
 python run_pipeline_regeneration.py            # full pipeline

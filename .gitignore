@@ -213,3 +213,12 @@ dhw_explanation.synctex.gz
 dhw_explanation.tex
 dhw_system_characteristics.csv
 validation/e_plus
+
+# Editor / environment / agent
+.venv/
+.vscode/
+CLAUDE.md
+
+# Internal / non-public artefacts kept on disk but excluded from the paper-citable tag
+CHANGELOG_VAT_removal.md
+docs/baseline_comparison_2026-04-20.md
