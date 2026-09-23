@@ -54,7 +54,7 @@ type_order = ["MFH", "AB", "SFH", "TH", "NR"]
 fig, ax_main = plt.subplots(figsize=(12, 4.5))
 
 # Streets
-streets.plot(ax=ax_main, color="#cccccc", linewidth=0.5, zorder=1)
+streets.plot(ax=ax_main, color="#cccccc", linewidth=0.7, zorder=1)
 
 # Buildings by type (NR first so residential overlays)
 for ttype in reversed(type_order):
@@ -65,7 +65,8 @@ for ttype in reversed(type_order):
         ax=ax_main,
         color=type_colours[ttype],
         edgecolor="black",
-        linewidth=0.15,
+        linewidth=0.3,
+        alpha=0.5 if ttype == "NR" else 1.0,
         zorder=2 if ttype == "NR" else 3,
         label=ttype,
     )
@@ -94,7 +95,7 @@ for x in [bar_x, bar_x + bar_length]:
     )
 ax_main.text(
     bar_x + bar_length / 2, bar_y - 15, f"{bar_length} m",
-    ha="center", va="top", fontsize=9, fontweight="bold", zorder=10,
+    ha="center", va="top", fontsize=13, fontweight="bold", zorder=10,
 )
 
 # ── North arrow (axes fraction, upper-left, clear spacing) ───────────────
@@ -106,7 +107,7 @@ ax_main.annotate(
 ax_main.text(
     0.02, 0.97, "N",
     transform=ax_main.transAxes,
-    fontsize=10, fontweight="bold", ha="center", va="bottom",
+    fontsize=14, fontweight="bold", ha="center", va="bottom",
 )
 
 # ── Legend ────────────────────────────────────────────────────────────────
@@ -123,11 +124,11 @@ legend_handles.append(
 ax_main.legend(
     handles=legend_handles,
     loc="lower left",
-    fontsize=8,
+    fontsize=13,
     framealpha=0.85,
     edgecolor="grey",
     title="Building type",
-    title_fontsize=9,
+    title_fontsize=14,
 )
 
 fig.tight_layout()
